@@ -16,16 +16,16 @@
 </template>
 
 <script lang="ts" setup>
-const timestamp = ref(0);
+const now = ref(Date.now());
 
 const formatted = computed(() => {
-  return new Date(timestamp.value).toLocaleString();
+  return new Date(now.value).toLocaleString("pt-BR");
 });
 
 onMounted(() => {
   if (import.meta.client) {
     setInterval(() => {
-      timestamp.value += 1;
+      now.value = Date.now();
     }, 1000);
   }
 });
