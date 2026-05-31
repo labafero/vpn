@@ -7,7 +7,6 @@
       <span class="inline-block w-2.5 h-2.5 bg-[#FF0000] rounded-full" />
     </div>
     <div>VPN CONECTADA</div>
-    <div>[1642] JACKY TEQUILA</div>
     <ClientOnly>
       <div>{{ formatted }}</div>
       <template #fallback> ##/##/####, ##:##:## </template>
