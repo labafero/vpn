@@ -16,6 +16,7 @@
     "@nuxt/content": "3.14.0",
     "@nuxt/icon": "2.2.2",
     "@nuxt/ui": "^4.7.1",
+    "@nuxtjs/supabase": "2.0.9",
     "better-sqlite3": "^12.10.0",
     "nuxt": "^4.4.6",
     "tailwindcss": "^4.3.0"
