@@ -19,7 +19,8 @@
     "@nuxtjs/supabase": "2.0.9",
     "better-sqlite3": "^12.10.0",
     "nuxt": "^4.4.6",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "valibot": "^1.4.1"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
