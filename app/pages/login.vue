@@ -30,23 +30,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     return;
   }
 
-  navigateTo(redirectInfo.pluck() || "/redacao");
+  navigateTo(redirectInfo.path.value || "/redacao");
 }
 </script>
 
 <template>
   <div class="flex flex-col items-center justify-center gap-4 p-4">
-    <UPageCard
-      class="w-full max-w-md"
-      title="VPN"
-      description="Faça login para continuar"
-    >
-      <UForm
-        :schema="schema"
-        :state="state"
-        class="space-y-4"
-        @submit="onSubmit"
-      >
+    <UPageCard class="w-full max-w-md" title="VPN" description="Faça login para continuar">
+      <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField label="E-mail" name="email">
           <UInput v-model="state.email" class="w-full" />
         </UFormField>

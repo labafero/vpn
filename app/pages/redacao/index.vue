@@ -71,8 +71,8 @@ async function remove(id: number) {
             {{ post.body }}
           </p>
         </div>
-
-        <div v-if="post.user_id === user?.id" class="flex gap-1 shrink-0">
+        
+        <div v-if="post.user_id === user?.sub" class="flex gap-1 shrink-0">
           <UButton
             color="neutral"
             variant="outline"
