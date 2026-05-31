@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import * as v from 'valibot'
-import type { FormSubmitEvent } from '@nuxt/ui'
+import * as v from "valibot";
+import type { FormSubmitEvent } from "@nuxt/ui";
 
 const schema = v.object({
-  email: v.pipe(v.string(), v.email('Invalid email')),
-  password: v.pipe(v.string(), v.minLength(8, 'Must be at least 8 characters'))
-})
+  email: v.pipe(v.string(), v.email("Invalid email")),
+  password: v.pipe(v.string(), v.minLength(8, "Must be at least 8 characters")),
+});
 
-type Schema = v.InferOutput<typeof schema>
+type Schema = v.InferOutput<typeof schema>;
 
 const state = reactive({
-  email: '',
-  password: ''
-})
+  email: "",
+  password: "",
+});
 
-const toast = useToast()
-const supabase = useSupabaseClient()
-const redirectInfo = useSupabaseCookieRedirect()
+const toast = useToast();
+const supabase = useSupabaseClient();
+const redirectInfo = useSupabaseCookieRedirect();
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   const { error } = await supabase.auth.signInWithPassword({
     email: event.data.email,
-    password: event.data.password
-  })
+    password: event.data.password,
+  });
 
   if (error) {
-    console.log(error?.message)
-    toast.add({ title: error.message, color: 'error' })
-    return
+    console.log(error?.message);
+    toast.add({ title: error.message, color: "error" });
+    return;
   }
 
-  navigateTo(redirectInfo.pluck() || '/redacao')
+  navigateTo(redirectInfo.pluck() || "/redacao");
 }
 </script>
 
@@ -47,30 +47,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         class="space-y-4"
         @submit="onSubmit"
       >
-        <UFormField
-          label="E-mail"
-          name="email"
-        >
-          <UInput
-            v-model="state.email"
-            class="w-full"
-          />
+        <UFormField label="E-mail" name="email">
+          <UInput v-model="state.email" class="w-full" />
         </UFormField>
 
-        <UFormField
-          label="Senha"
-          name="password"
-        >
-          <UInput
-            v-model="state.password"
-            type="password"
-            class="w-full"
-          />
+        <UFormField label="Senha" name="password">
+          <UInput v-model="state.password" type="password" class="w-full" />
         </UFormField>
 
-        <UButton type="submit">
-          Entrar
-        </UButton>
+        <UButton type="submit"> Entrar </UButton>
       </UForm>
     </UPageCard>
   </div>

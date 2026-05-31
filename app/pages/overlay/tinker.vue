@@ -1,14 +1,7 @@
 <template>
   <div class="flex">
-    <UMarquee
-      :overlay="false"
-      class="bg-[#361313] text-[#FF0000] px-5 py-2.5 text-3xl uppercase"
-    >
-      <span
-        v-for="line in lines"
-        :key="line"
-        class="flex gap-16"
-      >
+    <UMarquee :overlay="false" class="bg-[#361313] text-[#FF0000] px-5 py-2.5 text-3xl uppercase">
+      <span v-for="line in lines" :key="line" class="flex gap-16">
         <span>//</span>
         <span>{{ line }}</span>
       </span>
@@ -20,9 +13,35 @@
 </template>
 
 <script lang="ts" setup>
-const allPosts = await queryCollection('blog').order('date', 'DESC').all()
+const supabase = useSupabaseClient();
+
+type Post = {
+  id: number;
+  title: string;
+  body: string;
+  cover_url: string;
+  user_id: string;
+  created_at: string;
+};
+
+const posts = ref<Post[]>([]);
+const loading = ref(true);
+
+onMounted(async () => {
+  const { data } = await supabase
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (data) posts.value = data as Post[];
+  loading.value = false;
+});
 
 const lines = computed(() => {
-  return allPosts.map(post => post.title)
-})
+  if (loading.value) return ["Carregando..."];
+  if (posts.value.length === 0) return ["Nenhuma matéria encontrada."];
+
+  return posts.value.map((post) => post.title);
+});
 </script>

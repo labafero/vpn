@@ -1,68 +1,53 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: "auth" });
 
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 
 type Post = {
-  id: number
-  title: string
-  body: string
-  cover_url: string
-  user_id: string
-  created_at: string
-}
+  id: number;
+  title: string;
+  body: string;
+  cover_url: string;
+  user_id: string;
+  created_at: string;
+};
 
-const posts = ref<Post[]>([])
-const loading = ref(true)
+const posts = ref<Post[]>([]);
+const loading = ref(true);
 
 onMounted(async () => {
   const { data } = await supabase
-    .from('posts')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  if (data) posts.value = data as Post[]
-  loading.value = false
-})
+  if (data) posts.value = data as Post[];
+  loading.value = false;
+});
 
 async function remove(id: number) {
-  if (!confirm('Tem certeza que deseja excluir este post?')) return
+  if (!confirm("Tem certeza que deseja excluir este post?")) return;
 
-  const { error } = await supabase.from('posts').delete().eq('id', id)
-  if (!error) posts.value = posts.value.filter(p => p.id !== id)
+  const { error } = await supabase.from("posts").delete().eq("id", id);
+  if (!error) posts.value = posts.value.filter((p) => p.id !== id);
 }
 </script>
 
 <template>
   <div class="max-w-3xl mx-auto py-8 px-4">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">
-        Redação
-      </h1>
-      <UButton to="/redacao/novo">
-        Novo Post
-      </UButton>
+      <h1 class="text-2xl font-bold">Redação</h1>
+      <UButton to="/redacao/novo"> Novo Post </UButton>
     </div>
 
-    <p
-      v-if="loading"
-      class="text-gray-500"
-    >
-      Carregando...
-    </p>
+    <p v-if="loading" class="text-gray-500">Carregando...</p>
 
-    <p
-      v-else-if="posts.length === 0"
-      class="text-gray-500"
-    >
+    <p v-else-if="posts.length === 0" class="text-gray-500">
       Nenhum post ainda.
     </p>
 
-    <div
-      v-else
-      class="space-y-4"
-    >
+    <div v-else class="space-y-4">
       <div
         v-for="post in posts"
         :key="post.id"
@@ -73,27 +58,21 @@ async function remove(id: number) {
           :src="post.cover_url"
           alt=""
           class="w-24 h-16 object-cover rounded shrink-0"
-        >
+        />
 
         <div class="flex-1 min-w-0">
           <h2 class="font-semibold truncate">
             {{ post.title }}
           </h2>
           <p class="text-sm text-gray-500 mt-1">
-            {{ new Date(post.created_at).toLocaleDateString('pt-BR') }}
+            {{ new Date(post.created_at).toLocaleDateString("pt-BR") }}
           </p>
-          <p
-            v-if="post.body"
-            class="text-sm text-gray-600 mt-1 line-clamp-2"
-          >
+          <p v-if="post.body" class="text-sm text-gray-600 mt-1 line-clamp-2">
             {{ post.body }}
           </p>
         </div>
 
-        <div
-          v-if="post.user_id === user?.id"
-          class="flex gap-1 shrink-0"
-        >
+        <div v-if="post.user_id === user?.id" class="flex gap-1 shrink-0">
           <UButton
             color="neutral"
             variant="outline"

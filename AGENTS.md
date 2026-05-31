@@ -38,13 +38,13 @@ CI pipeline: `lint → typecheck` (no tests configured).
 
 ## Pages
 
-| Route | File | Purpose |
-|---|---|---|
-| `/` | `app/pages/index.vue` | Empty shell (landing) |
-| `/login` | `app/pages/login.vue` | Email/password sign-in |
-| `/confirm` | `app/pages/confirm.vue` | Auth callback, redirects to `/` |
-| `/overlay/record` | `app/pages/overlay/record.vue` | OBS broadcast overlay |
-| `/overlay/tinker` | `app/pages/overlay/tinker.vue` | OBS news ticker overlay |
+| Route             | File                           | Purpose                         |
+| ----------------- | ------------------------------ | ------------------------------- |
+| `/`               | `app/pages/index.vue`          | Empty shell (landing)           |
+| `/login`          | `app/pages/login.vue`          | Email/password sign-in          |
+| `/confirm`        | `app/pages/confirm.vue`        | Auth callback, redirects to `/` |
+| `/overlay/record` | `app/pages/overlay/record.vue` | OBS broadcast overlay           |
+| `/overlay/tinker` | `app/pages/overlay/tinker.vue` | OBS news ticker overlay         |
 
 ## Package manager
 

@@ -1,41 +1,41 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
-    '@nuxt/eslint',
-    '@nuxt/ui',
-    '@nuxt/icon',
-    '@nuxt/content',
-    '@nuxtjs/supabase'
+    "@nuxt/eslint",
+    "@nuxt/ui",
+    "@nuxt/icon",
+    "@nuxt/content",
+    "@nuxtjs/supabase",
   ],
 
   devtools: {
-    enabled: false
+    enabled: false,
   },
 
-  css: ['~/assets/css/main.css'],
+  css: ["~/assets/css/main.css"],
 
   routeRules: {
-    '/': { prerender: true }
+    "/": { prerender: true },
   },
 
-  compatibilityDate: '2025-01-15',
+  compatibilityDate: "2025-01-15",
 
   vite: {
     optimizeDeps: {
-      include: ['@nuxtjs/mdc']
-    }
+      include: ["@nuxtjs/mdc"],
+    },
   },
 
   eslint: {
     config: {
       stylistic: {
-        commaDangle: 'never',
-        braceStyle: '1tbs'
-      }
-    }
+        commaDangle: "never",
+        braceStyle: "1tbs",
+      },
+    },
   },
 
   supabase: {
-    redirect: false
-  }
-})
+    redirect: false,
+  },
+});
