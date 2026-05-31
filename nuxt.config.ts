@@ -20,18 +20,18 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-01-15',
 
+  vite: {
+    optimizeDeps: {
+      include: ['@nuxtjs/mdc']
+    }
+  },
+
   eslint: {
     config: {
       stylistic: {
         commaDangle: 'never',
         braceStyle: '1tbs'
       }
-    }
-  },
-
-  vite: {
-    optimizeDeps: {
-      include: ['@nuxtjs/mdc']
     }
   }
 })
