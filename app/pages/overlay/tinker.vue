@@ -6,8 +6,9 @@
         <span>{{ line }}</span>
       </span>
     </UMarquee>
-    <div class="bg-[#371A63] text-[#B78CFB] px-5 py-2.5 text-3xl whitespace-nowrap">
-      ÚLTIMAS PUBLICAÇÕES
+    <div class="bg-[#371A63] flex items-center gap-2 text-[#B78CFB] px-5 py-2.5 text-3xl whitespace-nowrap uppercase">
+      <UBadge class="animate-pulse" />
+      <span>vpn.labafero.com</span>
     </div>
   </div>
 </template>
