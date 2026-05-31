@@ -1,6 +1,6 @@
 <template>
   <div class="bg-linear-to-tr from-black/50 to-[#0E300E] p-5 rounded-md inline-flex flex-col items-end text-white">
-    <div>TRANSMITINDO <span class="inline-block w-2.5 h-2.5 bg-[#FF0000] rounded-full"></span></div>
+    <div>TRANSMITINDO <span class="inline-block w-2.5 h-2.5 bg-[#FF0000] rounded-full" /></div>
     <div>VPN CONECTADA</div>
     <div>[1642] JACKY TEQUILA</div>
     <ClientOnly>
