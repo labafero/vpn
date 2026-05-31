@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-linear-to-tr from-black/50 to-[#0E300E] p-5 rounded-md inline-flex flex-col items-end text-white"
+    class="bg-linear-to-tr w-55 from-black/50 to-[#0E300E] p-5 rounded-md inline-flex flex-col items-end text-white"
   >
     <div>
       REC
