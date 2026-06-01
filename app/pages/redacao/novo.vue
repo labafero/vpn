@@ -16,7 +16,8 @@ async function handleSubmit(data: {
   removeCover: boolean;
   removeMedia: boolean;
 }) {
-  const userId = user.value!.id;
+  const userId = user.value?.sub;
+  if (!userId) throw new Error("Usuário não autenticado");
 
   let coverUrl = "";
   let mediaUrl: string | null = null;

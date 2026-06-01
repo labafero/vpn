@@ -11,6 +11,7 @@ export function usePostMedia() {
   const supabase = useSupabaseClient();
 
   function generatePath(userId: string, file: File): string {
+    if (!userId) throw new Error("userId é obrigatório");
     const ext = file.name.split(".").pop();
     const uuid = crypto.randomUUID();
     return `${userId}/${uuid}.${ext}`;
