@@ -5,11 +5,14 @@ const route = useRoute();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
+const { uploadFile, deleteFile, validateFile } = usePostMedia();
 
 type Post = {
   title: string;
   body: string;
   cover_url: string;
+  media_url: string | null;
+  media_type: "audio" | "video" | null;
   user_id: string;
 };
 
@@ -46,9 +49,88 @@ const postFormRef = ref<{ setSubmitting: (v: boolean) => void } | null>(null);
 async function handleSubmit(data: {
   title: string;
   body: string;
-  cover_url: string;
+  coverFile: File | null;
+  mediaFile: File | null;
+  removeCover: boolean;
+  removeMedia: boolean;
 }) {
-  const { error } = await supabase.from("posts").update(data).eq("id", postId);
+  const userId = user.value!.id;
+  const update: {
+    title?: string;
+    body?: string;
+    cover_url?: string;
+    media_url?: string | null;
+    media_type?: "audio" | "video" | null;
+  } = {
+    title: data.title,
+    body: data.body,
+  };
+
+  if (data.removeCover && data.coverFile) {
+    const err = validateFile(data.coverFile, "cover");
+    if (err) {
+      postFormRef.value?.setSubmitting(false);
+      return;
+    }
+    if (post.value?.cover_url) {
+      await deleteFile(post.value.cover_url).catch(() => {});
+    }
+    update.cover_url = await uploadFile(data.coverFile, userId);
+  } else if (data.removeCover) {
+    if (post.value?.cover_url) {
+      await deleteFile(post.value.cover_url).catch(() => {});
+    }
+    update.cover_url = "";
+  } else if (data.coverFile) {
+    const err = validateFile(data.coverFile, "cover");
+    if (err) {
+      postFormRef.value?.setSubmitting(false);
+      return;
+    }
+    if (post.value?.cover_url) {
+      await deleteFile(post.value.cover_url).catch(() => {});
+    }
+    update.cover_url = await uploadFile(data.coverFile, userId);
+  }
+
+  if (data.removeMedia && data.mediaFile) {
+    const err = validateFile(data.mediaFile, "media");
+    if (err) {
+      postFormRef.value?.setSubmitting(false);
+      return;
+    }
+    if (post.value?.media_url) {
+      await deleteFile(post.value.media_url).catch(() => {});
+    }
+    update.media_url = await uploadFile(data.mediaFile, userId);
+    update.media_type = data.mediaFile.type.startsWith("video/")
+      ? "video"
+      : "audio";
+  } else if (data.removeMedia) {
+    if (post.value?.media_url) {
+      await deleteFile(post.value.media_url).catch(() => {});
+    }
+    update.media_url = null;
+    update.media_type = null;
+  } else if (data.mediaFile) {
+    const err = validateFile(data.mediaFile, "media");
+    if (err) {
+      postFormRef.value?.setSubmitting(false);
+      return;
+    }
+    if (post.value?.media_url) {
+      await deleteFile(post.value.media_url).catch(() => {});
+    }
+    update.media_url = await uploadFile(data.mediaFile, userId);
+    update.media_type = data.mediaFile.type.startsWith("video/")
+      ? "video"
+      : "audio";
+  }
+
+  const { error } = await supabase
+    .from("posts")
+    .update(update)
+    .eq("id", postId);
 
   if (error) {
     postFormRef.value?.setSubmitting(false);
@@ -71,6 +153,8 @@ async function handleSubmit(data: {
       :initial-title="post.title"
       :initial-body="post.body"
       :initial-cover-url="post.cover_url"
+      :initial-media-url="post.media_url ?? undefined"
+      :initial-media-type="post.media_type"
       submit-label="Salvar"
       @submit="handleSubmit"
     />

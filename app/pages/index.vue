@@ -1,12 +1,13 @@
 <script setup lang="ts">
 const supabase = useSupabaseClient();
-const user = useSupabaseUser();
 
 type Post = {
   id: number;
   title: string;
   body: string;
   cover_url: string;
+  media_url: string | null;
+  media_type: "audio" | "video" | null;
   user_id: string;
   created_at: string;
 };
@@ -27,13 +28,41 @@ onMounted(async () => {
 
 <template>
   <UPage>
-    <UPageHero title="VPN" :links="[{ label: 'Redação', to: '/redacao', trailingIcon: 'lucide:arrow-right' }]" />
+    <UPageHero
+      title="VPN"
+      :links="[
+        {
+          label: 'Redação',
+          to: '/redacao',
+          trailingIcon: 'lucide:arrow-right',
+        },
+      ]"
+    />
 
     <UPageBody>
       <UContainer>
-        <UBlogPosts>
-          <UBlogPost v-for="(post, index) in posts" :key="index" v-bind="post" />
-        </UBlogPosts>
+        <div class="space-y-8">
+          <div v-for="post in posts" :key="post.id" class="space-y-2">
+            <UBlogPost
+              :title="post.title"
+              :description="post.body"
+              :image="post.cover_url || undefined"
+              :date="post.created_at"
+            />
+            <audio
+              v-if="post.media_type === 'audio'"
+              :src="post.media_url"
+              controls
+              class="w-full"
+            />
+            <video
+              v-if="post.media_type === 'video'"
+              :src="post.media_url"
+              controls
+              class="w-full max-h-64 rounded"
+            />
+          </div>
+        </div>
       </UContainer>
     </UPageBody>
   </UPage>

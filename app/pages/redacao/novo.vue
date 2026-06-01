@@ -4,17 +4,51 @@ definePageMeta({ middleware: "auth" });
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
+const { uploadFile, validateFile } = usePostMedia();
 
 const postFormRef = ref<{ setSubmitting: (v: boolean) => void } | null>(null);
 
 async function handleSubmit(data: {
   title: string;
   body: string;
-  cover_url: string;
+  coverFile: File | null;
+  mediaFile: File | null;
+  removeCover: boolean;
+  removeMedia: boolean;
 }) {
-  const { error } = await supabase
-    .from("posts")
-    .insert({ ...data, user_id: user.value!.id });
+  const userId = user.value!.id;
+
+  let coverUrl = "";
+  let mediaUrl: string | null = null;
+  let mediaType: "audio" | "video" | null = null;
+
+  if (data.coverFile) {
+    const err = validateFile(data.coverFile, "cover");
+    if (err) {
+      postFormRef.value?.setSubmitting(false);
+      return;
+    }
+    coverUrl = await uploadFile(data.coverFile, userId);
+  }
+
+  if (data.mediaFile) {
+    const err = validateFile(data.mediaFile, "media");
+    if (err) {
+      postFormRef.value?.setSubmitting(false);
+      return;
+    }
+    mediaUrl = await uploadFile(data.mediaFile, userId);
+    mediaType = data.mediaFile.type.startsWith("video/") ? "video" : "audio";
+  }
+
+  const { error } = await supabase.from("posts").insert({
+    title: data.title,
+    body: data.body,
+    cover_url: coverUrl,
+    media_url: mediaUrl,
+    media_type: mediaType,
+    user_id: userId,
+  });
 
   if (error) {
     postFormRef.value?.setSubmitting(false);

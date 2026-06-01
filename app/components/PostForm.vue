@@ -4,39 +4,97 @@ const props = withDefaults(
     initialTitle?: string;
     initialBody?: string;
     initialCoverUrl?: string;
+    initialMediaUrl?: string;
+    initialMediaType?: "audio" | "video" | null;
     submitLabel?: string;
   }>(),
   {
     initialTitle: "",
     initialBody: "",
     initialCoverUrl: "",
+    initialMediaUrl: "",
+    initialMediaType: null,
     submitLabel: "Publicar",
   },
 );
 
 const emit = defineEmits<{
-  submit: [data: { title: string; body: string; cover_url: string }];
+  submit: [
+    data: {
+      title: string;
+      body: string;
+      coverFile: File | null;
+      mediaFile: File | null;
+      removeCover: boolean;
+      removeMedia: boolean;
+    },
+  ];
 }>();
 
-const title = ref(props.initialTitle);
-const body = ref(props.initialBody);
-const coverUrl = ref(props.initialCoverUrl);
+const formState = ref<Record<string, unknown>>({});
 const error = ref("");
 const submitting = ref(false);
 
-async function handleSubmit() {
-  error.value = "";
+const title = ref(props.initialTitle);
+const body = ref(props.initialBody);
 
+const coverFile = ref<File | null>(null);
+const coverFileObj = ref<File | null>(null);
+const coverPreview = ref(props.initialCoverUrl);
+const removeCover = ref(false);
+
+const mediaFile = ref<File | null>(null);
+const mediaFileObj = ref<File | null>(null);
+const mediaPreview = ref<string | null>(props.initialMediaUrl || null);
+const mediaType = ref(props.initialMediaType);
+const removeMedia = ref(false);
+
+watch(coverFileObj, (file) => {
+  if (file) {
+    coverFile.value = file;
+    removeCover.value = false;
+    coverPreview.value = URL.createObjectURL(file);
+  }
+});
+
+watch(mediaFileObj, (file) => {
+  if (file) {
+    mediaFile.value = file;
+    removeMedia.value = false;
+    mediaPreview.value = URL.createObjectURL(file);
+    mediaType.value = file.type.startsWith("video/") ? "video" : "audio";
+  }
+});
+
+function removeCoverHandler() {
+  coverFile.value = null;
+  coverFileObj.value = null;
+  coverPreview.value = "";
+  removeCover.value = true;
+}
+
+function removeMediaHandler() {
+  mediaFile.value = null;
+  mediaFileObj.value = null;
+  mediaPreview.value = null;
+  mediaType.value = null;
+  removeMedia.value = true;
+}
+
+function handleSubmit() {
+  error.value = "";
   if (!title.value.trim()) {
     error.value = "Título é obrigatório";
     return;
   }
-
   submitting.value = true;
   emit("submit", {
     title: title.value.trim(),
     body: body.value,
-    cover_url: coverUrl.value,
+    coverFile: coverFile.value,
+    mediaFile: mediaFile.value,
+    removeCover: removeCover.value,
+    removeMedia: removeMedia.value,
   });
 }
 
@@ -48,44 +106,83 @@ defineExpose({ setSubmitting });
 </script>
 
 <template>
-  <form class="space-y-4 max-w-2xl" @submit.prevent="handleSubmit">
-    <p v-if="error" class="text-red-500 text-sm">
-      {{ error }}
-    </p>
+  <UForm :state="formState" class="space-y-4 max-w-2xl" @submit="handleSubmit">
+    <UAlert
+      v-if="error"
+      color="error"
+      variant="soft"
+      :title="error"
+      icon="lucide:circle-x"
+    />
 
-    <div>
-      <label class="block text-sm font-medium mb-1" for="title">Título</label>
-      <input
-        id="title"
-        v-model="title"
-        type="text"
-        required
-        class="w-full border rounded px-3 py-2"
-      />
-    </div>
+    <UFormField label="Título" name="title" required>
+      <UInput v-model="title" class="w-full" />
+    </UFormField>
 
-    <div>
-      <label class="block text-sm font-medium mb-1" for="body">Conteúdo</label>
-      <textarea
-        id="body"
-        v-model="body"
-        rows="10"
-        class="w-full border rounded px-3 py-2 font-mono"
-      />
-    </div>
+    <UFormField label="Conteúdo" name="body">
+      <UTextarea v-model="body" :rows="10" class="w-full font-mono" />
+    </UFormField>
 
-    <div>
-      <label class="block text-sm font-medium mb-1" for="cover_url"
-        >URL da imagem de capa</label
-      >
-      <input
-        id="cover_url"
-        v-model="coverUrl"
-        type="url"
-        placeholder="https://"
-        class="w-full border rounded px-3 py-2"
-      />
-    </div>
+    <UFormField label="Imagem de capa" name="cover">
+      <div class="space-y-2 w-full">
+        <div v-if="coverPreview && !removeCover" class="relative inline-block">
+          <img
+            :src="coverPreview"
+            alt="Preview da capa"
+            class="w-48 h-32 object-cover rounded"
+          />
+          <UButton
+            color="error"
+            variant="solid"
+            size="xs"
+            icon="lucide:x"
+            class="absolute top-1 right-1"
+            @click="removeCoverHandler"
+          />
+        </div>
+        <UFileUpload
+          v-model="coverFileObj"
+          accept="image/*"
+          variant="button"
+          label="Selecionar imagem"
+          :preview="false"
+        />
+      </div>
+    </UFormField>
+
+    <UFormField label="Mídia (áudio/vídeo)" name="media">
+      <div class="space-y-2 w-full">
+        <div v-if="mediaPreview && !removeMedia" class="relative">
+          <audio
+            v-if="mediaType === 'audio'"
+            :src="mediaPreview"
+            controls
+            class="w-full"
+          />
+          <video
+            v-else-if="mediaType === 'video'"
+            :src="mediaPreview"
+            controls
+            class="w-full max-h-48 rounded"
+          />
+          <UButton
+            color="error"
+            variant="solid"
+            size="xs"
+            icon="lucide:x"
+            class="absolute top-1 right-1"
+            @click="removeMediaHandler"
+          />
+        </div>
+        <UFileUpload
+          v-model="mediaFileObj"
+          accept="audio/*,video/*"
+          variant="button"
+          label="Selecionar arquivo"
+          :preview="false"
+        />
+      </div>
+    </UFormField>
 
     <div class="flex gap-2">
       <UButton type="submit" :loading="submitting">
@@ -93,5 +190,5 @@ defineExpose({ setSubmitting });
       </UButton>
       <UButton color="neutral" to="/redacao"> Cancelar </UButton>
     </div>
-  </form>
+  </UForm>
 </template>

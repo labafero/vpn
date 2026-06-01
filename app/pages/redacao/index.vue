@@ -3,12 +3,15 @@ definePageMeta({ middleware: "auth" });
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+const { deleteFile } = usePostMedia();
 
 type Post = {
   id: number;
   title: string;
   body: string;
   cover_url: string;
+  media_url: string | null;
+  media_type: "audio" | "video" | null;
   user_id: string;
   created_at: string;
 };
@@ -28,6 +31,16 @@ onMounted(async () => {
 
 async function remove(id: number) {
   if (!confirm("Tem certeza que deseja excluir este post?")) return;
+
+  const post = posts.value.find((p) => p.id === id);
+  if (!post) return;
+
+  if (post.cover_url) {
+    await deleteFile(post.cover_url).catch(() => {});
+  }
+  if (post.media_url) {
+    await deleteFile(post.media_url).catch(() => {});
+  }
 
   const { error } = await supabase.from("posts").delete().eq("id", id);
   if (!error) posts.value = posts.value.filter((p) => p.id !== id);
@@ -67,11 +80,35 @@ async function remove(id: number) {
           <p class="text-sm text-gray-500 mt-1">
             {{ new Date(post.created_at).toLocaleDateString("pt-BR") }}
           </p>
+          <div class="flex items-center gap-2 mt-1">
+            <UBadge v-if="post.media_type === 'audio'" color="info" size="sm">
+              Áudio
+            </UBadge>
+            <UBadge
+              v-if="post.media_type === 'video'"
+              color="warning"
+              size="sm"
+            >
+              Vídeo
+            </UBadge>
+          </div>
           <p v-if="post.body" class="text-sm text-gray-600 mt-1 line-clamp-2">
             {{ post.body }}
           </p>
+          <audio
+            v-if="post.media_type === 'audio'"
+            :src="post.media_url"
+            controls
+            class="w-full mt-2"
+          />
+          <video
+            v-if="post.media_type === 'video'"
+            :src="post.media_url"
+            controls
+            class="w-full max-h-32 rounded mt-2"
+          />
         </div>
-        
+
         <div v-if="post.user_id === user?.sub" class="flex gap-1 shrink-0">
           <UButton
             color="neutral"
