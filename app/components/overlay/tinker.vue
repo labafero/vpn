@@ -1,16 +1,10 @@
 <template>
-  <div class="flex">
-    <UMarquee :overlay="false" class="bg-[#361313] text-[#FF0000] px-5 py-2.5 text-3xl uppercase">
-      <span v-for="line in lines" :key="line" class="flex gap-16">
-        <span>//</span>
-        <span>{{ line }}</span>
-      </span>
-    </UMarquee>
-    <div class="bg-[#371A63] flex items-center gap-2 text-[#B78CFB] px-5 py-2.5 text-3xl whitespace-nowrap uppercase">
-      <UBadge class="animate-pulse" />
-      <span>vpn.labafero.com</span>
-    </div>
-  </div>
+  <UMarquee :overlay="false" class="bg-blue-900 px-5 py-2.5 uppercase">
+    <span v-for="line in lines" :key="line" class="flex gap-16">
+      <span class="text-yellow-600">//</span>
+      <span>{{ line }}</span>
+    </span>
+  </UMarquee>
 </template>
 
 <script lang="ts" setup>
