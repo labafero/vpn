@@ -1,7 +1,7 @@
 <template>
-  <UMarquee :overlay="false" class="bg-blue-900 px-5 py-2.5 uppercase">
+  <UMarquee class="px-5 py-2.5 uppercase">
     <span v-for="line in lines" :key="line" class="flex gap-16">
-      <span class="text-yellow-600">//</span>
+      <span class="text-purple-600">//</span>
       <span>{{ line }}</span>
     </span>
   </UMarquee>

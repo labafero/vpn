@@ -1,50 +1,44 @@
 <template>
-  <div class="flex flex-col h-67.5">
-    <!-- topbar -->
-    <div class="flex border-t border-amber-600 py-2">
-      <div class="border-l border-amber-600 py-1 pl-8 font-serif">
-        <span class="text-amber-600">VPN</span>
-        NEWS
-      </div>
-      <OverlayTinker />
-      <div class="flex gap-4 items-center">
-        <div>{{ Date.now().toLocaleString() }}</div>
-        <div>
+  <div class="flex flex-col h-screen">
+    <div class="h-[70vh] bg-neutral-700"></div>
+    <div class="flex flex-col h-67.5">
+      <!-- topbar -->
+      <div class="flex items-center border-t border-purple-600 py-2 px-5">
+        <div class="border-l border-purple-600 py-1 pl-4 whitespace-nowrap">
+          <span class="text-purple-600">NEON</span>
+          TV
+        </div>
+        <OverlayTinker />
+        <div class="flex gap-2 items-center whitespace-nowrap">
           <UBadge color="error" />
-          AO VIVO
-        </div>
-      </div>
-    </div>
-
-    <!-- content -->
-    <div class="flex border-t border-slate-800 h-full">
-      <!-- box left -->
-      <div class="h-full flex flex-col justify-between">
-        <div>
-          <div class="uppercase text-amber-600">Edição</div>
-          <div class="opacity-70">Análise, gameplay e interação com a comunidade.</div>
-        </div>
-        <div>
-          <div class="uppercase text-amber-600">Duração</div>
-          <div class="font-serif text-2xl">02:42:49</div>
+          <span>AO VIVO</span>
         </div>
       </div>
 
-      <!-- box center -->
-      <div></div>
-
-      <!-- box right -->
-      <div class="h-full flex flex-col justify-between">
-        <div>
-          <div class="uppercase text-amber-600">Audiência</div>
-          <div class="opacity-70">A comunidade participa ao vivo</div>
+      <!-- content -->
+      <div class="flex border-t border-slate-700 h-full">
+        <!-- box left -->
+        <div class="h-full flex flex-col justify-between p-5">
+          <div>
+            <div class="uppercase text-purple-600">Edição</div>
+            <div class="opacity-70">Análise, gameplay e interação no Beach Bar</div>
+          </div>
+          <div>
+            <ClientOnly>
+              <div>{{ formatted }}</div>
+              <template #fallback> ##/##/####, ##:##:## </template>
+            </ClientOnly>
+          </div>
         </div>
-        <div>
-          <div class="uppercase text-amber-600">Ranking de Matérias</div>
-          <div class="flex items-center gap-2">
-            <div>1</div>
-            <div>Crime</div>
-            <div>Crime</div>
+
+        <!-- box center -->
+        <div class="w-full border-x border-slate-700 flex items-center px-5 gap-5">
+          <div class="bg-black aspect-video h-40"></div>
+          <div>
+            <div class="text-xl">
+              Neon TV
+            </div>
+            <div>Informação, análise e entretenimento ao vivo - direto do estúdio para você.</div>
           </div>
         </div>
       </div>
@@ -53,7 +47,19 @@
 </template>
 
 <script lang="ts" setup>
+const now = ref(Date.now());
 
+const formatted = computed(() => {
+  return new Date(now.value).toLocaleString("pt-BR");
+});
+
+onMounted(() => {
+  if (import.meta.client) {
+    setInterval(() => {
+      now.value = Date.now();
+    }, 1000);
+  }
+});
 </script>
 
 <style></style>
