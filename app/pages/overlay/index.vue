@@ -21,7 +21,7 @@
         <div class="h-full flex flex-col justify-between p-5">
           <div>
             <div class="uppercase text-purple-600">Edição</div>
-            <div class="opacity-70">Análise, gameplay e interação no Beach Bar</div>
+            <div class="opacity-70">Análise, gameplay e interação.</div>
           </div>
           <div>
             <ClientOnly>
