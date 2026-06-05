@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: "auth" });
+definePageMeta({ middleware: "auth", layout: "default" });
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
@@ -65,8 +65,15 @@ async function handleSubmit(data: {
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto py-8 px-4">
-    <h1 class="text-2xl font-bold mb-6">Novo Post</h1>
+  <UDashboardNavbar title="Novo Post">
+    <template #right>
+      <UButton color="neutral" variant="ghost" to="/redacao">
+        Cancelar
+      </UButton>
+    </template>
+  </UDashboardNavbar>
+
+  <div class="p-4">
     <PostForm ref="postFormRef" @submit="handleSubmit" />
   </div>
 </template>

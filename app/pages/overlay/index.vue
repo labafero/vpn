@@ -47,6 +47,8 @@
 </template>
 
 <script lang="ts" setup>
+definePageMeta({ layout: "overlay" });
+
 const now = ref(Date.now());
 
 const formatted = computed(() => {

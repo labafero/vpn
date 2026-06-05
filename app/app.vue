@@ -15,9 +15,22 @@ useSeoMeta({
   ogImage: "https://ui.nuxt.com/assets/templates/nuxt/starter-light.png",
   twitterCard: "summary_large_image",
 });
+
+const colorMode = useColorMode();
+
+useHead({
+  meta: [{
+    name: "theme-color",
+    content: () => colorMode.value === "dark" ? "#1b1718" : "white",
+  }],
+});
 </script>
 
 <template>
-  <NuxtPage />
-  <UToaster />
+  <UApp>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <UToaster />
+  </UApp>
 </template>

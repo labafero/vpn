@@ -2,6 +2,8 @@
 import * as v from "valibot";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
+definePageMeta({ layout: "auth" });
+
 const schema = v.object({
   email: v.pipe(v.string(), v.email("Invalid email")),
   password: v.pipe(v.string(), v.minLength(8, "Must be at least 8 characters")),

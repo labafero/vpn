@@ -31,6 +31,22 @@ onMounted(async () => {
   loading.value = false;
 });
 
+const stats = computed(() => {
+  const all = posts.value;
+  return [
+    { label: "Total de Posts", value: all.length, icon: "i-lucide-file-text" },
+    { label: "Em Destaque", value: all.filter((p) => p.destaque).length, icon: "i-lucide-star" },
+    { label: "Com Mídia", value: all.filter((p) => p.media_type).length, icon: "i-lucide-video" },
+    {
+      label: "Última Publicação",
+      value: all[0]
+        ? new Date(all[0].published_at).toLocaleDateString("pt-BR")
+        : "—",
+      icon: "i-lucide-calendar",
+    },
+  ];
+});
+
 async function remove(id: number) {
   if (!confirm("Tem certeza que deseja excluir este post?")) return;
 
@@ -50,10 +66,23 @@ async function remove(id: number) {
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto py-8 px-4">
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Redação</h1>
+  <UDashboardNavbar title="Redação">
+    <template #right>
       <UButton to="/redacao/novo"> Novo Post </UButton>
+    </template>
+  </UDashboardNavbar>
+
+  <div class="p-4 space-y-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <UCard v-for="stat in stats" :key="stat.label">
+        <div class="flex items-center gap-3">
+          <UIcon :name="stat.icon" class="text-2xl text-purple-500 shrink-0" />
+          <div>
+            <div class="text-sm text-muted">{{ stat.label }}</div>
+            <div class="text-xl font-bold">{{ stat.value }}</div>
+          </div>
+        </div>
+      </UCard>
     </div>
 
     <p v-if="loading" class="text-gray-500">Carregando...</p>
