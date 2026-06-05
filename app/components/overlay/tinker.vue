@@ -7,7 +7,7 @@
     <OverlayTinkerNews />
     <div class="flex gap-2 items-center whitespace-nowrap">
       <UBadge color="error" />
-      <span>AO VIVO</span>
+      <span>neontv.labafero.com</span>
     </div>
   </div>
 </template>

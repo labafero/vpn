@@ -16,6 +16,7 @@ async function handleSubmit(data: {
   removeCover: boolean;
   removeMedia: boolean;
   destaque: boolean;
+  publishedAt: string;
 }) {
   const userId = user.value?.sub;
   if (!userId) throw new Error("Usuário não autenticado");
@@ -50,6 +51,7 @@ async function handleSubmit(data: {
     media_url: mediaUrl,
     media_type: mediaType,
     destaque: data.destaque,
+    published_at: data.publishedAt || new Date().toISOString(),
     user_id: userId,
   });
 

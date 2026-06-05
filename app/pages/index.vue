@@ -11,6 +11,7 @@ type Post = {
   destaque: boolean;
   user_id: string;
   created_at: string;
+  published_at: string;
 };
 
 const posts = ref<Post[]>([]);
@@ -20,7 +21,7 @@ onMounted(async () => {
   const { data } = await supabase
     .from("posts")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("published_at", { ascending: false });
 
   if (data) posts.value = data as Post[];
   loading.value = false;
@@ -58,7 +59,7 @@ const normais = computed(() => posts.value.filter((p) => !p.destaque));
                 :title="post.title"
                 :description="post.body"
                 :image="post.cover_url || undefined"
-                :date="post.created_at"
+                :date="post.published_at"
               />
               <audio
                 v-if="post.media_type === 'audio'"

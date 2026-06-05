@@ -38,6 +38,7 @@ type Post = {
   destaque: boolean;
   user_id: string;
   created_at: string;
+  published_at: string;
 };
 
 const posts = ref<Post[]>([]);
@@ -49,7 +50,7 @@ onMounted(async () => {
   const { data } = await supabase
     .from("posts")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("published_at", { ascending: false });
 
   if (data) posts.value = data as Post[];
   loading.value = false;

@@ -1,12 +1,18 @@
 <template>
   <div class="border-t-2 border-warning w-full h-full p-5 flex flex-col">
-    <div class="mb-4">
-      <div class="text-3xl font-bold leading-none text-default">28°C</div>
-      <div class="text-sm text-muted mt-1 uppercase tracking-wider">
-        Ensolarado
+    <div class="mb-4 flex justify-between items-start">
+      <div>
+        <div class="text-3xl font-bold leading-none text-default">28°C</div>
+        <div class="text-sm text-muted mt-1 uppercase tracking-wider">
+          Ensolarado
+        </div>
+        <div class="text-xs text-dimmed mt-0.5">
+          Vento: 12 km/h · Umidade: 45%
+        </div>
       </div>
-      <div class="text-xs text-dimmed mt-0.5">
-        Vento: 12 km/h · Umidade: 45%
+      <div class="flex items-start relative shrink-0">
+        <UIcon name="lucide:cloud" class="text-4xl text-white/40 mt-1.5" />
+        <UIcon name="lucide:sun" class="text-4xl text-amber-400" />
       </div>
     </div>
 

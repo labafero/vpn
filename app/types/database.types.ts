@@ -48,6 +48,7 @@ export type Database = {
           id: number;
           media_type: string | null;
           media_url: string | null;
+          published_at: string;
           title: string;
           updated_at: string;
           user_id: string;
@@ -60,6 +61,7 @@ export type Database = {
           id?: never;
           media_type?: string | null;
           media_url?: string | null;
+          published_at?: string;
           title: string;
           updated_at?: string;
           user_id?: string;
@@ -72,6 +74,7 @@ export type Database = {
           id?: never;
           media_type?: string | null;
           media_url?: string | null;
+          published_at?: string;
           title?: string;
           updated_at?: string;
           user_id?: string;

@@ -15,6 +15,7 @@ type Post = {
   destaque: boolean;
   user_id: string;
   created_at: string;
+  published_at: string;
 };
 
 const posts = ref<Post[]>([]);
@@ -24,7 +25,7 @@ onMounted(async () => {
   const { data } = await supabase
     .from("posts")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("published_at", { ascending: false });
 
   if (data) posts.value = data as Post[];
   loading.value = false;
@@ -79,7 +80,7 @@ async function remove(id: number) {
             {{ post.title }}
           </h2>
           <p class="text-sm text-gray-500 mt-1">
-            {{ new Date(post.created_at).toLocaleDateString("pt-BR") }}
+            {{ new Date(post.published_at).toLocaleDateString("pt-BR") }}
           </p>
           <div class="flex items-center gap-2 mt-1">
             <UBadge v-if="post.destaque" color="warning" size="sm">

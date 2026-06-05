@@ -7,6 +7,7 @@ const props = withDefaults(
     initialMediaUrl?: string;
     initialMediaType?: "audio" | "video" | null;
     initialDestaque?: boolean;
+    initialPublishedAt?: string;
     submitLabel?: string;
   }>(),
   {
@@ -16,6 +17,7 @@ const props = withDefaults(
     initialMediaUrl: "",
     initialMediaType: null,
     initialDestaque: false,
+    initialPublishedAt: "",
     submitLabel: "Publicar",
   },
 );
@@ -30,9 +32,20 @@ const emit = defineEmits<{
       removeCover: boolean;
       removeMedia: boolean;
       destaque: boolean;
+      publishedAt: string;
     },
   ];
 }>();
+
+function toDateInputValue(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 const formState = ref<Record<string, unknown>>({});
 const error = ref("");
@@ -41,6 +54,7 @@ const submitting = ref(false);
 const title = ref(props.initialTitle);
 const body = ref(props.initialBody);
 const destaque = ref(props.initialDestaque);
+const publishedAt = ref(toDateInputValue(props.initialPublishedAt));
 
 const coverFile = ref<File | null>(null);
 const coverFileObj = ref<File | null>(null);
@@ -100,6 +114,7 @@ function handleSubmit() {
     removeCover: removeCover.value,
     removeMedia: removeMedia.value,
     destaque: destaque.value,
+    publishedAt: publishedAt.value,
   });
 }
 
@@ -157,6 +172,10 @@ defineExpose({ setSubmitting });
 
     <UFormField label="Destaque" name="destaque">
       <UCheckbox v-model="destaque" label="Marcar como destaque" />
+    </UFormField>
+
+    <UFormField label="Data de publicação" name="publishedAt">
+      <UInput v-model="publishedAt" type="date" class="w-full" />
     </UFormField>
 
     <UFormField label="Mídia (áudio/vídeo)" name="media">
