@@ -13,6 +13,7 @@ type Post = {
   cover_url: string;
   media_url: string | null;
   media_type: "audio" | "video" | null;
+  destaque: boolean;
   user_id: string;
 };
 
@@ -53,6 +54,7 @@ async function handleSubmit(data: {
   mediaFile: File | null;
   removeCover: boolean;
   removeMedia: boolean;
+  destaque: boolean;
 }) {
   const userId = user.value?.sub;
   if (!userId) throw new Error("Usuário não autenticado");
@@ -62,9 +64,11 @@ async function handleSubmit(data: {
     cover_url?: string;
     media_url?: string | null;
     media_type?: "audio" | "video" | null;
+    destaque?: boolean;
   } = {
     title: data.title,
     body: data.body,
+    destaque: data.destaque,
   };
 
   if (data.removeCover && data.coverFile) {
@@ -156,6 +160,7 @@ async function handleSubmit(data: {
       :initial-cover-url="post.cover_url"
       :initial-media-url="post.media_url ?? undefined"
       :initial-media-type="post.media_type"
+      :initial-destaque="post.destaque"
       submit-label="Salvar"
       @submit="handleSubmit"
     />

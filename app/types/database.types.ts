@@ -44,6 +44,7 @@ export type Database = {
           body: string;
           cover_url: string;
           created_at: string;
+          destaque: boolean;
           id: number;
           media_type: string | null;
           media_url: string | null;
@@ -55,6 +56,7 @@ export type Database = {
           body?: string;
           cover_url?: string;
           created_at?: string;
+          destaque?: boolean;
           id?: never;
           media_type?: string | null;
           media_url?: string | null;
@@ -66,6 +68,7 @@ export type Database = {
           body?: string;
           cover_url?: string;
           created_at?: string;
+          destaque?: boolean;
           id?: never;
           media_type?: string | null;
           media_url?: string | null;

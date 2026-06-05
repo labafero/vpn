@@ -12,6 +12,7 @@ type Post = {
   cover_url: string;
   media_url: string | null;
   media_type: "audio" | "video" | null;
+  destaque: boolean;
   user_id: string;
   created_at: string;
 };
@@ -81,6 +82,9 @@ async function remove(id: number) {
             {{ new Date(post.created_at).toLocaleDateString("pt-BR") }}
           </p>
           <div class="flex items-center gap-2 mt-1">
+            <UBadge v-if="post.destaque" color="warning" size="sm">
+              Destaque
+            </UBadge>
             <UBadge v-if="post.media_type === 'audio'" color="info" size="sm">
               Áudio
             </UBadge>

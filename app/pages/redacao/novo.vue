@@ -15,6 +15,7 @@ async function handleSubmit(data: {
   mediaFile: File | null;
   removeCover: boolean;
   removeMedia: boolean;
+  destaque: boolean;
 }) {
   const userId = user.value?.sub;
   if (!userId) throw new Error("Usuário não autenticado");
@@ -48,6 +49,7 @@ async function handleSubmit(data: {
     cover_url: coverUrl,
     media_url: mediaUrl,
     media_type: mediaType,
+    destaque: data.destaque,
     user_id: userId,
   });
 

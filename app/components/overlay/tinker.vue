@@ -1,42 +1,17 @@
 <template>
-  <UMarquee class="px-5 py-2.5 uppercase">
-    <span v-for="line in lines" :key="line" class="flex gap-16">
-      <span class="text-purple-600">//</span>
-      <span>{{ line }}</span>
-    </span>
-  </UMarquee>
+  <div class="flex items-center border-t border-purple-600 py-2 px-5">
+    <div class="border-l border-purple-600 py-1 pl-4 whitespace-nowrap">
+      <span class="text-purple-600">NEON</span>
+      TV
+    </div>
+    <OverlayTinkerNews />
+    <div class="flex gap-2 items-center whitespace-nowrap">
+      <UBadge color="error" />
+      <span>AO VIVO</span>
+    </div>
+  </div>
 </template>
 
-<script lang="ts" setup>
-const supabase = useSupabaseClient();
+<script lang="ts" setup></script>
 
-type Post = {
-  id: number;
-  title: string;
-  body: string;
-  cover_url: string;
-  user_id: string;
-  created_at: string;
-};
-
-const posts = ref<Post[]>([]);
-const loading = ref(true);
-
-onMounted(async () => {
-  const { data } = await supabase
-    .from("posts")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  if (data) posts.value = data as Post[];
-  loading.value = false;
-});
-
-const lines = computed(() => {
-  if (loading.value) return ["Carregando..."];
-  if (posts.value.length === 0) return ["Nenhuma matéria encontrada."];
-
-  return posts.value.map((post) => post.title);
-});
-</script>
+<style></style>

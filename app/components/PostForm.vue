@@ -6,6 +6,7 @@ const props = withDefaults(
     initialCoverUrl?: string;
     initialMediaUrl?: string;
     initialMediaType?: "audio" | "video" | null;
+    initialDestaque?: boolean;
     submitLabel?: string;
   }>(),
   {
@@ -14,6 +15,7 @@ const props = withDefaults(
     initialCoverUrl: "",
     initialMediaUrl: "",
     initialMediaType: null,
+    initialDestaque: false,
     submitLabel: "Publicar",
   },
 );
@@ -27,6 +29,7 @@ const emit = defineEmits<{
       mediaFile: File | null;
       removeCover: boolean;
       removeMedia: boolean;
+      destaque: boolean;
     },
   ];
 }>();
@@ -37,6 +40,7 @@ const submitting = ref(false);
 
 const title = ref(props.initialTitle);
 const body = ref(props.initialBody);
+const destaque = ref(props.initialDestaque);
 
 const coverFile = ref<File | null>(null);
 const coverFileObj = ref<File | null>(null);
@@ -95,6 +99,7 @@ function handleSubmit() {
     mediaFile: mediaFile.value,
     removeCover: removeCover.value,
     removeMedia: removeMedia.value,
+    destaque: destaque.value,
   });
 }
 
@@ -148,6 +153,10 @@ defineExpose({ setSubmitting });
           :preview="false"
         />
       </div>
+    </UFormField>
+
+    <UFormField label="Destaque" name="destaque">
+      <UCheckbox v-model="destaque" label="Marcar como destaque" />
     </UFormField>
 
     <UFormField label="Mídia (áudio/vídeo)" name="media">
