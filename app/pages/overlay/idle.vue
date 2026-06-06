@@ -24,4 +24,7 @@
 
 <script lang="ts" setup>
 definePageMeta({ layout: "overlay" });
+useHead({
+  title: "Overlay Monitoramento",
+});
 </script>

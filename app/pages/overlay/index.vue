@@ -48,6 +48,9 @@
 
 <script lang="ts" setup>
 definePageMeta({ layout: "overlay" });
+useHead({
+  title: "Overlay Jornal",
+});
 
 const now = ref(Date.now());
 

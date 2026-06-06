@@ -65,15 +65,15 @@ async function handleSubmit(data: {
 </script>
 
 <template>
-  <UDashboardNavbar title="Novo Post">
-    <template #right>
-      <UButton color="neutral" variant="ghost" to="/redacao">
-        Cancelar
-      </UButton>
+  <UDashboardPanel>
+    <template #header>
+      <UDashboardNavbar title="Novo Post"> </UDashboardNavbar>
     </template>
-  </UDashboardNavbar>
 
-  <div class="p-4">
-    <PostForm ref="postFormRef" @submit="handleSubmit" />
-  </div>
+    <template #body>
+      <div class="p-4">
+        <PostForm ref="postFormRef" @submit="handleSubmit" />
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>

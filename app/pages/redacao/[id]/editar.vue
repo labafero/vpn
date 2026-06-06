@@ -151,29 +151,29 @@ async function handleSubmit(data: {
 </script>
 
 <template>
-  <UDashboardNavbar title="Editar Post">
-    <template #right>
-      <UButton color="neutral" variant="ghost" to="/redacao">
-        Cancelar
-      </UButton>
+  <UDashboardPanel>
+    <template #header>
+      <UDashboardNavbar title="Editar Post"> </UDashboardNavbar>
     </template>
-  </UDashboardNavbar>
 
-  <div class="p-4">
-    <p v-if="loading" class="text-gray-500">Carregando...</p>
+    <template #body>
+      <div class="p-4">
+        <p v-if="loading" class="text-gray-500">Carregando...</p>
 
-    <PostForm
-      v-else-if="post"
-      ref="postFormRef"
-      :initial-title="post.title"
-      :initial-body="post.body"
-      :initial-cover-url="post.cover_url"
-      :initial-media-url="post.media_url ?? undefined"
-      :initial-media-type="post.media_type"
-      :initial-destaque="post.destaque"
-      :initial-published-at="post.published_at"
-      submit-label="Salvar"
-      @submit="handleSubmit"
-    />
-  </div>
+        <PostForm
+          v-else-if="post"
+          ref="postFormRef"
+          :initial-title="post.title"
+          :initial-body="post.body"
+          :initial-cover-url="post.cover_url"
+          :initial-media-url="post.media_url ?? undefined"
+          :initial-media-type="post.media_type"
+          :initial-destaque="post.destaque"
+          :initial-published-at="post.published_at"
+          submit-label="Salvar"
+          @submit="handleSubmit"
+        />
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>
