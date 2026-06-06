@@ -116,7 +116,7 @@ async function remove(id: number) {
             :description="post.body"
             :date="new Date(post.published_at).toLocaleDateString('pt-BR')"
             :to="`/redacao/${post.id}/editar`"
-            :variant="post.destaque ? 'subtle' : 'outline'"
+            variant="subtle"
             :ui="{ body: 'line-clamp-5' }"
             :badge="
               ['video', 'audio'].includes(post.media_type!)
