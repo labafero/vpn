@@ -107,83 +107,26 @@ async function remove(id: number) {
         </p>
 
         <div v-else class="space-y-4">
-          <div
+          <UBlogPost
             v-for="post in posts"
             :key="post.id"
-            class="border rounded-lg p-4 flex items-start gap-4"
+            orientation="horizontal"
+            :image="post.cover_url"
+            :title="post.title"
+            :description="post.body"
+            :date="new Date(post.published_at).toLocaleDateString('pt-BR')"
+            :to="`/redacao/${post.id}/editar`"
+            :variant="post.destaque ? 'subtle' : 'outline'"
+            :ui="{ body: 'line-clamp-5' }"
+            :badge="
+              ['video', 'audio'].includes(post.media_type!)
+                ? {
+                    label: post.media_type === 'audio' ? 'Áudio' : 'Vídeo',
+                  }
+                : {}
+            "
           >
-            <img
-              v-if="post.cover_url"
-              :src="post.cover_url"
-              alt=""
-              class="w-24 h-16 object-cover rounded shrink-0"
-            />
-
-            <div class="flex-1 min-w-0">
-              <h2 class="font-semibold truncate">
-                {{ post.title }}
-              </h2>
-              <p class="text-sm text-gray-500 mt-1">
-                {{ new Date(post.published_at).toLocaleDateString("pt-BR") }}
-              </p>
-              <div class="flex items-center gap-2 mt-1">
-                <UBadge v-if="post.destaque" color="warning" size="sm">
-                  Destaque
-                </UBadge>
-                <UBadge
-                  v-if="post.media_type === 'audio'"
-                  color="info"
-                  size="sm"
-                >
-                  Áudio
-                </UBadge>
-                <UBadge
-                  v-if="post.media_type === 'video'"
-                  color="warning"
-                  size="sm"
-                >
-                  Vídeo
-                </UBadge>
-              </div>
-              <p
-                v-if="post.body"
-                class="text-sm text-gray-600 mt-1 line-clamp-2"
-              >
-                {{ post.body }}
-              </p>
-              <audio
-                v-if="post.media_type === 'audio'"
-                :src="post.media_url"
-                controls
-                class="w-full mt-2"
-              />
-              <video
-                v-if="post.media_type === 'video'"
-                :src="post.media_url"
-                controls
-                class="w-full max-h-32 rounded mt-2"
-              />
-            </div>
-
-            <div v-if="post.user_id === user?.sub" class="flex gap-1 shrink-0">
-              <UButton
-                color="neutral"
-                variant="outline"
-                size="sm"
-                :to="`/redacao/${post.id}/editar`"
-              >
-                Editar
-              </UButton>
-              <UButton
-                color="error"
-                variant="outline"
-                size="sm"
-                @click="remove(post.id)"
-              >
-                Excluir
-              </UButton>
-            </div>
-          </div>
+          </UBlogPost>
         </div>
       </div>
     </template>
