@@ -1,6 +1,14 @@
 <template>
   <div class="w-full h-full relative overflow-hidden bg-neutral-900">
+    <div v-if="loading" class="h-full w-full p-6 flex flex-col justify-center">
+      <USkeleton class="h-3 w-20 mb-4" />
+      <USkeleton class="h-8 w-3/4 mb-3" />
+      <USkeleton class="h-4 w-full mb-2" />
+      <USkeleton class="h-4 w-5/6 mb-2" />
+      <USkeleton class="h-4 w-2/3" />
+    </div>
     <PostSlider
+      v-else
       :posts="destaques"
       :label="destaques.length > 0 ? 'Em Destaque' : 'Última Edição'"
     />
