@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const { data } = await supabase
     .from("spotify_connection")
     .select("id, updated_at, user_id")
-    .eq("user_id", user.id)
+    .eq("user_id", user.sub)
     .maybeSingle();
 
   return {

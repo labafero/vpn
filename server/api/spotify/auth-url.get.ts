@@ -16,17 +16,10 @@ export default defineEventHandler(async (event) => {
     path: "/",
   });
 
-  setCookie(event, "spotify_oauth_user_id", user.id, {
-    maxAge: 60 * 5,
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-  });
-
   const params = new URLSearchParams({
     response_type: "code",
     client_id: config.public.spotifyClientId,
-    scope: "user-read-currently-playing",
+    scope: "user-read-currently-playing user-read-playback-state",
     redirect_uri: config.spotifyRedirectUri,
     state,
   });

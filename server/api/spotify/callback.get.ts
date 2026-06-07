@@ -1,18 +1,21 @@
-import { serverSupabaseServiceRole } from "#supabase/server";
+import { serverSupabaseUser, serverSupabaseServiceRole } from "#supabase/server";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const { code, state } = query;
 
   const storedState = getCookie(event, "spotify_oauth_state");
-  const userId = getCookie(event, "spotify_oauth_user_id");
 
-  if (!state || state !== storedState || !userId) {
+  if (!state || state !== storedState) {
     return sendRedirect(event, "/redacao/spotify?error=invalid_state");
   }
 
   deleteCookie(event, "spotify_oauth_state");
-  deleteCookie(event, "spotify_oauth_user_id");
+
+  const user = await serverSupabaseUser(event);
+  if (!user) {
+    return sendRedirect(event, "/redacao/spotify?error=not_authenticated");
+  }
 
   const config = useRuntimeConfig();
   const basic = Buffer.from(
@@ -33,7 +36,8 @@ export default defineEventHandler(async (event) => {
         grant_type: "authorization_code",
       }),
     });
-  } catch {
+  } catch (e) {
+    console.error("[Spotify] Token exchange failed:", e);
     return sendRedirect(event, "/redacao/spotify?error=token_exchange_failed");
   }
 
@@ -42,16 +46,23 @@ export default defineEventHandler(async (event) => {
   ).toISOString();
 
   const supabase = serverSupabaseServiceRole(event);
-  await supabase.from("spotify_connection").upsert(
-    {
-      user_id: userId,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expires_at: expiresAt,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id", ignoreDuplicates: false },
-  );
+  const { error: upsertError } = await supabase
+    .from("spotify_connection")
+    .upsert(
+      {
+        user_id: user.sub,
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: expiresAt,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id", ignoreDuplicates: false },
+    );
+
+  if (upsertError) {
+    console.error("[Spotify] Upsert failed:", upsertError);
+    return sendRedirect(event, "/redacao/spotify?error=save_failed");
+  }
 
   return sendRedirect(event, "/redacao/spotify?success=true");
 });

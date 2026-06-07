@@ -43,7 +43,11 @@ async function disconnect() {
           :description="
             error === 'invalid_state'
               ? 'Sessão expirada. Tente novamente.'
-              : 'Falha ao obter token do Spotify. Tente novamente.'
+              : error === 'not_authenticated'
+                ? 'Você precisa estar logado para conectar o Spotify.'
+                : error === 'save_failed'
+                  ? 'Erro ao salvar tokens no banco. Verifique o console do servidor.'
+                  : 'Falha ao obter token do Spotify. Tente novamente.'
           "
           @close="error = undefined"
         />

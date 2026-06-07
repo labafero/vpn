@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     .maybeSingle();
 
   if (error || !data?.refresh_token) {
-    return { playing: false };
+    return { playing: false, reason: "no_connection" };
   }
 
   let accessToken = data.access_token;
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
       `${config.public.spotifyClientId}:${config.spotifyClientSecret}`,
     ).toString("base64");
 
-    let refreshed: { access_token: string; expires_in: number };
+    let refreshed: { access_token: string; expires_in: number; refresh_token?: string };
     try {
       refreshed = await $fetch("https://accounts.spotify.com/api/token", {
         method: "POST",
@@ -38,8 +38,13 @@ export default defineEventHandler(async (event) => {
           refresh_token: data.refresh_token,
         }),
       });
-    } catch {
-      return { playing: false };
+    } catch (e) {
+      console.error("[Spotify] Token refresh failed:", e);
+      return { playing: false, reason: "refresh_failed" };
+    }
+
+    if (refreshed.refresh_token) {
+      data.refresh_token = refreshed.refresh_token;
     }
 
     accessToken = refreshed.access_token;
@@ -51,6 +56,7 @@ export default defineEventHandler(async (event) => {
       .from("spotify_connection")
       .update({
         access_token: accessToken,
+        refresh_token: data.refresh_token,
         expires_at: newExpiresAt,
         updated_at: new Date().toISOString(),
       })
@@ -72,7 +78,7 @@ export default defineEventHandler(async (event) => {
     });
 
     if (!track?.item || !track.is_playing) {
-      return { playing: false };
+      return { playing: false, reason: "not_playing" };
     }
 
     return {
@@ -83,7 +89,8 @@ export default defineEventHandler(async (event) => {
       progress_ms: track.progress_ms,
       duration_ms: track.item.duration_ms,
     };
-  } catch {
-    return { playing: false };
+  } catch (e) {
+    console.error("[Spotify] API request failed:", e);
+    return { playing: false, reason: "api_error" };
   }
 });
