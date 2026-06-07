@@ -41,6 +41,10 @@
 
     <div class="border-t border-muted mb-3" />
 
+    <OverlaySpotifyNowPlaying />
+
+    <div class="border-t border-muted my-3" />
+
     <div class="flex-1 flex items-end overflow-hidden">
       <UMarquee
         class="text-xs"

@@ -81,6 +81,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      spotify_connection: {
+        Row: {
+          id: number;
+          user_id: string;
+          access_token: string | null;
+          refresh_token: string;
+          expires_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: never;
+          user_id: string;
+          access_token?: string | null;
+          refresh_token: string;
+          expires_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: never;
+          user_id?: string;
+          access_token?: string | null;
+          refresh_token?: string;
+          expires_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

@@ -29,6 +29,12 @@ const links = computed<NavigationMenuItem[]>(() => [
     to: "/redacao/novo",
     onSelect: closeSidebar,
   },
+  {
+    label: "Spotify",
+    icon: "i-lucide-music",
+    to: "/redacao/spotify",
+    onSelect: closeSidebar,
+  },
 ]);
 
 const links2 = computed<NavigationMenuItem[]>(() => [

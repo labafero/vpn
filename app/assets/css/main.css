@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-@theme static {
+:root {
   --font-sans: "Inter", sans-serif;
   --font-breaking: "Oswald", sans-serif;
 }

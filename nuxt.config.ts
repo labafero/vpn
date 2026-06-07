@@ -24,4 +24,12 @@ export default defineNuxtConfig({
   supabase: {
     redirect: false,
   },
+
+  runtimeConfig: {
+    spotifyClientSecret: "",
+    spotifyRedirectUri: "",
+    public: {
+      spotifyClientId: "",
+    },
+  },
 });
