@@ -51,9 +51,9 @@ watch(postsLength, (len) => {
             v-if="post.cover_url"
             :src="post.cover_url"
             alt=""
-            class="absolute inset-0 w-full h-full object-contain"
+            class="absolute inset-0 w-full h-full object-cover"
           />
-          <div class="absolute inset-0 bg-black/60" />
+          <div class="absolute inset-0 bg-black/75" />
           <div class="relative z-10 h-full flex items-center p-6">
             <div>
               <div class="uppercase text-xs text-white/60 mb-1 tracking-wider">
