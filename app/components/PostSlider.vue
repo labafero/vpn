@@ -21,7 +21,7 @@ onMounted(() => {
   if (postsLength.value <= 1) return
   intervalId = setInterval(() => {
     currentSlide.value = (currentSlide.value + 1) % postsLength.value
-  }, 6000)
+  }, 10000)
 })
 
 onUnmounted(() => {
@@ -51,7 +51,7 @@ watch(postsLength, (len) => {
             v-if="post.cover_url"
             :src="post.cover_url"
             alt=""
-            class="absolute inset-0 w-full h-full object-cover"
+            class="absolute inset-0 w-full h-full object-contain"
           />
           <div class="absolute inset-0 bg-black/60" />
           <div class="relative z-10 h-full flex items-center p-6">
@@ -62,7 +62,7 @@ watch(postsLength, (len) => {
               <div class="text-2xl font-bold leading-tight mb-2 text-white truncate max-w-prose">
                 {{ post.title }}
               </div>
-              <div class="text-sm text-white/80 line-clamp-3 max-w-prose">
+              <div class="text-white/80 line-clamp-5 max-w-prose">
                 {{ post.body }}
               </div>
             </div>

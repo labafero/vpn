@@ -1,22 +1,22 @@
 <template>
   <div class="border-t-2 border-primary overflow-hidden w-full h-full p-5 flex flex-col">
 
-    <div class="space-y-2 text-sm mb-3">
+    <div class="space-y-2 mb-3">
       <div class="flex justify-between">
         <span class="text-muted">Brasília</span>
         <ClientOnly>
-          <span class="font-mono text-default">{{ brasiliaTime }}</span>
+          <span class="font-mono text-lg text-default font-bold">{{ brasiliaTime }}</span>
           <template #fallback
-            ><span class="font-mono text-default">--:--:--</span></template
+            ><span class="font-mono text-lg text-default font-bold">--:--:--</span></template
           >
         </ClientOnly>
       </div>
       <div class="flex justify-between">
         <span class="text-muted">Los Santos</span>
         <ClientOnly>
-          <span class="font-mono text-default">{{ losSantosLabel }}</span>
+          <span class="font-mono text-lg text-default font-bold">{{ losSantosLabel }}</span>
           <template #fallback
-            ><span class="font-mono text-default">--:--</span></template
+            ><span class="font-mono text-lg text-default font-bold">--:--</span></template
           >
         </ClientOnly>
       </div>
@@ -25,10 +25,6 @@
     <div class="border-t border-muted mb-3" />
 
     <OverlaySpotifyNowPlaying />
-
-    <div class="border-t border-muted my-3" />
-
-    <OverlayGoalDonation />
 
     <div class="border-t border-muted my-3" />
 
