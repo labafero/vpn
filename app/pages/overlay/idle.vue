@@ -11,10 +11,8 @@
         </div>
       </div>
 
-      <!-- Breaking News -->
       <OverlayHighlights />
 
-      <!-- Dashboard -->
       <OverlayDashboard />
     </div>
 

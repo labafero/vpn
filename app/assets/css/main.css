@@ -2,5 +2,6 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: "Iosevka Charon Mono", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-breaking: "Oswald", sans-serif;
 }

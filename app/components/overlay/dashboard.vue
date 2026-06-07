@@ -102,10 +102,12 @@ const losSantosLabel = computed(() => {
 });
 
 const stocks = [
-  { label: "kit médico", value: "R$ 8.000", trend: "down" as const },
-  { label: "analgésico", value: "R$ 2.000", trend: "down" as const },
-  { label: "munição FiveM", value: "R$ 200.000", trend: "up" as const },
-  { label: "apartamento padrão", value: "R$ 150.000", trend: "down" as const },
+  { label: "kit médico civil", value: "R$ 10.000", trend: "down" as const },
+  { label: "kit médico policial", value: "R$ 4.000", trend: "stable" as const },
+  { label: "analgésico", value: "R$ 1.200", trend: "stable" as const },
+  { label: "trat. médico", value: "R$ 2.500", trend: "stable" as const },
+  { label: "auto. trat. médico", value: "R$ 5.500", trend: "up" as const },
+  { label: "apt. padrão", value: "R$ 150.000", trend: "down" as const },
   { label: "bitcoin", value: "R$ 3,40", trend: "stable" as const },
 ];
 

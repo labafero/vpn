@@ -1,44 +1,22 @@
 <template>
   <div class="flex flex-col h-screen">
-    <div class="h-[70vh] bg-neutral-700"></div>
-    <div class="flex flex-col h-67.5">
-      <!-- topbar -->
-      <div class="flex items-center border-t border-purple-600 py-2 px-5">
-        <div class="border-l border-purple-600 py-1 pl-4 whitespace-nowrap">
-          <span class="text-purple-600">NEON</span>
-          TV
-        </div>
-        <OverlayTinker />
-        <div class="flex gap-2 items-center whitespace-nowrap">
-          <UBadge color="error" />
-          <span>AO VIVO</span>
-        </div>
-      </div>
+    <div class="h-202.5 bg-green-500"></div>
+    <div class="flex flex-col h-67.5 overflow-hidden">
+      <OverlayTinker />
 
-      <!-- content -->
-      <div class="flex border-t border-slate-700 h-full">
-        <!-- box left -->
-        <div class="h-full flex flex-col justify-between p-5">
-          <div>
-            <div class="uppercase text-purple-600">Edição</div>
-            <div class="opacity-70">Análise, gameplay e interação.</div>
+      <div
+        class="w-full h-full border-t border-purple-900 flex items-center px-5 gap-5"
+      >
+        <div class="bg-elevated aspect-video h-32 rounded-md"></div>
+        <div>
+          <div class="flex items-center gap-2 text-xl">
+            <UBadge variant="soft">Jacky Tequila</UBadge>
+            <UBadge variant="soft" icon="lucide:user">1642</UBadge>
+            <UBadge variant="soft" icon="lucide:smartphone">442-663</UBadge>
           </div>
-          <div>
-            <ClientOnly>
-              <div>{{ formatted }}</div>
-              <template #fallback> ##/##/####, ##:##:## </template>
-            </ClientOnly>
-          </div>
-        </div>
-
-        <!-- box center -->
-        <div class="w-full border-x border-slate-700 flex items-center px-5 gap-5">
-          <div class="bg-black aspect-video h-40"></div>
-          <div>
-            <div class="text-xl">
-              Neon TV
-            </div>
-            <div>Informação, análise e entretenimento ao vivo - direto do estúdio para você.</div>
+          <div class="text-4xl mt-2 font-breaking">
+            Alimentando a base de dados da Cidade: valores de serviços e
+            produtos.
           </div>
         </div>
       </div>
@@ -53,10 +31,6 @@ useHead({
 });
 
 const now = ref(Date.now());
-
-const formatted = computed(() => {
-  return new Date(now.value).toLocaleString("pt-BR");
-});
 
 onMounted(() => {
   if (import.meta.client) {
