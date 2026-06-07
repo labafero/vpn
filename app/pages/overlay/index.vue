@@ -10,12 +10,18 @@
         <div class="bg-elevated aspect-video h-32 rounded-md"></div>
         <div>
           <div class="flex items-center gap-2 text-xl">
-            <UBadge variant="soft">Jacky Tequila</UBadge>
-            <UBadge variant="soft" icon="lucide:user">1642</UBadge>
-            <UBadge variant="soft" icon="lucide:smartphone">442-663</UBadge>
+            <UBadge v-if="config" variant="soft">
+              {{ config.character_name }}
+            </UBadge>
+            <UBadge v-if="config" variant="soft" icon="lucide:user">
+              {{ config.passport_id }}
+            </UBadge>
+            <UBadge v-if="config" variant="soft" icon="lucide:smartphone">
+              {{ config.phone }}
+            </UBadge>
           </div>
           <div class="text-4xl mt-2 font-breaking">
-            Stand-by no Beach Bar — Editando overlay e sistema de matérias.
+            {{ config?.title || "—" }}
           </div>
         </div>
       </div>
@@ -25,17 +31,29 @@
 
 <script lang="ts" setup>
 definePageMeta({ layout: "overlay" });
-useHead({
-  title: "Overlay Jornal",
-});
+useHead({ title: "Overlay Jornal" });
 
-const now = ref(Date.now());
+const route = useRoute();
+const user = useSupabaseUser();
+const broadcasterId = computed(
+  () => (route.query.broadcaster as string) || user.value?.sub,
+);
+
+if (!broadcasterId.value) {
+  throw createError({
+    statusCode: 400,
+    statusMessage: "Parâmetro broadcaster é obrigatório",
+  });
+}
+
+const { config, fetch } = useBroadcastConfig();
 
 onMounted(() => {
+  fetch(broadcasterId.value);
   if (import.meta.client) {
     setInterval(() => {
-      now.value = Date.now();
-    }, 1000);
+      fetch(broadcasterId.value);
+    }, 30000);
   }
 });
 </script>

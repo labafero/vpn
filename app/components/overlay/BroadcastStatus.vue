@@ -6,13 +6,36 @@
         Status da transmissão
       </span>
     </div>
-    <div class="flex flex-wrap items-center gap-2">
-      <UBadge variant="soft" size="md">Jacky Tequila</UBadge>
-      <UBadge variant="soft" size="md" icon="i-lucide-user">1642</UBadge>
-      <UBadge variant="soft" size="md" icon="i-lucide-smartphone">442-663</UBadge>
+    <div v-if="config" class="flex flex-wrap items-center gap-2">
+      <UBadge variant="soft" size="md">
+        {{ config.character_name }}
+      </UBadge>
+      <UBadge variant="soft" size="md" icon="i-lucide-user">
+        {{ config.passport_id }}
+      </UBadge>
+      <UBadge variant="soft" size="md" icon="i-lucide-smartphone">
+        {{ config.phone }}
+      </UBadge>
     </div>
-    <div class="text-lg text-default leading-snug">
-      Stand-by no Beach Bar — Editando overlay e sistema de matérias.
+    <div v-if="config" class="text-lg text-default leading-snug">
+      {{ config.title }}
+    </div>
+    <div v-else class="text-sm text-muted italic">
+      Nenhuma configuração de transmissão encontrada.
     </div>
   </div>
 </template>
+
+<script lang="ts" setup>
+const props = defineProps<{
+  broadcasterId: string;
+}>();
+
+const { config, fetch } = useBroadcastConfig();
+
+onMounted(() => {
+  fetch(props.broadcasterId);
+});
+</script>
+
+<style></style>

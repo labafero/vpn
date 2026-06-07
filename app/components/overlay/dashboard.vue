@@ -28,7 +28,7 @@
 
     <div class="border-t border-muted my-3" />
 
-    <OverlayBroadcastStatus />
+    <OverlayBroadcastStatus :broadcaster-id="broadcasterId" />
 
     <div class="border-t border-muted my-3" />
 
@@ -64,6 +64,12 @@ const REFERENCE_BRT = new Date();
 const REFERENCE_LS = { hours: 21, minutes: 37 };
 
 const now = ref(Date.now());
+const route = useRoute();
+const user = useSupabaseUser();
+
+const broadcasterId = computed(
+  () => (route.query.broadcaster as string) || user.value?.sub || "",
+);
 
 const brasiliaTime = computed(() => {
   return new Date(now.value).toLocaleTimeString("pt-BR", {

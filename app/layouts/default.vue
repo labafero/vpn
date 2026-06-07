@@ -3,11 +3,13 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 
 const open = ref(true);
 const router = useRouter();
+const user = useSupabaseUser();
 
 defineShortcuts({
   "g-r": () => router.push("/redacao"),
   "g-n": () => router.push("/redacao/novo"),
   "g-o": () => router.push("/overlay"),
+  "g-t": () => router.push("/redacao/transmissao"),
 });
 
 function closeSidebar() {
@@ -35,29 +37,39 @@ const links = computed<NavigationMenuItem[]>(() => [
     to: "/redacao/spotify",
     onSelect: closeSidebar,
   },
-]);
-
-const links2 = computed<NavigationMenuItem[]>(() => [
   {
-    label: "Overlay",
-    icon: "i-lucide-monitor",
-    defaultOpen: true,
-    children: [
-      {
-        label: "Jornal",
-        to: "/overlay",
-        target: "_blank",
-        onSelect: closeSidebar,
-      },
-      {
-        label: "Monitoramento",
-        to: "/overlay/idle",
-        target: "_blank",
-        onSelect: closeSidebar,
-      },
-    ],
+    label: "Transmissão",
+    icon: "i-lucide-radio",
+    to: "/redacao/transmissao",
+    onSelect: closeSidebar,
   },
 ]);
+
+const links2 = computed<NavigationMenuItem[]>(() => {
+  const broadcaster = user.value?.sub || "";
+  const query = broadcaster ? `?broadcaster=${broadcaster}` : "";
+  return [
+    {
+      label: "Overlay",
+      icon: "i-lucide-monitor",
+      defaultOpen: true,
+      children: [
+        {
+          label: "Jornal",
+          to: `/overlay${query}`,
+          target: "_blank",
+          onSelect: closeSidebar,
+        },
+        {
+          label: "Monitoramento",
+          to: `/overlay/idle${query}`,
+          target: "_blank",
+          onSelect: closeSidebar,
+        },
+      ],
+    },
+  ];
+});
 
 const searchGroups = computed(() => [
   {
@@ -75,6 +87,12 @@ const searchGroups = computed(() => [
         label: "Novo Post",
         icon: "i-lucide-plus",
         to: "/redacao/novo",
+      },
+      {
+        id: "transmissao",
+        label: "Transmissão",
+        icon: "i-lucide-radio",
+        to: "/redacao/transmissao",
       },
       {
         id: "overlay",

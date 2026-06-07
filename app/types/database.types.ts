@@ -111,6 +111,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      broadcast_config: {
+        Row: {
+          id: number;
+          user_id: string;
+          character_name: string;
+          passport_id: string;
+          phone: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: never;
+          user_id: string;
+          character_name?: string;
+          passport_id?: string;
+          phone?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          id?: never;
+          user_id?: string;
+          character_name?: string;
+          passport_id?: string;
+          phone?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
