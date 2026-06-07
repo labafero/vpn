@@ -80,7 +80,7 @@ async function disconnect() {
               Nenhuma conta conectada. Para exibir a música atual nos overlays,
               conecte sua conta do Spotify.
             </p>
-            <UButton color="success" @click="connect">
+            <UButton color="success" class="cursor-pointer" @click="connect">
               <UIcon name="i-simple-icons-spotify" class="mr-2" />
               Conectar Spotify
             </UButton>
