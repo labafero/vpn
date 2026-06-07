@@ -18,7 +18,11 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2026-05-31",
 
-  vite: {},
+  vite: {
+    optimizeDeps: {
+      include: ["valibot"],
+    },
+  },
 
   eslint: {
     config: {
