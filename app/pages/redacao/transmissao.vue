@@ -38,14 +38,16 @@ async function handleSave() {
   }
 }
 
+const origin = computed(() => useRequestURL().origin);
+
 const overlayUrl = computed(() => {
   if (!user.value?.sub) return "";
-  return `${window.location.origin}/overlay?broadcaster=${user.value.sub}`;
+  return `${origin.value}/overlay?broadcaster=${user.value.sub}`;
 });
 
 const idleUrl = computed(() => {
   if (!user.value?.sub) return "";
-  return `${window.location.origin}/overlay/idle?broadcaster=${user.value.sub}`;
+  return `${origin.value}/overlay/idle?broadcaster=${user.value.sub}`;
 });
 
 async function copyUrl(url: string) {
