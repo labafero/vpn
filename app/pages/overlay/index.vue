@@ -15,8 +15,7 @@
             <UBadge variant="soft" icon="lucide:smartphone">442-663</UBadge>
           </div>
           <div class="text-4xl mt-2 font-breaking">
-            Alimentando a base de dados da Cidade: valores de serviços e
-            produtos.
+            Stand-by no Beach Bar — Editando overlay e sistema de matérias.
           </div>
         </div>
       </div>

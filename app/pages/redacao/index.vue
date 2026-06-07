@@ -106,17 +106,15 @@ async function remove(id: number) {
           Nenhum post ainda.
         </p>
 
-        <div v-else class="space-y-4">
+        <div v-else class="grid grid-cols-1 gap-3">
           <UBlogPost
             v-for="post in posts"
             :key="post.id"
             orientation="horizontal"
             :image="post.cover_url"
             :title="post.title"
-            :description="post.body"
             :date="new Date(post.published_at).toLocaleDateString('pt-BR')"
-            :to="`/redacao/${post.id}/editar`"
-            variant="subtle"
+            :variant="post.destaque ? 'subtle' : 'outline'"
             :ui="{ body: 'line-clamp-5' }"
             :badge="
               ['video', 'audio'].includes(post.media_type!)
@@ -126,6 +124,29 @@ async function remove(id: number) {
                 : {}
             "
           >
+            <template #description>
+              <div
+                v-if="post.user_id === user?.sub"
+                class="flex gap-1 shrink-0"
+              >
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  :to="`/redacao/${post.id}/editar`"
+                >
+                  Editar
+                </UButton>
+                <UButton
+                  color="error"
+                  variant="outline"
+                  size="sm"
+                  @click="remove(post.id)"
+                >
+                  Excluir
+                </UButton>
+              </div>
+            </template>
           </UBlogPost>
         </div>
       </div>

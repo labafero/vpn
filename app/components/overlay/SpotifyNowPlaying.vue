@@ -2,7 +2,7 @@
   <ClientOnly>
     <div v-if="loading" class="flex items-center gap-3">
       <USkeleton class="size-12 rounded-lg shrink-0" />
-      <div class="flex-1 space-y-1.5">
+      <div class="flex-1 space-y-1.5 min-w-0">
         <USkeleton class="h-4 w-3/4" />
         <USkeleton class="h-3 w-1/2" />
       </div>
@@ -14,10 +14,16 @@
     >
       <img
         :src="track.cover_url"
-        alt="Capa do álbum"
+        alt=""
         class="size-12 rounded-lg object-cover shrink-0"
       />
-      <div class="flex-1 min-w-0">
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5 mb-0.5">
+          <UIcon name="i-simple-icons-spotify" class="text-green-500 text-sm" />
+          <span class="text-[10px] text-muted uppercase tracking-wider font-medium">
+            Tocando agora
+          </span>
+        </div>
         <div class="text-sm font-bold truncate text-default">
           {{ track.track_name }}
         </div>
@@ -33,7 +39,15 @@
       >
         <UIcon name="i-lucide-music" class="text-xl text-muted" />
       </div>
-      <div class="text-sm text-muted">Nada tocando no momento</div>
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5 mb-0.5">
+          <UIcon name="i-simple-icons-spotify" class="text-green-500 text-sm" />
+          <span class="text-[10px] text-muted uppercase tracking-wider font-medium">
+            Tocando agora
+          </span>
+        </div>
+        <div class="text-sm text-muted">Nada tocando no momento</div>
+      </div>
     </div>
 
     <template #fallback>
@@ -43,7 +57,7 @@
         >
           <UIcon name="i-lucide-music" class="text-xl text-muted" />
         </div>
-        <div class="flex-1 space-y-1.5">
+        <div class="flex-1 space-y-1.5 min-w-0">
           <div class="h-4 w-3/4 bg-elevated rounded" />
           <div class="h-3 w-1/2 bg-elevated rounded" />
         </div>
@@ -53,28 +67,20 @@
 </template>
 
 <script setup lang="ts">
-const track = ref<{
+type TrackData = {
   playing: boolean;
   track_name?: string;
   artist?: string;
   cover_url?: string;
-  progress_ms?: number;
-  duration_ms?: number;
-} | null>(null);
+};
 
+const track = ref<TrackData | null>(null);
 const loading = ref(true);
 
 async function fetchNowPlaying() {
   try {
     const data = await $fetch("/api/spotify/now-playing");
-    track.value = data as {
-      playing: boolean;
-      track_name?: string;
-      artist?: string;
-      cover_url?: string;
-      progress_ms?: number;
-      duration_ms?: number;
-    };
+    track.value = data as TrackData;
   } catch {
     track.value = { playing: false };
   } finally {

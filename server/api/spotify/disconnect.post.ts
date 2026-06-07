@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   await supabase
     .from("spotify_connection")
     .delete()
-    .eq("user_id", user.id);
+    .eq("user_id", user.sub);
 
   return { success: true };
 });
