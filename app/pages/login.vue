@@ -18,7 +18,6 @@ const state = reactive({
 
 const toast = useToast();
 const supabase = useSupabaseClient();
-const redirectInfo = useSupabaseCookieRedirect();
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   const { error } = await supabase.auth.signInWithPassword({
@@ -32,7 +31,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     return;
   }
 
-  navigateTo(redirectInfo.path.value || "/redacao");
+  navigateTo("/redacao");
 }
 </script>
 
