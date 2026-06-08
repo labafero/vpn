@@ -16,12 +16,12 @@ export default defineNuxtConfig({
     },
   },
 
-  compatibilityDate: "2026-05-31",
-
   devServer: {
     host: "0.0.0.0",
     port: 3000,
   },
+
+  compatibilityDate: "2026-06-07",
 
   vite: {
     optimizeDeps: {
