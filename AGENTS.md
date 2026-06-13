@@ -1,4 +1,4 @@
-# VPN Roleplay
+# BRN Roleplay
 
 Nuxt 4 SPA with Supabase auth, Nuxt UI, Nuxt Content, Tailwind v4.
 

@@ -3,7 +3,7 @@
     <UBadge class="animate-pulse" />
     <OverlayTinkerNews />
     <div class="border-l border-purple-600 py-1 pl-4 whitespace-nowrap">
-      <span class="text-purple-600">NEON</span> TV <small><i>Roleplay</i></small>
+      <span class="text-purple-600">BRN</span> <small><i>Roleplay</i></small>
     </div>
   </div>
 </template>

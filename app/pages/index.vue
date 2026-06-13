@@ -36,7 +36,7 @@ const normais = computed(() => posts.value.filter((p) => !p.destaque));
 <template>
   <UPage>
     <UPageHero
-      title="VPN"
+      title="BRN Roleplay"
       :links="[
         {
           label: 'Redação',

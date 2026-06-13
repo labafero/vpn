@@ -7,7 +7,7 @@ useHead({
   },
 });
 
-const title = "VPN Roleplay";
+const title = "BRN Roleplay";
 
 useSeoMeta({
   title,
