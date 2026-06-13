@@ -44,6 +44,10 @@ OAuth secrets (`spotifyClientSecret`, `spotifyRedirectUri`) live in `runtimeConf
 
 See `.env.example`. Public vars use `NUXT_PUBLIC_*` prefix. Do not add Supabase or Spotify secrets to public runtime config.
 
+## Working style
+
+- **Não sugerir atalhos ou workarounds** quando o problema real ainda não foi resolvido. Diagnosticar a causa raiz e resolver corretamente.
+
 ## Conventions
 
 - **ESLint** is the formatter — no dangling commas, 1tbs brace style (`eslint.config.mjs`).
