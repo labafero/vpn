@@ -42,6 +42,7 @@ export type Database = {
       posts: {
         Row: {
           body: string;
+          cidade: string;
           cover_url: string;
           created_at: string;
           destaque: boolean;
@@ -55,6 +56,7 @@ export type Database = {
         };
         Insert: {
           body?: string;
+          cidade?: string;
           cover_url?: string;
           created_at?: string;
           destaque?: boolean;
@@ -68,6 +70,7 @@ export type Database = {
         };
         Update: {
           body?: string;
+          cidade?: string;
           cover_url?: string;
           created_at?: string;
           destaque?: boolean;

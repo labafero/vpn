@@ -5,7 +5,7 @@
       <OverlayTinker />
 
       <div
-        class="w-full h-full border-t border-purple-900 flex items-center px-5 gap-5"
+        class="w-full h-full border-t border-red-700 flex items-center px-5 gap-5"
       >
         <div class="bg-elevated aspect-video h-32 rounded-md"></div>
         <div>

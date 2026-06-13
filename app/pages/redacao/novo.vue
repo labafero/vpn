@@ -11,6 +11,7 @@ const postFormRef = ref<{ setSubmitting: (v: boolean) => void } | null>(null);
 async function handleSubmit(data: {
   title: string;
   body: string;
+  cidade: string;
   coverFile: File | null;
   mediaFile: File | null;
   removeCover: boolean;
@@ -47,6 +48,7 @@ async function handleSubmit(data: {
   const { error } = await supabase.from("posts").insert({
     title: data.title,
     body: data.body,
+    cidade: data.cidade,
     cover_url: coverUrl,
     media_url: mediaUrl,
     media_type: mediaType,

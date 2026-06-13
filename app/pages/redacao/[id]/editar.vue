@@ -10,6 +10,7 @@ const { uploadFile, deleteFile, validateFile } = usePostMedia();
 type Post = {
   title: string;
   body: string;
+  cidade: string;
   cover_url: string;
   media_url: string | null;
   media_type: "audio" | "video" | null;
@@ -51,6 +52,7 @@ const postFormRef = ref<{ setSubmitting: (v: boolean) => void } | null>(null);
 async function handleSubmit(data: {
   title: string;
   body: string;
+  cidade: string;
   coverFile: File | null;
   mediaFile: File | null;
   removeCover: boolean;
@@ -63,6 +65,7 @@ async function handleSubmit(data: {
   const update: {
     title?: string;
     body?: string;
+    cidade?: string;
     cover_url?: string;
     media_url?: string | null;
     media_type?: "audio" | "video" | null;
@@ -71,6 +74,7 @@ async function handleSubmit(data: {
   } = {
     title: data.title,
     body: data.body,
+    cidade: data.cidade,
     destaque: data.destaque,
     published_at: data.publishedAt,
   };
@@ -165,6 +169,7 @@ async function handleSubmit(data: {
           ref="postFormRef"
           :initial-title="post.title"
           :initial-body="post.body"
+          :initial-cidade="post.cidade"
           :initial-cover-url="post.cover_url"
           :initial-media-url="post.media_url ?? undefined"
           :initial-media-type="post.media_type"

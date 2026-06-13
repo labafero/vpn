@@ -3,6 +3,7 @@ type Post = {
   id: number
   title: string
   body: string
+  cidade: string
   cover_url: string
 }
 
@@ -56,8 +57,10 @@ watch(postsLength, (len) => {
           <div class="absolute inset-0 bg-black/75" />
           <div class="relative z-10 h-full flex items-center p-6">
             <div>
-              <div class="uppercase text-xs text-white/60 mb-1 tracking-wider">
-                {{ label }}
+              <div class="uppercase text-xs text-white/60 mb-1 tracking-wider flex items-center gap-2">
+                <span>{{ label }}</span>
+                <span v-if="post.cidade" class="text-white/40">|</span>
+                <span v-if="post.cidade" class="text-white/80">{{ post.cidade }}</span>
               </div>
               <div class="text-2xl font-bold leading-tight mb-2 text-white truncate max-w-prose">
                 {{ post.title }}

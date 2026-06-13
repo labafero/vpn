@@ -3,6 +3,7 @@ const props = withDefaults(
   defineProps<{
     initialTitle?: string;
     initialBody?: string;
+    initialCidade?: string;
     initialCoverUrl?: string;
     initialMediaUrl?: string;
     initialMediaType?: "audio" | "video" | null;
@@ -13,6 +14,7 @@ const props = withDefaults(
   {
     initialTitle: "",
     initialBody: "",
+    initialCidade: "",
     initialCoverUrl: "",
     initialMediaUrl: "",
     initialMediaType: null,
@@ -27,6 +29,7 @@ const emit = defineEmits<{
     data: {
       title: string;
       body: string;
+      cidade: string;
       coverFile: File | null;
       mediaFile: File | null;
       removeCover: boolean;
@@ -53,6 +56,7 @@ const submitting = ref(false);
 
 const title = ref(props.initialTitle);
 const body = ref(props.initialBody);
+const cidade = ref(props.initialCidade);
 const destaque = ref(props.initialDestaque);
 const publishedAt = ref(toDateInputValue(props.initialPublishedAt));
 
@@ -105,10 +109,15 @@ function handleSubmit() {
     error.value = "Título é obrigatório";
     return;
   }
+  if (!cidade.value.trim()) {
+    error.value = "Cidade é obrigatória";
+    return;
+  }
   submitting.value = true;
   emit("submit", {
     title: title.value.trim(),
     body: body.value,
+    cidade: cidade.value,
     coverFile: coverFile.value,
     mediaFile: mediaFile.value,
     removeCover: removeCover.value,
@@ -137,6 +146,10 @@ defineExpose({ setSubmitting });
 
     <UFormField label="Título" name="title" required>
       <UInput v-model="title" class="w-full" />
+    </UFormField>
+
+    <UFormField label="Cidade" name="cidade" required>
+      <UInput v-model="cidade" class="w-full" placeholder="Ex: Los Santos" />
     </UFormField>
 
     <UFormField label="Conteúdo" name="body">
