@@ -2,6 +2,7 @@
 definePageMeta({ middleware: "auth" });
 
 const { config, fetch, save } = useBroadcastConfig();
+const { lsLabel, fetch: fetchClock, sync: syncClock } = useServerClock();
 const user = useSupabaseUser();
 const toast = useToast();
 
@@ -11,8 +12,12 @@ const phone = ref("");
 const title = ref("");
 const saving = ref(false);
 
+const lsTimeInput = ref("");
+const syncing = ref(false);
+
 onMounted(async () => {
   await fetch();
+  await fetchClock();
   if (config.value) {
     characterName.value = config.value.character_name;
     passportId.value = config.value.passport_id;
@@ -20,6 +25,20 @@ onMounted(async () => {
     title.value = config.value.title;
   }
 });
+
+async function handleSync() {
+  if (!lsTimeInput.value) return;
+  const [h, m] = lsTimeInput.value.split(":").map(Number);
+  syncing.value = true;
+  const error = await syncClock(h, m);
+  if (error) {
+    toast.add({ title: "Erro ao sincronizar", color: "error" });
+  } else {
+    toast.add({ title: "Horário de LS sincronizado", color: "success" });
+    lsTimeInput.value = "";
+  }
+  syncing.value = false;
+}
 
 async function handleSave() {
   saving.value = true;
@@ -128,6 +147,40 @@ async function copyUrl(url: string) {
               />
             </UFormField>
           </UForm>
+        </UCard>
+
+        <UCard>
+          <template #header>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-clock" class="text-xl text-primary" />
+              <div>
+                <div class="text-lg font-bold">Horário de Los Santos</div>
+                <div class="text-sm text-muted">
+                  Sincronize o relógio do servidor com o horário atual de LS.
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <div class="space-y-4">
+            <div class="text-sm text-muted">
+              Horário calculado agora:
+              <span class="font-mono text-default font-bold">{{ lsLabel }}</span>
+            </div>
+            <div class="flex items-end gap-3">
+              <UFormField label="Horário de LS agora (HH:MM)">
+                <UInput v-model="lsTimeInput" type="time" class="w-full" />
+              </UFormField>
+              <UButton
+                :loading="syncing"
+                :disabled="!lsTimeInput"
+                icon="i-lucide-refresh-cw"
+                @click="handleSync"
+              >
+                Sincronizar
+              </UButton>
+            </div>
+          </div>
         </UCard>
 
         <UCard>

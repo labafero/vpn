@@ -59,13 +59,10 @@
 </template>
 
 <script lang="ts" setup>
-// LS time reference: current BRT time = 21:37 in Los Santos
-const REFERENCE_BRT = new Date();
-const REFERENCE_LS = { hours: 21, minutes: 37 };
-
 const now = ref(Date.now());
 const route = useRoute();
 const user = useSupabaseUser();
+const { lsLabel: losSantosLabel, fetch: fetchClock } = useServerClock();
 
 const broadcasterId = computed(
   () => (route.query.broadcaster as string) || user.value?.sub || "",
@@ -77,25 +74,6 @@ const brasiliaTime = computed(() => {
     minute: "2-digit",
     second: "2-digit",
   });
-});
-
-const losSantos = computed(() => {
-  const elapsedMs = now.value - REFERENCE_BRT.getTime();
-  const elapsedRealMin = elapsedMs / 60000;
-  const elapsedLSMin = elapsedRealMin * 30;
-  const totalLSMin =
-    REFERENCE_LS.hours * 60 + REFERENCE_LS.minutes + elapsedLSMin;
-  const day = Math.floor(totalLSMin / 1440) + 1;
-  const timeMin = totalLSMin % 1440;
-  const hours = Math.floor(timeMin / 60);
-  const minutes = Math.floor(timeMin % 60);
-  return { day, hours, minutes };
-});
-
-const losSantosLabel = computed(() => {
-  const h = String(losSantos.value.hours).padStart(2, "0");
-  const m = String(losSantos.value.minutes).padStart(2, "0");
-  return `${h}:${m}`;
 });
 
 const stocks = [
@@ -112,6 +90,7 @@ onMounted(async () => {
   setInterval(() => {
     now.value = Date.now();
   }, 1000);
+  await fetchClock();
 });
 </script>
 
