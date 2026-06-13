@@ -147,9 +147,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      market_values: {
+        Row: {
+          id: number;
+          user_id: string;
+          cidade: string;
+          label: string;
+          value: string;
+          trend: 'up' | 'down' | 'stable';
+          created_at: string;
+        };
+        Insert: {
+          id?: never;
+          user_id: string;
+          cidade?: string;
+          label: string;
+          value: string;
+          trend?: 'up' | 'down' | 'stable';
+          created_at?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: {
-      [_ in never]: never;
+      market_values_latest: {
+        Row: {
+          id: number | null;
+          user_id: string | null;
+          cidade: string | null;
+          label: string | null;
+          value: string | null;
+          trend: string | null;
+          created_at: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       [_ in never]: never;

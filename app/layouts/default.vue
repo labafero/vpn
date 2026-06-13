@@ -10,6 +10,7 @@ defineShortcuts({
   "g-n": () => router.push("/redacao/novo"),
   "g-o": () => router.push("/overlay"),
   "g-t": () => router.push("/redacao/transmissao"),
+  "g-v": () => router.push("/redacao/valores"),
 });
 
 function closeSidebar() {
@@ -41,6 +42,12 @@ const links = computed<NavigationMenuItem[]>(() => [
     label: "Transmissão",
     icon: "i-lucide-radio",
     to: "/redacao/transmissao",
+    onSelect: closeSidebar,
+  },
+  {
+    label: "Valores",
+    icon: "i-lucide-chart-line",
+    to: "/redacao/valores",
     onSelect: closeSidebar,
   },
 ]);
@@ -93,6 +100,12 @@ const searchGroups = computed(() => [
         label: "Transmissão",
         icon: "i-lucide-radio",
         to: "/redacao/transmissao",
+      },
+      {
+        id: "valores",
+        label: "Valores de Mercado",
+        icon: "i-lucide-chart-line",
+        to: "/redacao/valores",
       },
       {
         id: "overlay",

@@ -62,7 +62,9 @@
 const now = ref(Date.now());
 const route = useRoute();
 const user = useSupabaseUser();
+const supabase = useSupabaseClient();
 const { lsLabel: losSantosLabel, fetch: fetchClock } = useServerClock();
+const { latest, fetchLatest } = useMarketValues();
 
 const broadcasterId = computed(
   () => (route.query.broadcaster as string) || user.value?.sub || "",
@@ -76,7 +78,7 @@ const brasiliaTime = computed(() => {
   });
 });
 
-const stocks = [
+const FALLBACK_STOCKS = [
   { label: "kit médico civil", value: "R$ 10.000", trend: "down" as const },
   { label: "kit médico policial", value: "R$ 4.000", trend: "stable" as const },
   { label: "analgésico", value: "R$ 1.200", trend: "stable" as const },
@@ -86,11 +88,39 @@ const stocks = [
   { label: "bitcoin", value: "R$ 3,40", trend: "stable" as const },
 ];
 
+const stocks = computed(() => {
+  if (latest.value.length === 0) return FALLBACK_STOCKS;
+  return latest.value.map((r) => ({
+    label: r.cidade ? `${r.cidade} · ${r.label ?? ""}` : (r.label ?? ""),
+    value: r.value ?? "",
+    trend: (r.trend ?? "stable") as "up" | "down" | "stable",
+  }));
+});
+
 onMounted(async () => {
   setInterval(() => {
     now.value = Date.now();
   }, 1000);
   await fetchClock();
+  await fetchLatest(broadcasterId.value);
+
+  supabase
+    .channel("market_values_overlay")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "market_values",
+        filter: `user_id=eq.${broadcasterId.value}`,
+      },
+      () => fetchLatest(broadcasterId.value),
+    )
+    .subscribe();
+});
+
+onUnmounted(() => {
+  supabase.removeAllChannels();
 });
 </script>
 
