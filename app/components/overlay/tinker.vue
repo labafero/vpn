@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center border-t py-2 px-5" :class="cor.border">
     <UBadge class="animate-pulse" color="error" />
-    <OverlayTinkerNews :cor-key="corKey" />
+    <OverlayTinkerNews :cor-key="corKey" :cidade="cityConfig?.slug ?? undefined" />
     <div class="border-l py-1 pl-4 whitespace-nowrap" :class="cor.border">
       <span :class="cor.text" class="font-bold">{{ sigla }}</span>
       <small><i> {{ nome }}</i></small>

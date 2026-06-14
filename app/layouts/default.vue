@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from "@nuxt/ui";
+import type { NavigationMenuItem } from "@nuxt/ui"
 
 const open = ref(true);
 const router = useRouter();
-const user = useSupabaseUser();
 
 defineShortcuts({
   "g-r": () => router.push("/redacao"),
   "g-n": () => router.push("/redacao/novo"),
-  "g-o": () => router.push("/overlay"),
   "g-t": () => router.push("/redacao/transmissao"),
   "g-v": () => router.push("/redacao/valores"),
   "g-c": () => router.push("/redacao/cidades"),
@@ -59,32 +57,6 @@ const links = computed<NavigationMenuItem[]>(() => [
   },
 ]);
 
-const links2 = computed<NavigationMenuItem[]>(() => {
-  const broadcaster = user.value?.sub || "";
-  const query = broadcaster ? `?broadcaster=${broadcaster}` : "";
-  return [
-    {
-      label: "Overlay",
-      icon: "i-lucide-monitor",
-      defaultOpen: true,
-      children: [
-        {
-          label: "Jornal",
-          to: `/overlay${query}`,
-          target: "_blank",
-          onSelect: closeSidebar,
-        },
-        {
-          label: "Monitoramento",
-          to: `/overlay/idle${query}`,
-          target: "_blank",
-          onSelect: closeSidebar,
-        },
-      ],
-    },
-  ];
-});
-
 const searchGroups = computed(() => [
   {
     id: "go-to",
@@ -114,13 +86,6 @@ const searchGroups = computed(() => [
         icon: "i-lucide-chart-line",
         to: "/redacao/valores",
       },
-      {
-        id: "overlay",
-        label: "Overlay",
-        icon: "i-lucide-monitor",
-        to: "/overlay",
-        target: "_blank",
-      },
     ],
   },
 ]);
@@ -138,8 +103,6 @@ const searchGroups = computed(() => [
       <template #default>
         <UDashboardSearchButton label="Buscar" />
         <UNavigationMenu :items="links" orientation="vertical" />
-        <USeparator orientation="horizontal" />
-        <UNavigationMenu :items="links2" orientation="vertical" />
       </template>
 
       <template #footer>

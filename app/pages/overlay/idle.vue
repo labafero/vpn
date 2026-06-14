@@ -4,7 +4,7 @@
       <!-- OBS Game Capture Placeholder -->
       <div class="col-span-2 bg-green-500 w-full h-full"></div>
 
-      <OverlayHighlights :cor-key="corKey" />
+      <OverlayHighlights :cor-key="corKey" :cidade="cidadeSlug" />
 
       <OverlayDashboard :cor-key="corKey" />
     </div>

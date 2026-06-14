@@ -14,6 +14,7 @@ import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors"
 
 const props = defineProps<{
   corKey?: CorPrimaria;
+  cidade?: string;
 }>();
 
 const cor = computed(() => corClasses[props.corKey ?? DEFAULT_COR]);
@@ -35,12 +36,15 @@ type Post = {
 const posts = ref<Post[]>([]);
 
 onMounted(async () => {
-  const { data } = await supabase
+  let query = supabase
     .from("posts")
     .select("*")
     .order("published_at", { ascending: false })
     .limit(5);
 
+  if (props.cidade) query = query.ilike("cidade", props.cidade);
+
+  const { data } = await query;
   if (data) posts.value = data as Post[];
 });
 </script>

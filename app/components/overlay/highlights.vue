@@ -20,6 +20,7 @@ import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors"
 
 const props = defineProps<{
   corKey?: CorPrimaria;
+  cidade?: string;
 }>();
 
 const cor = computed(() => corClasses[props.corKey ?? DEFAULT_COR]);
@@ -44,11 +45,14 @@ const loading = ref(true);
 const destaques = computed(() => posts.value.filter((p) => p.destaque));
 
 onMounted(async () => {
-  const { data } = await supabase
+  let query = supabase
     .from("posts")
     .select("*")
     .order("published_at", { ascending: false });
 
+  if (props.cidade) query = query.ilike("cidade", props.cidade);
+
+  const { data } = await query;
   if (data) posts.value = data as Post[];
   loading.value = false;
 });
