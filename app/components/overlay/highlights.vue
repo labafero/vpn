@@ -1,5 +1,5 @@
 <template>
-  <div class="border-t-2 border-primary w-full h-full relative overflow-hidden bg-neutral-900">
+  <div class="border-t-2 w-full h-full relative overflow-hidden bg-neutral-900" :class="cor.border">
     <div v-if="loading" class="h-full w-full p-6 flex flex-col justify-center">
       <USkeleton class="h-3 w-20 mb-4" />
       <USkeleton class="h-8 w-3/4 mb-3" />
@@ -16,6 +16,14 @@
 </template>
 
 <script lang="ts" setup>
+import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors";
+
+const props = defineProps<{
+  corKey?: CorPrimaria;
+}>();
+
+const cor = computed(() => corClasses[props.corKey ?? DEFAULT_COR]);
+
 const supabase = useSupabaseClient();
 
 type Post = {
@@ -27,6 +35,7 @@ type Post = {
   user_id: string;
   created_at: string;
   published_at: string;
+  cidade: string;
 };
 
 const posts = ref<Post[]>([]);
@@ -44,5 +53,3 @@ onMounted(async () => {
   loading.value = false;
 });
 </script>
-
-<style></style>

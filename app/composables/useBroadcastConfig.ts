@@ -5,6 +5,7 @@ type BroadcastConfigInsert = {
   passport_id: string;
   phone: string;
   title: string;
+  cidade?: string | null;
 };
 
 export function useBroadcastConfig() {

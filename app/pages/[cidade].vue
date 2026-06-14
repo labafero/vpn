@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, DEFAULT_NOME, type CorPrimaria } from "~/utils/cidadeColors";
+
 definePageMeta({ layout: "auth" });
 
+const route = useRoute();
+const cidade = computed(() => route.params.cidade as string);
+
 const supabase = useSupabaseClient();
+const { config: cidadeConfig, fetchBySlug } = useCidadeConfig();
 
 type Post = {
   id: number;
@@ -21,23 +27,28 @@ const posts = ref<Post[]>([]);
 const loading = ref(true);
 
 onMounted(async () => {
-  const { data } = await supabase
-    .from("posts")
-    .select("*")
-    .order("published_at", { ascending: false });
-
-  if (data) posts.value = data as Post[];
+  await Promise.all([
+    fetchBySlug(cidade.value),
+    supabase
+      .from("posts")
+      .select("*")
+      .ilike("cidade", cidade.value)
+      .order("published_at", { ascending: false })
+      .then(({ data }) => {
+        if (data) posts.value = data as Post[];
+      }),
+  ]);
   loading.value = false;
 });
 
+const cor = computed(
+  () => corClasses[(cidadeConfig.value?.cor_primaria as CorPrimaria) ?? DEFAULT_COR],
+);
+const sigla = computed(() => cidadeConfig.value?.jornal_sigla ?? DEFAULT_SIGLA);
+const nome = computed(() => cidadeConfig.value?.jornal_nome ?? DEFAULT_NOME);
+
 const destaques = computed(() => posts.value.filter((p) => p.destaque));
 const normais = computed(() => posts.value.filter((p) => !p.destaque));
-
-const cidades = computed(() => {
-  const set = new Set(posts.value.map((p) => p.cidade).filter(Boolean));
-  return [...set] as string[];
-});
-
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -51,11 +62,25 @@ function formatDate(iso: string) {
 <template>
   <div class="min-h-screen bg-zinc-950 text-white">
     <!-- Sticky header -->
-    <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600">
+    <header
+      class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b"
+      :class="cor.border"
+    >
       <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <span class="font-bold text-base tracking-tight">
-          <span class="text-red-500">BRN</span> Roleplay
-        </span>
+        <div class="flex items-center gap-3">
+          <UButton
+            to="/"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            icon="lucide:arrow-left"
+            aria-label="Voltar"
+          />
+          <span class="font-bold text-base tracking-tight">
+            <span :class="cor.text">{{ sigla }}</span>
+            {{ nome }}
+          </span>
+        </div>
         <UButton
           to="/redacao"
           size="sm"
@@ -71,9 +96,6 @@ function formatDate(iso: string) {
     <template v-if="loading">
       <USkeleton class="h-64 sm:h-96 w-full rounded-none" />
       <div class="max-w-5xl mx-auto px-4 py-6">
-        <div class="flex gap-2 mb-6">
-          <USkeleton v-for="i in 4" :key="i" class="h-8 w-24 rounded-full" />
-        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <USkeleton v-for="i in 6" :key="i" class="h-56 rounded-xl" />
         </div>
@@ -87,29 +109,12 @@ function formatDate(iso: string) {
       </div>
 
       <div class="max-w-5xl mx-auto px-4 py-6">
-        <!-- Pills de cidade -->
-        <div class="flex gap-2 overflow-x-auto pb-3 mb-6 -mx-4 px-4" style="scrollbar-width: none">
-          <button
-            class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors bg-red-600 text-white"
-          >
-            Todas
-          </button>
-          <NuxtLink
-            v-for="cidade in cidades"
-            :key="cidade"
-            :to="`/${cidade.toLowerCase()}`"
-            class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-          >
-            {{ cidade }}
-          </NuxtLink>
-        </div>
-
         <!-- Empty state -->
         <p
           v-if="normais.length === 0 && destaques.length === 0"
           class="text-zinc-500 text-center py-12"
         >
-          Nenhuma matéria disponível.
+          Nenhuma matéria disponível em {{ cidadeConfig?.cidade_nome ?? cidade }}.
         </p>
 
         <!-- Post grid -->
@@ -140,7 +145,8 @@ function formatDate(iso: string) {
               <div class="flex items-center gap-2 mb-2">
                 <span
                   v-if="post.cidade"
-                  class="text-xs font-semibold text-red-400 uppercase tracking-wider"
+                  class="text-xs font-semibold uppercase tracking-wider"
+                  :class="cor.muted"
                 >
                   {{ post.cidade }}
                 </span>

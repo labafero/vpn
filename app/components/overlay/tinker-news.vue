@@ -1,13 +1,23 @@
 <template>
   <UMarquee class="px-5 py-2.5 uppercase">
-    <span v-for="line in lines" :key="line" class="flex gap-16">
-      <span class="text-red-500">//</span>
-      <span>{{ line }}</span>
+    <span v-for="post in posts" :key="post.id" class="flex gap-16">
+      <span :class="cor.text">//</span>
+      <span>
+        <span :class="cor.text">{{ post.cidade }}:</span> {{ post.title }}
+      </span>
     </span>
   </UMarquee>
 </template>
 
 <script lang="ts" setup>
+import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors";
+
+const props = defineProps<{
+  corKey?: CorPrimaria;
+}>();
+
+const cor = computed(() => corClasses[props.corKey ?? DEFAULT_COR]);
+
 const supabase = useSupabaseClient();
 
 type Post = {
@@ -19,10 +29,10 @@ type Post = {
   user_id: string;
   created_at: string;
   published_at: string;
+  cidade: string;
 };
 
 const posts = ref<Post[]>([]);
-const loading = ref(true);
 
 onMounted(async () => {
   const { data } = await supabase
@@ -32,13 +42,5 @@ onMounted(async () => {
     .limit(5);
 
   if (data) posts.value = data as Post[];
-  loading.value = false;
-});
-
-const lines = computed(() => {
-  if (loading.value) return ["Carregando..."];
-  if (posts.value.length === 0) return ["Nenhuma matéria encontrada."];
-
-  return posts.value.map((post) => post.title);
 });
 </script>

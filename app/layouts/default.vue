@@ -11,6 +11,7 @@ defineShortcuts({
   "g-o": () => router.push("/overlay"),
   "g-t": () => router.push("/redacao/transmissao"),
   "g-v": () => router.push("/redacao/valores"),
+  "g-c": () => router.push("/redacao/cidades"),
 });
 
 function closeSidebar() {
@@ -48,6 +49,12 @@ const links = computed<NavigationMenuItem[]>(() => [
     label: "Valores",
     icon: "i-lucide-chart-line",
     to: "/redacao/valores",
+    onSelect: closeSidebar,
+  },
+  {
+    label: "Cidades",
+    icon: "i-lucide-map-pin",
+    to: "/redacao/cidades",
     onSelect: closeSidebar,
   },
 ]);

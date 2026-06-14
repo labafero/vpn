@@ -1,5 +1,5 @@
 <template>
-  <div class="border-t-2 border-primary overflow-hidden w-full h-full p-5 flex flex-col">
+  <div class="border-t-2 overflow-hidden w-full h-full p-5 flex flex-col" :class="cor.border">
 
     <div class="space-y-2 mb-3">
       <div class="flex justify-between">
@@ -59,6 +59,14 @@
 </template>
 
 <script lang="ts" setup>
+import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors";
+
+const props = defineProps<{
+  corKey?: CorPrimaria;
+}>();
+
+const cor = computed(() => corClasses[props.corKey ?? DEFAULT_COR]);
+
 const now = ref(Date.now());
 const route = useRoute();
 const user = useSupabaseUser();
@@ -123,5 +131,3 @@ onUnmounted(() => {
   supabase.removeAllChannels();
 });
 </script>
-
-<style></style>

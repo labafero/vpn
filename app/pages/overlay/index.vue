@@ -2,10 +2,11 @@
   <div class="flex flex-col h-screen">
     <div class="h-202.5 bg-green-500"></div>
     <div class="flex flex-col h-67.5 overflow-hidden">
-      <OverlayTinker />
+      <OverlayTinker :city-config="cityConfig" />
 
       <div
-        class="w-full h-full border-t border-red-700 flex items-center px-5 gap-5"
+        class="w-full h-full border-t flex items-center px-5 gap-5"
+        :class="cor.border"
       >
         <div class="bg-elevated aspect-video h-32 rounded-md"></div>
         <div>
@@ -30,14 +31,18 @@
 </template>
 
 <script lang="ts" setup>
+import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors";
+
 definePageMeta({ layout: "overlay" });
 useHead({ title: "Overlay Jornal" });
 
 const route = useRoute();
 const user = useSupabaseUser();
+
 const broadcasterId = computed(
   () => (route.query.broadcaster as string) || user.value?.sub,
 );
+const isWhitelabel = computed(() => route.query.mode === "whitelabel");
 
 if (!broadcasterId.value) {
   throw createError({
@@ -47,15 +52,26 @@ if (!broadcasterId.value) {
 }
 
 const { config, fetch } = useBroadcastConfig();
+const { config: cityConfig, fetchBySlug } = useCidadeConfig();
 
-onMounted(() => {
-  fetch(broadcasterId.value);
+onMounted(async () => {
+  await fetch(broadcasterId.value);
+
+  if (isWhitelabel.value && config.value?.cidade) {
+    await fetchBySlug(config.value.cidade);
+  }
+
   if (import.meta.client) {
-    setInterval(() => {
-      fetch(broadcasterId.value);
+    setInterval(async () => {
+      await fetch(broadcasterId.value);
+      if (isWhitelabel.value && config.value?.cidade) {
+        await fetchBySlug(config.value.cidade);
+      }
     }, 30000);
   }
 });
-</script>
 
-<style></style>
+const cor = computed(
+  () => corClasses[(cityConfig.value?.cor_primaria as CorPrimaria) ?? DEFAULT_COR],
+);
+</script>

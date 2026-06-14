@@ -1,0 +1,107 @@
+{
+  // ─── FILOSOFIA: VSCode como viewer/navegador ──────────────────────────────
+  // Terminal vive fora (Claude + git diff). VSCode = leitura, busca, extensões.
+  // Tudo que polui a tela ou compete com o terminal foi desligado.
+
+  // ─── EDITOR ───────────────────────────────────────────────────────────────
+  "editor.minimap.enabled": true,
+  "editor.scrollbar.vertical": "hidden",
+  "editor.scrollbar.horizontal": "hidden",
+  "editor.overviewRulerBorder": false,
+  "editor.hideCursorInOverviewRuler": true,
+  "editor.renderLineHighlight": "none",
+  "editor.renderWhitespace": "none",
+  "editor.occurrencesHighlight": "off",
+  "editor.selectionHighlight": false,
+  "editor.matchBrackets": "never",
+  "editor.glyphMargin": false,
+  "editor.folding": false,
+  "editor.lineNumbers": "on",
+  "editor.fontSize": 13,
+  "editor.lineHeight": 22,
+  "editor.fontFamily": "'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace",
+  "editor.fontLigatures": true,
+  "editor.wordWrap": "off",
+  "editor.padding.top": 16,
+  "editor.padding.bottom": 16,
+  "editor.guides.bracketPairs": false,
+  "editor.guides.indentation": false,
+  "editor.stickyScroll.enabled": false,
+  "editor.hover.enabled": "off",           // mantém hover p/ type hints
+  "editor.hover.delay": 600,
+  "editor.codeLens": false,
+  "editor.lightbulb.enabled": "off",
+  "editor.quickSuggestions": {            // sem autocomplete intrusivo
+    "other": "off",
+    "comments": "off",
+    "strings": "off"
+  },
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.parameterHints.enabled": false,
+  "editor.inlineSuggest.enabled": false,  // desliga Copilot inline
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.snippetSuggestions": "none",
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.smoothScrolling": true,
+  "diffEditor.renderSideBySide": true,    // diff interno quando necessário
+
+  // ─── WORKBENCH / UI ───────────────────────────────────────────────────────
+  "workbench.statusBar.visible": true,    // mantém — mostra branch, erros
+  "workbench.activityBar.location": "hidden",
+  "workbench.sideBar.location": "right",  // sidebar à direita não empurra o código
+  "workbench.panel.defaultLocation": "bottom",
+  "workbench.startupEditor": "none",
+  "workbench.tips.enabled": false,
+  "workbench.editor.showTabs": "multiple",
+  "workbench.editor.tabSizing": "shrink",
+  "workbench.editor.wrapTabs": false,
+  "workbench.editor.enablePreview": true, // preview evita acumular abas
+  "workbench.tree.indent": 14,
+  "workbench.tree.renderIndentGuides": "none",
+  "workbench.colorCustomizations": {
+    "editorGutter.background": "#00000000" // gutter transparente
+  },
+  "window.title": "${rootName} · ${activeEditorShort}",
+  "window.commandCenter": false,
+
+  // ─── TERMINAL INTERNO (desligado — você usa externo) ──────────────────────
+  "terminal.integrated.enabled": false,
+
+  // ─── EXPLORADOR DE ARQUIVOS ───────────────────────────────────────────────
+  "explorer.compactFolders": false,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "explorer.sortOrder": "type",
+
+  // ─── GIT (display only — operações ficam no terminal) ────────────────────
+  "git.enabled": false,
+
+  // ─── BUSCA ────────────────────────────────────────────────────────────────
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/build": true,
+    "**/.nuxt": true,
+  },
+  "search.useIgnoreFiles": true,
+  "search.smartCase": true,
+
+  // ─── PERFORMANCE / RUÍDO ──────────────────────────────────────────────────
+  "extensions.ignoreRecommendations": true,
+  "breadcrumbs.enabled": false,
+  "problems.decorations.enabled": true,   // erros ainda aparecem
+  "outline.showVariables": false,
+  "outline.showProperties": false,
+
+  // ─── FORMATAÇÃO (passiva — não formata ao salvar, só quando pedido) ───────
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+
+  // ─── ARQUIVO ──────────────────────────────────────────────────────────────
+  "files.autoSave": "onFocusChange",
+  "files.trimTrailingWhitespace": false,  // não mexa no diff sem querer
+  "files.insertFinalNewline": false
+}

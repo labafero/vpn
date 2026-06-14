@@ -2,6 +2,7 @@
 definePageMeta({ middleware: "auth" });
 
 const { config, fetch, save } = useBroadcastConfig();
+const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
 const { lsLabel, fetch: fetchClock, sync: syncClock } = useServerClock();
 const user = useSupabaseUser();
 const toast = useToast();
@@ -10,25 +11,26 @@ const characterName = ref("");
 const passportId = ref("");
 const phone = ref("");
 const title = ref("");
+const cidade = ref<string | null>(null);
 const saving = ref(false);
 
 const lsTimeInput = ref("");
 const syncing = ref(false);
 
 onMounted(async () => {
-  await fetch();
-  await fetchClock();
+  await Promise.all([fetch(), fetchClock(), fetchCidades()]);
   if (config.value) {
     characterName.value = config.value.character_name;
     passportId.value = config.value.passport_id;
     phone.value = config.value.phone;
     title.value = config.value.title;
+    cidade.value = config.value.cidade ?? null;
   }
 });
 
 async function handleSync() {
   if (!lsTimeInput.value) return;
-  const [h, m] = lsTimeInput.value.split(":").map(Number);
+  const [h = 0, m = 0] = lsTimeInput.value.split(":").map(Number);
   syncing.value = true;
   const error = await syncClock(h, m);
   if (error) {
@@ -48,6 +50,7 @@ async function handleSave() {
       passport_id: passportId.value,
       phone: phone.value,
       title: title.value,
+      cidade: cidade.value,
     });
     toast.add({ title: "Configuração salva", color: "success" });
   } catch {
@@ -59,14 +62,27 @@ async function handleSave() {
 
 const origin = computed(() => useRequestURL().origin);
 
-const overlayUrl = computed(() => {
-  if (!user.value?.sub) return "";
-  return `${origin.value}/overlay?broadcaster=${user.value.sub}`;
-});
+const baseParams = computed(() =>
+  user.value?.sub ? `broadcaster=${user.value.sub}` : "",
+);
 
-const idleUrl = computed(() => {
-  if (!user.value?.sub) return "";
-  return `${origin.value}/overlay/idle?broadcaster=${user.value.sub}`;
+const overlayUrl = computed(() =>
+  user.value?.sub ? `${origin.value}/overlay?${baseParams.value}` : "",
+);
+
+const overlayWhitelabelUrl = computed(() =>
+  user.value?.sub
+    ? `${origin.value}/overlay?${baseParams.value}&mode=whitelabel`
+    : "",
+);
+
+const idleUrl = computed(() =>
+  user.value?.sub ? `${origin.value}/overlay/idle?${baseParams.value}` : "",
+);
+
+const idleWhitelabelUrl = computed(() => {
+  if (!user.value?.sub || !cidade.value) return "";
+  return `${origin.value}/overlay/idle?${baseParams.value}&cidade=${cidade.value}`;
 });
 
 async function copyUrl(url: string) {
@@ -77,6 +93,11 @@ async function copyUrl(url: string) {
     toast.add({ title: "Erro ao copiar", color: "error" });
   }
 }
+
+const cidadeOptions = computed(() => [
+  { label: "Sem cidade", value: null },
+  ...cidades.value.map((c) => ({ label: c.cidade_nome, value: c.slug })),
+]);
 </script>
 
 <template>
@@ -111,7 +132,7 @@ async function copyUrl(url: string) {
           </template>
 
           <UForm
-            :state="{ characterName, passportId, phone, title }"
+            :state="{ characterName, passportId, phone, title, cidade }"
             class="space-y-4"
             @submit="handleSave"
           >
@@ -143,6 +164,16 @@ async function copyUrl(url: string) {
               <UInput
                 v-model="title"
                 placeholder="Ex: Stand-by no Beach Bar"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Cidade">
+              <USelect
+                v-model="cidade"
+                :items="cidadeOptions"
+                value-key="value"
+                label-key="label"
                 class="w-full"
               />
             </UFormField>
@@ -196,27 +227,51 @@ async function copyUrl(url: string) {
             </div>
           </template>
 
-          <div class="space-y-3">
+          <div class="space-y-5">
+            <!-- Modo Geral -->
             <div>
-              <div class="text-sm font-medium mb-1">Jornal</div>
-              <div class="flex gap-2">
-                <UInput :model-value="overlayUrl" class="flex-1" readonly />
-                <UButton
-                  icon="i-lucide-copy"
-                  variant="outline"
-                  @click="copyUrl(overlayUrl)"
-                />
+              <div class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Modo Geral</div>
+              <div class="space-y-3">
+                <div>
+                  <div class="text-sm font-medium mb-1">Jornal</div>
+                  <div class="flex gap-2">
+                    <UInput :model-value="overlayUrl" class="flex-1" readonly />
+                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(overlayUrl)" />
+                  </div>
+                </div>
+                <div>
+                  <div class="text-sm font-medium mb-1">Monitoramento</div>
+                  <div class="flex gap-2">
+                    <UInput :model-value="idleUrl" class="flex-1" readonly />
+                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(idleUrl)" />
+                  </div>
+                </div>
               </div>
             </div>
+
+            <USeparator />
+
+            <!-- Modo Whitelabel -->
             <div>
-              <div class="text-sm font-medium mb-1">Monitoramento</div>
-              <div class="flex gap-2">
-                <UInput :model-value="idleUrl" class="flex-1" readonly />
-                <UButton
-                  icon="i-lucide-copy"
-                  variant="outline"
-                  @click="copyUrl(idleUrl)"
-                />
+              <div class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Modo Whitelabel</div>
+              <p v-if="!cidade" class="text-sm text-muted">
+                Selecione uma cidade acima para gerar os links whitelabel.
+              </p>
+              <div v-else class="space-y-3">
+                <div>
+                  <div class="text-sm font-medium mb-1">Jornal (whitelabel)</div>
+                  <div class="flex gap-2">
+                    <UInput :model-value="overlayWhitelabelUrl" class="flex-1" readonly />
+                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(overlayWhitelabelUrl)" />
+                  </div>
+                </div>
+                <div>
+                  <div class="text-sm font-medium mb-1">Monitoramento (whitelabel)</div>
+                  <div class="flex gap-2">
+                    <UInput :model-value="idleWhitelabelUrl" class="flex-1" readonly />
+                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(idleWhitelabelUrl)" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
