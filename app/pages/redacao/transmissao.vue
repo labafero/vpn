@@ -1,17 +1,18 @@
 <script setup lang="ts">
 definePageMeta({ middleware: "auth" });
 
-const { config, fetch, save } = useBroadcastConfig();
+const { config, fetch, save: broadcastSave } = useBroadcastConfig();
+const { config: characterConfig, fetch: characterFetch, save: characterSave } = useCharacterConfig();
 const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
 const { lsLabel, fetch: fetchClock, sync: syncClock } = useServerClock();
 const user = useSupabaseUser();
 const toast = useToast();
 
+const title = ref("");
+const cidade = ref<string | null>(null);
 const characterName = ref("");
 const passportId = ref("");
 const phone = ref("");
-const title = ref("");
-const cidade = ref<string | null>(null);
 const saving = ref(false);
 
 const lsTimeInput = ref("");
@@ -20,11 +21,21 @@ const syncing = ref(false);
 onMounted(async () => {
   await Promise.all([fetch(), fetchClock(), fetchCidades()]);
   if (config.value) {
-    characterName.value = config.value.character_name;
-    passportId.value = config.value.passport_id;
-    phone.value = config.value.phone;
     title.value = config.value.title;
     cidade.value = config.value.cidade ?? null;
+  }
+});
+
+watch(cidade, async (newCidade) => {
+  if (newCidade) {
+    await characterFetch(newCidade);
+    characterName.value = characterConfig.value?.character_name ?? "";
+    passportId.value = characterConfig.value?.passport_id ?? "";
+    phone.value = characterConfig.value?.phone ?? "";
+  } else {
+    characterName.value = "";
+    passportId.value = "";
+    phone.value = "";
   }
 });
 
@@ -45,13 +56,15 @@ async function handleSync() {
 async function handleSave() {
   saving.value = true;
   try {
-    await save({
-      character_name: characterName.value,
-      passport_id: passportId.value,
-      phone: phone.value,
-      title: title.value,
-      cidade: cidade.value,
-    });
+    await broadcastSave({ title: title.value, cidade: cidade.value });
+    if (cidade.value) {
+      await characterSave({
+        cidade: cidade.value,
+        character_name: characterName.value,
+        passport_id: passportId.value,
+        phone: phone.value,
+      });
+    }
     toast.add({ title: "Configuração salva", color: "success" });
   } catch {
     toast.add({ title: "Erro ao salvar", color: "error" });
@@ -70,20 +83,9 @@ const overlayUrl = computed(() =>
   user.value?.sub ? `${origin.value}/overlay?${baseParams.value}` : "",
 );
 
-const overlayWhitelabelUrl = computed(() =>
-  user.value?.sub
-    ? `${origin.value}/overlay?${baseParams.value}&mode=whitelabel`
-    : "",
-);
-
 const idleUrl = computed(() =>
   user.value?.sub ? `${origin.value}/overlay/idle?${baseParams.value}` : "",
 );
-
-const idleWhitelabelUrl = computed(() => {
-  if (!user.value?.sub || !cidade.value) return "";
-  return `${origin.value}/overlay/idle?${baseParams.value}&cidade=${cidade.value}`;
-});
 
 async function copyUrl(url: string) {
   try {
@@ -98,6 +100,10 @@ const cidadeOptions = computed(() => [
   { label: "Sem cidade", value: null },
   ...cidades.value.map((c) => ({ label: c.cidade_nome, value: c.slug })),
 ]);
+
+const cidadeLabel = computed(
+  () => cidades.value.find((c) => c.slug === cidade.value)?.cidade_nome ?? "",
+);
 </script>
 
 <template>
@@ -118,48 +124,25 @@ const cidadeOptions = computed(() => [
 
     <template #body>
       <div class="p-4 space-y-6">
+        <!-- Transmissão -->
         <UCard>
           <template #header>
             <div class="flex items-center gap-3">
               <UIcon name="i-lucide-radio" class="text-2xl text-primary" />
               <div>
-                <div class="text-lg font-bold">Configuração da Transmissão</div>
+                <div class="text-lg font-bold">Transmissão</div>
                 <div class="text-sm text-muted">
-                  Dados exibidos nos overlays de jornal e monitoramento.
+                  Título e cidade da transmissão ativa.
                 </div>
               </div>
             </div>
           </template>
 
           <UForm
-            :state="{ characterName, passportId, phone, title, cidade }"
+            :state="{ title, cidade }"
             class="space-y-4"
             @submit="handleSave"
           >
-            <UFormField label="Nome do Personagem" required>
-              <UInput
-                v-model="characterName"
-                placeholder="Ex: Jacky Tequila"
-                class="w-full"
-              />
-            </UFormField>
-
-            <UFormField label="Passaporte / ID" required>
-              <UInput
-                v-model="passportId"
-                placeholder="Ex: 1642"
-                class="w-full"
-              />
-            </UFormField>
-
-            <UFormField label="Telefone" required>
-              <UInput
-                v-model="phone"
-                placeholder="Ex: 442-663"
-                class="w-full"
-              />
-            </UFormField>
-
             <UFormField label="Título da Transmissão" required>
               <UInput
                 v-model="title"
@@ -180,6 +163,63 @@ const cidadeOptions = computed(() => [
           </UForm>
         </UCard>
 
+        <!-- Personagem -->
+        <UCard>
+          <template #header>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-user" class="text-2xl text-primary" />
+              <div>
+                <div class="text-lg font-bold">
+                  Personagem
+                  <span v-if="cidadeLabel" class="text-muted font-normal">— {{ cidadeLabel }}</span>
+                </div>
+                <div class="text-sm text-muted">
+                  <template v-if="cidade">
+                    Dados do personagem para esta cidade. Salvos por cidade.
+                  </template>
+                  <template v-else>
+                    Selecione uma cidade acima para editar o personagem.
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <UForm
+            :state="{ characterName, passportId, phone }"
+            class="space-y-4"
+            @submit="handleSave"
+          >
+            <UFormField label="Nome do Personagem">
+              <UInput
+                v-model="characterName"
+                placeholder="Ex: Jacky Tequila"
+                class="w-full"
+                :disabled="!cidade"
+              />
+            </UFormField>
+
+            <UFormField label="Passaporte / ID">
+              <UInput
+                v-model="passportId"
+                placeholder="Ex: 1642"
+                class="w-full"
+                :disabled="!cidade"
+              />
+            </UFormField>
+
+            <UFormField label="Telefone">
+              <UInput
+                v-model="phone"
+                placeholder="Ex: 442-663"
+                class="w-full"
+                :disabled="!cidade"
+              />
+            </UFormField>
+          </UForm>
+        </UCard>
+
+        <!-- Horário de LS -->
         <UCard>
           <template #header>
             <div class="flex items-center gap-3">
@@ -214,6 +254,7 @@ const cidadeOptions = computed(() => [
           </div>
         </UCard>
 
+        <!-- Links dos Overlays -->
         <UCard>
           <template #header>
             <div class="flex items-center gap-3">
@@ -221,57 +262,25 @@ const cidadeOptions = computed(() => [
               <div>
                 <div class="text-lg font-bold">Links dos Overlays</div>
                 <div class="text-sm text-muted">
-                  Use esses links no OBS como Browser Source.
+                  Use esses links no OBS como Browser Source. Se uma cidade estiver selecionada, o whitelabel é aplicado automaticamente.
                 </div>
               </div>
             </div>
           </template>
 
-          <div class="space-y-5">
-            <!-- Modo Geral -->
+          <div class="space-y-3">
             <div>
-              <div class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Modo Geral</div>
-              <div class="space-y-3">
-                <div>
-                  <div class="text-sm font-medium mb-1">Jornal</div>
-                  <div class="flex gap-2">
-                    <UInput :model-value="overlayUrl" class="flex-1" readonly />
-                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(overlayUrl)" />
-                  </div>
-                </div>
-                <div>
-                  <div class="text-sm font-medium mb-1">Monitoramento</div>
-                  <div class="flex gap-2">
-                    <UInput :model-value="idleUrl" class="flex-1" readonly />
-                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(idleUrl)" />
-                  </div>
-                </div>
+              <div class="text-sm font-medium mb-1">Jornal</div>
+              <div class="flex gap-2">
+                <UInput :model-value="overlayUrl" class="flex-1" readonly />
+                <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(overlayUrl)" />
               </div>
             </div>
-
-            <USeparator />
-
-            <!-- Modo Whitelabel -->
             <div>
-              <div class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Modo Whitelabel</div>
-              <p v-if="!cidade" class="text-sm text-muted">
-                Selecione uma cidade acima para gerar os links whitelabel.
-              </p>
-              <div v-else class="space-y-3">
-                <div>
-                  <div class="text-sm font-medium mb-1">Jornal (whitelabel)</div>
-                  <div class="flex gap-2">
-                    <UInput :model-value="overlayWhitelabelUrl" class="flex-1" readonly />
-                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(overlayWhitelabelUrl)" />
-                  </div>
-                </div>
-                <div>
-                  <div class="text-sm font-medium mb-1">Monitoramento (whitelabel)</div>
-                  <div class="flex gap-2">
-                    <UInput :model-value="idleWhitelabelUrl" class="flex-1" readonly />
-                    <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(idleWhitelabelUrl)" />
-                  </div>
-                </div>
+              <div class="text-sm font-medium mb-1">Monitoramento</div>
+              <div class="flex gap-2">
+                <UInput :model-value="idleUrl" class="flex-1" readonly />
+                <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(idleUrl)" />
               </div>
             </div>
           </div>

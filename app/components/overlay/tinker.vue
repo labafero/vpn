@@ -1,16 +1,28 @@
 <template>
   <div class="flex items-center border-t py-2 px-5" :class="cor.border">
-    <UBadge class="animate-pulse" color="error" />
-    <OverlayTinkerNews :cor-key="corKey" :cidade="cityConfig?.slug ?? undefined" />
-    <div class="border-l py-1 pl-4 whitespace-nowrap" :class="cor.border">
-      <span :class="cor.text" class="font-bold">{{ sigla }}</span>
-      <small><i> {{ nome }}</i></small>
+    <UBadge class="animate-pulse" :class="cor.bg" />
+    <OverlayTinkerNews
+      :cor-key="corKey"
+      :cidade="cityConfig?.slug ?? undefined"
+    />
+    <div class="border-l py-1 pl-4 whitespace-nowrap">
+      <div :class="cor.border">
+        <span :class="cor.text" class="font-bold">{{ sigla }}</span>
+        <small><i> Roleplay</i></small>
+      </div>
+      <div class="text-sm">{{ nome }}</div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, DEFAULT_NOME, type CorPrimaria } from "~/utils/cidadeColors";
+import {
+  corClasses,
+  DEFAULT_COR,
+  DEFAULT_SIGLA,
+  DEFAULT_NOME,
+  type CorPrimaria,
+} from "~/utils/cidadeColors";
 import type { Tables } from "~/types/database.types";
 
 const props = defineProps<{

@@ -20,15 +20,24 @@ definePageMeta({ layout: "overlay" });
 useHead({ title: "Overlay Monitoramento" });
 
 const route = useRoute();
-const cidadeSlug = computed(() => route.query.cidade as string | undefined);
+const user = useSupabaseUser();
 
+const broadcasterId = computed(
+  () => (route.query.broadcaster as string) || user.value?.sub,
+);
+
+const { config, fetch } = useBroadcastConfig();
 const { config: cityConfig, fetchBySlug } = useCidadeConfig();
 
 onMounted(async () => {
-  if (cidadeSlug.value) {
-    await fetchBySlug(cidadeSlug.value);
+  await fetch(broadcasterId.value);
+
+  if (config.value?.cidade) {
+    await fetchBySlug(config.value.cidade);
   }
 });
+
+const cidadeSlug = computed(() => config.value?.cidade ?? undefined);
 
 const corKey = computed<CorPrimaria>(
   () => (cityConfig.value?.cor_primaria as CorPrimaria) ?? DEFAULT_COR,

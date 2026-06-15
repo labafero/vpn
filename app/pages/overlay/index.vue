@@ -11,14 +11,24 @@
         <div class="bg-elevated aspect-video h-32 rounded-md"></div>
         <div>
           <div class="flex items-center gap-2 text-xl">
-            <UBadge v-if="config" variant="soft">
-              {{ config.character_name }}
+            <UBadge v-if="characterConfig" variant="subtle" color="neutral">
+              {{ characterConfig.character_name }}
             </UBadge>
-            <UBadge v-if="config" variant="soft" icon="lucide:user">
-              {{ config.passport_id }}
+            <UBadge
+              v-if="characterConfig"
+              variant="outline"
+              color="neutral"
+              icon="lucide:id-card"
+            >
+              {{ characterConfig.passport_id }}
             </UBadge>
-            <UBadge v-if="config" variant="soft" icon="lucide:smartphone">
-              {{ config.phone }}
+            <UBadge
+              v-if="characterConfig"
+              variant="outline"
+              color="neutral"
+              icon="lucide:smartphone"
+            >
+              {{ characterConfig.phone }}
             </UBadge>
           </div>
           <div class="text-4xl mt-2 font-breaking">
@@ -31,7 +41,11 @@
 </template>
 
 <script lang="ts" setup>
-import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors";
+import {
+  corClasses,
+  DEFAULT_COR,
+  type CorPrimaria,
+} from "~/utils/cidadeColors";
 
 definePageMeta({ layout: "overlay" });
 useHead({ title: "Overlay Jornal" });
@@ -42,7 +56,6 @@ const user = useSupabaseUser();
 const broadcasterId = computed(
   () => (route.query.broadcaster as string) || user.value?.sub,
 );
-const isWhitelabel = computed(() => route.query.mode === "whitelabel");
 
 if (!broadcasterId.value) {
   throw createError({
@@ -53,25 +66,21 @@ if (!broadcasterId.value) {
 
 const { config, fetch } = useBroadcastConfig();
 const { config: cityConfig, fetchBySlug } = useCidadeConfig();
+const { config: characterConfig, fetch: characterFetch } = useCharacterConfig();
 
 onMounted(async () => {
   await fetch(broadcasterId.value);
 
-  if (isWhitelabel.value && config.value?.cidade) {
-    await fetchBySlug(config.value.cidade);
-  }
-
-  if (import.meta.client) {
-    setInterval(async () => {
-      await fetch(broadcasterId.value);
-      if (isWhitelabel.value && config.value?.cidade) {
-        await fetchBySlug(config.value.cidade);
-      }
-    }, 30000);
+  if (config.value?.cidade) {
+    await Promise.all([
+      fetchBySlug(config.value.cidade),
+      characterFetch(config.value.cidade, broadcasterId.value),
+    ]);
   }
 });
 
 const cor = computed(
-  () => corClasses[(cityConfig.value?.cor_primaria as CorPrimaria) ?? DEFAULT_COR],
+  () =>
+    corClasses[(cityConfig.value?.cor_primaria as CorPrimaria) ?? DEFAULT_COR],
 );
 </script>

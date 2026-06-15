@@ -87,5 +87,5 @@ export const corClasses: Record<
 };
 
 export const DEFAULT_COR: CorPrimaria = "zinc";
-export const DEFAULT_SIGLA = "TV";
-export const DEFAULT_NOME = "Roleplay";
+export const DEFAULT_SIGLA = "VPN";
+export const DEFAULT_NOME = "Video Productions News";

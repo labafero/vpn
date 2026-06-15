@@ -6,15 +6,15 @@
         Status da transmissão
       </span>
     </div>
-    <div v-if="config" class="flex flex-wrap items-center gap-2">
+    <div v-if="characterConfig" class="flex flex-wrap items-center gap-2">
       <UBadge variant="soft" size="md">
-        {{ config.character_name }}
+        {{ characterConfig.character_name }}
       </UBadge>
       <UBadge variant="soft" size="md" icon="i-lucide-user">
-        {{ config.passport_id }}
+        {{ characterConfig.passport_id }}
       </UBadge>
       <UBadge variant="soft" size="md" icon="i-lucide-smartphone">
-        {{ config.phone }}
+        {{ characterConfig.phone }}
       </UBadge>
     </div>
     <div v-if="config" class="text-lg text-default leading-snug">
@@ -32,10 +32,12 @@ const props = defineProps<{
 }>();
 
 const { config, fetch } = useBroadcastConfig();
+const { config: characterConfig, fetch: characterFetch } = useCharacterConfig();
 
-onMounted(() => {
-  fetch(props.broadcasterId);
+onMounted(async () => {
+  await fetch(props.broadcasterId);
+  if (config.value?.cidade) {
+    await characterFetch(config.value.cidade, props.broadcasterId);
+  }
 });
 </script>
-
-<style></style>

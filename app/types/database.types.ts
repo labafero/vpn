@@ -16,33 +16,24 @@ export type Database = {
     Tables: {
       broadcast_config: {
         Row: {
-          character_name: string
           cidade: string | null
           id: number
-          passport_id: string
-          phone: string
           title: string
           updated_at: string
           updated_by: string | null
           user_id: string
         }
         Insert: {
-          character_name?: string
           cidade?: string | null
           id?: never
-          passport_id?: string
-          phone?: string
           title?: string
           updated_at?: string
           updated_by?: string | null
           user_id: string
         }
         Update: {
-          character_name?: string
           cidade?: string | null
           id?: never
-          passport_id?: string
-          phone?: string
           title?: string
           updated_at?: string
           updated_by?: string | null
@@ -51,6 +42,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "broadcast_config_cidade_fkey"
+            columns: ["cidade"]
+            isOneToOne: false
+            referencedRelation: "city_config"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      character_config: {
+        Row: {
+          character_name: string
+          cidade: string
+          passport_id: string
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          character_name?: string
+          cidade: string
+          passport_id?: string
+          phone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          character_name?: string
+          cidade?: string
+          passport_id?: string
+          phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_config_cidade_fkey"
             columns: ["cidade"]
             isOneToOne: false
             referencedRelation: "city_config"

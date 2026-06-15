@@ -3,14 +3,19 @@
     <span v-for="post in posts" :key="post.id" class="flex gap-16">
       <span :class="cor.text">//</span>
       <span>
-        <span :class="cor.text">{{ post.cidade }}:</span> {{ post.title }}
+        <span v-if="!props.cidade" :class="cor.text">{{ post.cidade }}:</span>
+        {{ post.title }}
       </span>
     </span>
   </UMarquee>
 </template>
 
 <script lang="ts" setup>
-import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors";
+import {
+  corClasses,
+  DEFAULT_COR,
+  type CorPrimaria,
+} from "~/utils/cidadeColors";
 
 const props = defineProps<{
   corKey?: CorPrimaria;
