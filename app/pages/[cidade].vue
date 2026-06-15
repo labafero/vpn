@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, DEFAULT_NOME, type CorPrimaria } from "~/utils/cidadeColors";
+import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, type CorPrimaria } from "~/utils/cidadeColors";
 
 definePageMeta({ layout: "auth" });
 
@@ -45,7 +45,6 @@ const cor = computed(
   () => corClasses[(cidadeConfig.value?.cor_primaria as CorPrimaria) ?? DEFAULT_COR],
 );
 const sigla = computed(() => cidadeConfig.value?.jornal_sigla ?? DEFAULT_SIGLA);
-const nome = computed(() => cidadeConfig.value?.jornal_nome ?? DEFAULT_NOME);
 
 const destaques = computed(() => posts.value.filter((p) => p.destaque));
 const normais = computed(() => posts.value.filter((p) => !p.destaque));
@@ -78,7 +77,6 @@ function formatDate(iso: string) {
           />
           <span class="font-bold text-base tracking-tight">
             <span :class="cor.text">{{ sigla }}</span>
-            {{ nome }}
           </span>
         </div>
         <UButton

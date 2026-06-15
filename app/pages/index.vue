@@ -54,7 +54,7 @@ function formatDate(iso: string) {
     <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600">
       <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <span class="font-bold text-base tracking-tight">
-          <span class="text-red-500">BRN</span> Roleplay
+          <span class="text-red-500">VPN</span>
         </span>
         <UButton
           to="/redacao"
