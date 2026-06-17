@@ -18,11 +18,13 @@ export function useCidadeConfig() {
 
   async function fetchBySlug(slug: string) {
     loading.value = true;
-    const { data } = await supabase
+    const { data, count } = await supabase
       .from("city_config")
       .select("*")
       .eq("slug", slug)
       .maybeSingle();
+    if (!data || count === 0)
+      showError({ statusCode: 404, message: "Cidade não encontrada" });
     config.value = data as Tables<"city_config"> | null;
     loading.value = false;
   }

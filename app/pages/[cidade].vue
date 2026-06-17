@@ -67,14 +67,6 @@ function formatDate(iso: string) {
     >
       <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <UButton
-            to="/"
-            size="sm"
-            color="neutral"
-            variant="ghost"
-            icon="lucide:arrow-left"
-            aria-label="Voltar"
-          />
           <span class="font-bold text-base tracking-tight">
             <span :class="cor.text">{{ sigla }}</span>
           </span>
