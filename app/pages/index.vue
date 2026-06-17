@@ -31,13 +31,14 @@ onMounted(async () => {
 });
 
 const destaques = computed(() => posts.value.filter((p) => p.destaque));
-const normais = computed(() => posts.value.filter((p) => !p.destaque));
+const normais = computed(() => postsFiltered.value.filter((p) => !p.destaque));
 
 const cidades = computed(() => {
   const set = new Set(posts.value.map((p) => p.cidade).filter(Boolean));
   return [...set] as string[];
 });
 
+const selectedCidade = ref("Todas");
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -46,13 +47,27 @@ function formatDate(iso: string) {
     year: "numeric",
   });
 }
+
+function filterPostsByCidade(cidade: string) {
+  selectedCidade.value = cidade;
+}
+
+const postsFiltered = computed(() => {
+  return selectedCidade.value === "Todas"
+    ? posts.value
+    : posts.value.filter((p) => p.cidade === selectedCidade.value);
+});
 </script>
 
 <template>
   <div class="min-h-screen bg-zinc-950 text-white">
     <!-- Sticky header -->
-    <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600">
-      <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <header
+      class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600"
+    >
+      <div
+        class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between"
+      >
         <span class="font-bold text-base tracking-tight">
           <span class="text-red-500">VPN</span>
         </span>
@@ -83,25 +98,35 @@ function formatDate(iso: string) {
     <template v-else>
       <!-- Hero slider -->
       <div v-if="destaques.length > 0" class="h-64 sm:h-96">
-        <PostSlider :posts="destaques" label="Em Destaque" />
+        <PostSlider
+          :posts="destaques"
+          label="Em Destaque"
+          class="max-w-5xl mx-auto"
+        />
       </div>
 
-      <div class="max-w-5xl mx-auto px-4 py-6">
+      <div class="max-w-5xl mx-auto py-8 px-4">
         <!-- Pills de cidade -->
-        <div class="flex gap-2 overflow-x-auto pb-3 mb-6 -mx-4 px-4" style="scrollbar-width: none">
-          <button
-            class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors bg-red-600 text-white"
+        <div
+          class="flex gap-2 overflow-x-auto pb-3 mb-6"
+          style="scrollbar-width: none"
+        >
+          <UButton
+            color="neutral"
+            :variant="selectedCidade === 'Todas' ? 'solid' : 'subtle'"
+            @click="filterPostsByCidade('Todas')"
           >
             Todas
-          </button>
-          <NuxtLink
+          </UButton>
+          <UButton
             v-for="cidade in cidades"
             :key="cidade"
-            :to="`/${cidade.toLowerCase()}`"
-            class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+            :variant="selectedCidade === cidade ? 'solid' : 'subtle'"
+            color="neutral"
+            @click="filterPostsByCidade(cidade)"
           >
             {{ cidade }}
-          </NuxtLink>
+          </UButton>
         </div>
 
         <!-- Empty state -->
@@ -164,7 +189,9 @@ function formatDate(iso: string) {
                 {{ post.body }}
               </p>
 
-              <div class="mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-500">
+              <div
+                class="mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-500"
+              >
                 {{ formatDate(post.published_at) }}
               </div>
 
