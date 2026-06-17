@@ -2,7 +2,11 @@
 definePageMeta({ middleware: "auth" });
 
 const { config, fetch, save: broadcastSave } = useBroadcastConfig();
-const { config: characterConfig, fetch: characterFetch, save: characterSave } = useCharacterConfig();
+const {
+  config: characterConfig,
+  fetch: characterFetch,
+  save: characterSave,
+} = useCharacterConfig();
 const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
 const { lsLabel, fetch: fetchClock, sync: syncClock } = useServerClock();
 const user = useSupabaseUser();
@@ -111,11 +115,7 @@ const cidadeLabel = computed(
     <template #header>
       <UDashboardNavbar title="Transmissão">
         <template #right>
-          <UButton
-            :loading="saving"
-            :disabled="saving"
-            @click="handleSave"
-          >
+          <UButton :loading="saving" :disabled="saving" @click="handleSave">
             Salvar
           </UButton>
         </template>
@@ -171,7 +171,9 @@ const cidadeLabel = computed(
               <div>
                 <div class="text-lg font-bold">
                   Personagem
-                  <span v-if="cidadeLabel" class="text-muted font-normal">— {{ cidadeLabel }}</span>
+                  <span v-if="cidadeLabel" class="text-muted font-normal"
+                    >— {{ cidadeLabel }}</span
+                  >
                 </div>
                 <div class="text-sm text-muted">
                   <template v-if="cidade">
@@ -236,7 +238,9 @@ const cidadeLabel = computed(
           <div class="space-y-4">
             <div class="text-sm text-muted">
               Horário calculado agora:
-              <span class="font-mono text-default font-bold">{{ lsLabel }}</span>
+              <span class="font-mono text-default font-bold">{{
+                lsLabel
+              }}</span>
             </div>
             <div class="flex items-end gap-3">
               <UFormField label="Horário de LS agora (HH:MM)">
@@ -262,7 +266,8 @@ const cidadeLabel = computed(
               <div>
                 <div class="text-lg font-bold">Links dos Overlays</div>
                 <div class="text-sm text-muted">
-                  Use esses links no OBS como Browser Source. Se uma cidade estiver selecionada, o whitelabel é aplicado automaticamente.
+                  Use esses links no OBS como Browser Source. Se uma cidade
+                  estiver selecionada, o whitelabel é aplicado automaticamente.
                 </div>
               </div>
             </div>
@@ -273,14 +278,34 @@ const cidadeLabel = computed(
               <div class="text-sm font-medium mb-1">Jornal</div>
               <div class="flex gap-2">
                 <UInput :model-value="overlayUrl" class="flex-1" readonly />
-                <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(overlayUrl)" />
+                <UButton
+                  icon="i-lucide-copy"
+                  variant="outline"
+                  @click="copyUrl(overlayUrl)"
+                />
+                <UButton
+                  icon="i-lucide-square-arrow-out-up-right"
+                  variant="outline"
+                  :to="overlayUrl"
+                  target="_blank"
+                />
               </div>
             </div>
             <div>
               <div class="text-sm font-medium mb-1">Monitoramento</div>
               <div class="flex gap-2">
                 <UInput :model-value="idleUrl" class="flex-1" readonly />
-                <UButton icon="i-lucide-copy" variant="outline" @click="copyUrl(idleUrl)" />
+                <UButton
+                  icon="i-lucide-copy"
+                  variant="outline"
+                  @click="copyUrl(idleUrl)"
+                />
+                <UButton
+                  icon="i-lucide-square-arrow-out-up-right"
+                  variant="outline"
+                  :to="idleUrl"
+                  target="_blank"
+                />
               </div>
             </div>
           </div>
