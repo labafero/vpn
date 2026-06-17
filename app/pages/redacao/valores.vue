@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { MarketValueInput } from '~/composables/useMarketValues';
+import type { MarketValueInput } from "~/composables/useMarketValues";
 
-definePageMeta({ middleware: 'auth' });
+definePageMeta({ middleware: "auth" });
 
 const { latest, history, fetchLatest, fetchHistory, save } = useMarketValues();
 const toast = useToast();
@@ -10,19 +10,24 @@ const saving = ref(false);
 const rows = ref<MarketValueInput[]>([]);
 
 const DEFAULT_ROWS: MarketValueInput[] = [
-  { cidade: '', label: 'kit médico civil', value: 'R$ 10.000', trend: 'down' },
-  { cidade: '', label: 'kit médico policial', value: 'R$ 4.000', trend: 'stable' },
-  { cidade: '', label: 'analgésico', value: 'R$ 1.200', trend: 'stable' },
-  { cidade: '', label: 'trat. médico', value: 'R$ 2.500', trend: 'stable' },
-  { cidade: '', label: 'auto. trat. médico', value: 'R$ 5.500', trend: 'up' },
-  { cidade: '', label: 'apt. padrão', value: 'R$ 150.000', trend: 'down' },
-  { cidade: '', label: 'bitcoin', value: 'R$ 3,40', trend: 'stable' },
+  { cidade: "", label: "kit médico civil", value: "R$ 10.000", trend: "down" },
+  {
+    cidade: "",
+    label: "kit médico policial",
+    value: "R$ 4.000",
+    trend: "stable",
+  },
+  { cidade: "", label: "analgésico", value: "R$ 1.200", trend: "stable" },
+  { cidade: "", label: "trat. médico", value: "R$ 2.500", trend: "stable" },
+  { cidade: "", label: "auto. trat. médico", value: "R$ 5.500", trend: "up" },
+  { cidade: "", label: "apt. padrão", value: "R$ 150.000", trend: "down" },
+  { cidade: "", label: "bitcoin", value: "R$ 3,40", trend: "stable" },
 ];
 
 const trendOptions = [
-  { label: '▲ Alta', value: 'up' },
-  { label: '— Estável', value: 'stable' },
-  { label: '▼ Baixa', value: 'down' },
+  { label: "▲ Alta", value: "up" },
+  { label: "— Estável", value: "stable" },
+  { label: "▼ Baixa", value: "down" },
 ];
 
 onMounted(async () => {
@@ -30,10 +35,10 @@ onMounted(async () => {
   await fetchHistory();
   if (latest.value.length > 0) {
     rows.value = latest.value.map((r) => ({
-      cidade: r.cidade ?? '',
-      label: r.label ?? '',
-      value: r.value ?? '',
-      trend: (r.trend ?? 'stable') as MarketValueInput['trend'],
+      cidade: r.cidade ?? "",
+      label: r.label ?? "",
+      value: r.value ?? "",
+      trend: (r.trend ?? "stable") as MarketValueInput["trend"],
     }));
   } else {
     rows.value = DEFAULT_ROWS.map((r) => ({ ...r }));
@@ -41,7 +46,7 @@ onMounted(async () => {
 });
 
 function addRow() {
-  rows.value.push({ cidade: '', label: '', value: '', trend: 'stable' });
+  rows.value.push({ cidade: "", label: "", value: "", trend: "stable" });
 }
 
 function removeRow(i: number) {
@@ -53,33 +58,36 @@ async function handleSave() {
   try {
     await save(rows.value);
     await fetchLatest();
-    toast.add({ title: 'Valores salvos', color: 'success' });
+    toast.add({ title: "Valores salvos", color: "success" });
   } catch {
-    toast.add({ title: 'Erro ao salvar valores', color: 'error' });
+    toast.add({ title: "Erro ao salvar valores", color: "error" });
   } finally {
     saving.value = false;
   }
 }
 
 const historyColumns = [
-  { key: 'created_at', label: 'Data' },
-  { key: 'cidade', label: 'Cidade' },
-  { key: 'label', label: 'Item' },
-  { key: 'value', label: 'Valor' },
-  { key: 'trend', label: 'Tendência' },
+  { accessorKey: "created_at", label: "Data" },
+  { accessorKey: "cidade", label: "Cidade" },
+  { accessorKey: "label", label: "Item" },
+  { accessorKey: "value", label: "Valor" },
+  { accessorKey: "trend", label: "Tendência" },
 ];
 
 const historyRows = computed(() =>
   history.value.slice(0, 10).map((r) => ({
     ...r,
-    created_at: new Date(r.created_at).toLocaleString('pt-BR'),
-    trend: r.trend === 'up' ? '▲ Alta' : r.trend === 'down' ? '▼ Baixa' : '— Estável',
-  }))
+    created_at: new Date(r.created_at).toLocaleString("pt-BR"),
+    trend:
+      r.trend === "up"
+        ? "▲ Alta"
+        : r.trend === "down"
+          ? "▼ Baixa"
+          : "— Estável",
+  })),
 );
 
-const accordionItems = [
-  { label: 'Histórico recente', value: 'history' },
-];
+const accordionItems = [{ label: "Histórico recente", value: "history" }];
 </script>
 
 <template>
@@ -103,14 +111,17 @@ const accordionItems = [
               <div>
                 <div class="text-lg font-bold">Tabela de Preços</div>
                 <div class="text-sm text-muted">
-                  Cada salvamento insere um novo registro — o histórico é preservado.
+                  Cada salvamento insere um novo registro — o histórico é
+                  preservado.
                 </div>
               </div>
             </div>
           </template>
 
           <div class="space-y-2">
-            <div class="grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 text-xs text-muted font-medium px-1">
+            <div
+              class="grid grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 text-xs text-muted font-medium px-1"
+            >
               <span>Cidade</span>
               <span>Item</span>
               <span>Valor</span>
@@ -156,7 +167,7 @@ const accordionItems = [
         </UCard>
 
         <UAccordion :items="accordionItems">
-          <template #history>
+          <template #content>
             <UCard>
               <UTable :rows="historyRows" :columns="historyColumns" />
             </UCard>
