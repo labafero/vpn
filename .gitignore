@@ -24,3 +24,7 @@ logs
 !.env.example
 .vercel
 .env*
+
+# oh-my-claudecode runtime state
+.omc/
+!.omc/skills/
