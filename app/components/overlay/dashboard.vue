@@ -24,10 +24,6 @@
 
     <div class="border-t border-muted mb-3" />
 
-    <OverlaySpotifyNowPlaying />
-
-    <div class="border-t border-muted my-3" />
-
     <OverlayBroadcastStatus :broadcaster-id="broadcasterId" />
 
     <div class="border-t border-muted my-3" />

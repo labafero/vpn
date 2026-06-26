@@ -22,12 +22,11 @@ CI pipeline: `lint → typecheck`. No tests are configured.
 ### Key directories
 
 - `app/pages/` — all routes
-  - `/redacao/*` — newsroom: post list, create (`novo`), edit (`[id]/editar`), broadcast config (`transmissao`), Spotify (`spotify`)
+  - `/redacao/*` — newsroom: post list, create (`novo`), edit (`[id]/editar`), broadcast config (`transmissao`)
   - `/overlay/*` — OBS browser-source overlays (`index`, `idle`) — keep these simple and self-contained
   - `/login`, `/` — public-facing pages
 - `app/composables/` — `useBroadcastConfig.ts` (fetch/save broadcast settings), `usePostMedia.ts` (media upload helpers)
 - `app/types/database.types.ts` — auto-generated Supabase types; do not edit by hand
-- `server/api/spotify/` — Spotify OAuth flow and now-playing API (server-side, uses `runtimeConfig` secrets)
 - `supabase/migrations/` — database migrations
 
 ### Supabase
@@ -36,13 +35,9 @@ Auth and data access use `@nuxtjs/supabase`. Prefer `useSupabaseClient()` and `u
 
 `supabase.redirect` is set to `false` in `nuxt.config.ts` — handle auth redirects manually in middleware.
 
-### Spotify integration
-
-OAuth secrets (`spotifyClientSecret`, `spotifyRedirectUri`) live in `runtimeConfig` (non-public). The client ID is in `runtimeConfig.public.spotifyClientId`. Token storage is in the `spotify_connection` Supabase table.
-
 ### Environment variables
 
-See `.env.example`. Public vars use `NUXT_PUBLIC_*` prefix. Do not add Supabase or Spotify secrets to public runtime config.
+See `.env.example`. Public vars use `NUXT_PUBLIC_*` prefix.
 
 ## Working style
 

@@ -219,36 +219,6 @@ export type Database = {
         }
         Relationships: []
       }
-      spotify_connection: {
-        Row: {
-          access_token: string | null
-          created_at: string
-          expires_at: string | null
-          id: number
-          refresh_token: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          access_token?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: never
-          refresh_token: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          access_token?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: never
-          refresh_token?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       market_values_latest: {

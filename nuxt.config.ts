@@ -8,14 +8,6 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
-  runtimeConfig: {
-    spotifyClientSecret: "",
-    spotifyRedirectUri: "",
-    public: {
-      spotifyClientId: "",
-    },
-  },
-
   compatibilityDate: "2026-06-07",
 
   vite: {
