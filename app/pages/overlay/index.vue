@@ -5,8 +5,7 @@
       <OverlayTinker />
 
       <div
-        class="w-full h-full border-t flex items-center px-5 gap-5"
-        :class="cor.border"
+        class="w-full h-full border-t flex items-center px-5 gap-5 border-neutral-700"
       >
         <div class="bg-elevated aspect-video h-32 rounded-md"></div>
         <div>

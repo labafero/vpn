@@ -40,19 +40,27 @@ watch(postsLength, (len) => {
 </script>
 
 <template>
-  <UCarousel v-slot="{ item }" loop :autoplay="{ delay: 10000 }" :items="posts">
-    <div class="grid grid-cols-2 select-none">
-      <div class="p-10">
-        <h2 class="text-2xl font-bold font-serif">{{ item.title }}</h2>
-        <p class="line-clamp-7 opacity-60 mt-3 text-justify">
-          {{ item.body }}
-        </p>
-      </div>
-      <img
-        :src="item.cover_url"
-        :alt="item.title"
-        class="w-full object-center object-cover"
-      />
+  <UCarousel
+    v-slot="{ item }"
+    loop
+    :autoplay="{ delay: 10000 }"
+    fade
+    auto-scroll
+    :ui="{
+      item: 'grid grid-cols-2 h-full select-none',
+    }"
+    :items="posts"
+  >
+    <div class="p-10">
+      <h2 class="text-3xl font-bold font-serif">{{ item.title }}</h2>
+      <p class="line-clamp-7 opacity-60 mt-3 text-justify">
+        {{ item.body }}
+      </p>
     </div>
+    <img
+      :src="item.cover_url"
+      :alt="item.title"
+      class="object-cover h-100 w-full"
+    />
   </UCarousel>
 </template>
