@@ -10,6 +10,7 @@ defineShortcuts({
   "g-t": () => router.push("/redacao/transmissao"),
   "g-v": () => router.push("/redacao/valores"),
   "g-c": () => router.push("/redacao/cidades"),
+  "g-b": () => router.push("/redacao/base"),
 });
 
 function closeSidebar() {
@@ -49,6 +50,12 @@ const links = computed<NavigationMenuItem[]>(() => [
     to: "/redacao/cidades",
     onSelect: closeSidebar,
   },
+  {
+    label: "Base de Dados",
+    icon: "i-lucide-database",
+    to: "/redacao/base",
+    onSelect: closeSidebar,
+  },
 ]);
 
 const searchGroups = computed(() => [
@@ -79,6 +86,12 @@ const searchGroups = computed(() => [
         label: "Valores de Mercado",
         icon: "i-lucide-chart-line",
         to: "/redacao/valores",
+      },
+      {
+        id: "base",
+        label: "Base de Dados",
+        icon: "i-lucide-database",
+        to: "/redacao/base",
       },
     ],
   },

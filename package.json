@@ -9,7 +9,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typegen": "supabase gen types typescript --linked > app/types/database.types.ts"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.108",

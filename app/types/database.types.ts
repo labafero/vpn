@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       broadcast_config: {
@@ -119,6 +144,79 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      db_record_notes: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string
+          id: number
+          record_id: number
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by: string
+          id?: never
+          record_id: number
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string
+          id?: never
+          record_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "db_record_notes_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "db_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      db_records: {
+        Row: {
+          cidade: string | null
+          created_at: string
+          created_by: string
+          dados: Json
+          id: number
+          nome: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string
+          created_by: string
+          dados?: Json
+          id?: never
+          nome?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string
+          created_by?: string
+          dados?: Json
+          id?: never
+          nome?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "db_records_cidade_fkey"
+            columns: ["cidade"]
+            isOneToOne: false
+            referencedRelation: "city_config"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       market_values: {
         Row: {
@@ -364,6 +462,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
