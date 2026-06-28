@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { CORES_DISPONIVEIS, corClasses, type CorBrand } from "~/utils/cidadeColors";
+import {
+  CORES_DISPONIVEIS,
+  corClasses,
+  type CorBrand,
+} from "~/utils/cidadeColors";
 
 definePageMeta({ middleware: "auth" });
 
@@ -7,7 +11,11 @@ const route = useRoute();
 const slug = route.params.slug as string;
 
 const { config, fetchBySlug, save } = useCidadeConfig();
-const { config: characterConfig, fetch: characterFetch, save: characterSave } = useCharacterConfig();
+const {
+  config: characterConfig,
+  fetch: characterFetch,
+  save: characterSave,
+} = useCharacterConfig();
 const toast = useToast();
 
 const saving = ref(false);
@@ -28,10 +36,7 @@ const characterForm = reactive({
 });
 
 onMounted(async () => {
-  await Promise.all([
-    fetchBySlug(slug),
-    characterFetch(slug),
-  ]);
+  await Promise.all([fetchBySlug(slug), characterFetch(slug)]);
 
   if (config.value) {
     Object.assign(form, {
@@ -50,11 +55,16 @@ onMounted(async () => {
   });
 });
 
-const previewCor = computed(() => corClasses[form.cor_primaria] ?? corClasses.red);
+const previewCor = computed(
+  () => corClasses[form.cor_primaria] ?? corClasses.red,
+);
 
 async function handleSave() {
   if (!form.cidade_nome || !form.jornal_nome || !form.jornal_sigla) {
-    toast.add({ title: "Preencha todos os campos obrigatórios", color: "error" });
+    toast.add({
+      title: "Preencha todos os campos obrigatórios",
+      color: "error",
+    });
     return;
   }
   saving.value = true;
@@ -113,116 +123,143 @@ const tabs = [
     </template>
 
     <template #body>
-      <div class="p-4 max-w-2xl">
-        <UTabs :items="tabs">
-          <template #informacoes>
-            <div class="space-y-4 pt-4">
-              <UCard>
-                <div class="space-y-4">
-                  <UFormField label="Nome da Cidade" required>
-                    <UInput v-model="form.cidade_nome" placeholder="Ex: Neon" class="w-full" />
-                  </UFormField>
+      <UTabs :items="tabs">
+        <template #informacoes>
+          <div class="space-y-4 pt-4">
+            <UCard>
+              <div class="space-y-4">
+                <UFormField label="Nome da Cidade" required>
+                  <UInput
+                    v-model="form.cidade_nome"
+                    placeholder="Ex: Neon"
+                    class="w-full"
+                  />
+                </UFormField>
 
-                  <UFormField label="Slug (URL)">
-                    <UInput :model-value="slug" readonly class="w-full" />
-                  </UFormField>
+                <UFormField label="Slug (URL)">
+                  <UInput :model-value="slug" readonly class="w-full" />
+                </UFormField>
 
-                  <UFormField label="Nome do Jornal" required>
-                    <UInput v-model="form.jornal_nome" placeholder="Ex: Neon TV" class="w-full" />
-                  </UFormField>
+                <UFormField label="Nome do Jornal" required>
+                  <UInput
+                    v-model="form.jornal_nome"
+                    placeholder="Ex: Neon TV"
+                    class="w-full"
+                  />
+                </UFormField>
 
-                  <UFormField label="Sigla" required>
-                    <UInput v-model="form.jornal_sigla" placeholder="Ex: NTV" class="w-full max-w-32" />
-                  </UFormField>
+                <UFormField label="Sigla" required>
+                  <UInput
+                    v-model="form.jornal_sigla"
+                    placeholder="Ex: NTV"
+                    class="w-full max-w-32"
+                  />
+                </UFormField>
 
-                  <UFormField label="Cor Principal">
-                    <div class="flex flex-wrap gap-2 mt-1">
-                      <button
-                        v-for="cor in CORES_DISPONIVEIS"
-                        :key="cor"
-                        type="button"
-                        class="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110"
-                        :class="[
-                          corClasses[cor].bg,
-                          form.cor_primaria === cor ? 'border-white scale-110' : 'border-transparent',
-                        ]"
-                        :title="cor"
-                        @click="form.cor_primaria = cor"
-                      />
-                    </div>
-                  </UFormField>
-
-                  <UFormField label="Logo URL (opcional)">
-                    <UInput v-model="form.logo_url" placeholder="https://..." class="w-full" />
-                  </UFormField>
-                </div>
-
-                <template #footer>
-                  <UButton :loading="saving" class="w-full" @click="handleSave">
-                    Salvar
-                  </UButton>
-                </template>
-              </UCard>
-
-              <UCard>
-                <template #header>
-                  <span class="font-semibold text-sm text-muted">Preview do header</span>
-                </template>
-                <div class="rounded-lg overflow-hidden border" :class="previewCor.border">
-                  <div
-                    class="bg-zinc-950 px-4 h-12 flex items-center justify-between border-b"
-                    :class="previewCor.border"
-                  >
-                    <span class="font-bold text-sm tracking-tight text-white">
-                      <span :class="previewCor.text">{{ form.jornal_sigla || "TV" }}</span>
-                      {{ form.jornal_nome || "Roleplay" }}
-                    </span>
-                    <UIcon name="lucide:pen-line" class="w-4 h-4 text-zinc-500" />
+                <UFormField label="Cor Principal">
+                  <div class="flex flex-wrap gap-2 mt-1">
+                    <button
+                      v-for="cor in CORES_DISPONIVEIS"
+                      :key="cor"
+                      type="button"
+                      class="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110"
+                      :class="[
+                        corClasses[cor].bg,
+                        form.cor_primaria === cor
+                          ? 'border-white scale-110'
+                          : 'border-transparent',
+                      ]"
+                      :title="cor"
+                      @click="form.cor_primaria = cor"
+                    />
                   </div>
+                </UFormField>
+
+                <UFormField label="Logo URL (opcional)">
+                  <UInput
+                    v-model="form.logo_url"
+                    placeholder="https://..."
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
+
+              <template #footer>
+                <UButton :loading="saving" class="w-full" @click="handleSave">
+                  Salvar
+                </UButton>
+              </template>
+            </UCard>
+
+            <UCard>
+              <template #header>
+                <span class="font-semibold text-sm text-muted"
+                  >Preview do header</span
+                >
+              </template>
+              <div
+                class="rounded-lg overflow-hidden border"
+                :class="previewCor.border"
+              >
+                <div
+                  class="bg-zinc-950 px-4 h-12 flex items-center justify-between border-b"
+                  :class="previewCor.border"
+                >
+                  <span class="font-bold text-sm tracking-tight text-white">
+                    <span :class="previewCor.text">{{
+                      form.jornal_sigla || "TV"
+                    }}</span>
+                    {{ form.jornal_nome || "Roleplay" }}
+                  </span>
+                  <UIcon name="lucide:pen-line" class="w-4 h-4 text-zinc-500" />
                 </div>
-              </UCard>
-            </div>
-          </template>
+              </div>
+            </UCard>
+          </div>
+        </template>
 
-          <template #personagem>
-            <div class="pt-4">
-              <UCard>
-                <div class="space-y-4">
-                  <UFormField label="Nome do Personagem">
-                    <UInput
-                      v-model="characterForm.character_name"
-                      placeholder="Ex: Jacky Tequila"
-                      class="w-full"
-                    />
-                  </UFormField>
+        <template #personagem>
+          <div class="pt-4">
+            <UCard>
+              <div class="space-y-4">
+                <UFormField label="Nome do Personagem">
+                  <UInput
+                    v-model="characterForm.character_name"
+                    placeholder="Ex: Jacky Tequila"
+                    class="w-full"
+                  />
+                </UFormField>
 
-                  <UFormField label="Passaporte / ID">
-                    <UInput
-                      v-model="characterForm.passport_id"
-                      placeholder="Ex: 1642"
-                      class="w-full"
-                    />
-                  </UFormField>
+                <UFormField label="Passaporte / ID">
+                  <UInput
+                    v-model="characterForm.passport_id"
+                    placeholder="Ex: 1642"
+                    class="w-full"
+                  />
+                </UFormField>
 
-                  <UFormField label="Telefone">
-                    <UInput
-                      v-model="characterForm.phone"
-                      placeholder="Ex: 442-663"
-                      class="w-full"
-                    />
-                  </UFormField>
-                </div>
+                <UFormField label="Telefone">
+                  <UInput
+                    v-model="characterForm.phone"
+                    placeholder="Ex: 442-663"
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
 
-                <template #footer>
-                  <UButton :loading="savingCharacter" class="w-full" @click="handleSaveCharacter">
-                    Salvar Personagem
-                  </UButton>
-                </template>
-              </UCard>
-            </div>
-          </template>
-        </UTabs>
-      </div>
+              <template #footer>
+                <UButton
+                  :loading="savingCharacter"
+                  class="w-full"
+                  @click="handleSaveCharacter"
+                >
+                  Salvar Personagem
+                </UButton>
+              </template>
+            </UCard>
+          </div>
+        </template>
+      </UTabs>
     </template>
   </UDashboardPanel>
 </template>
