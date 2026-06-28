@@ -3,7 +3,7 @@
     <span v-for="post in posts" :key="post.id" class="flex gap-16">
       <span :class="cor.text">//</span>
       <span>
-        <span v-if="!props.cidade" :class="cor.text">{{ post.cidade }}:</span>
+        <span v-if="!cidadeSlug" :class="cor.text">{{ post.cidade }}:</span>
         {{ post.title }}
       </span>
     </span>
@@ -11,18 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  corClasses,
-  DEFAULT_COR,
-  type CorPrimaria,
-} from "~/utils/cidadeColors";
-
-const props = defineProps<{
-  corKey?: CorPrimaria;
-  cidade?: string;
-}>();
-
-const cor = computed(() => corClasses[props.corKey ?? DEFAULT_COR]);
+const { cor, cidadeSlug } = useOverlayState();
 
 const supabase = useSupabaseClient();
 
@@ -47,7 +36,7 @@ onMounted(async () => {
     .order("published_at", { ascending: false })
     .limit(5);
 
-  if (props.cidade) query = query.ilike("cidade", props.cidade);
+  if (cidadeSlug.value) query = query.ilike("cidade", cidadeSlug.value);
 
   const { data } = await query;
   if (data) posts.value = data as Post[];

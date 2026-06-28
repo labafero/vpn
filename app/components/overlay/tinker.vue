@@ -1,12 +1,10 @@
 <template>
-  <div class="flex items-center border-t py-2 px-5" :class="cor.border">
+  <div class="flex items-center border-t py-2 px-5 border-neutral-700">
     <UBadge class="animate-pulse" :class="cor.bg" />
-    <OverlayTinkerNews
-      :cor-key="corKey"
-      :cidade="cityConfig?.slug ?? undefined"
-    />
-    <div class="border-l py-1 pl-4 whitespace-nowrap">
-      <div :class="cor.border">
+    <OverlayTinkerNews />
+    <USeparator orientation="vertical" class="animate-pulse" size="md" />
+    <div class="py-1 pl-4 whitespace-nowrap">
+      <div>
         <span :class="cor.text" class="font-bold">{{ sigla }}</span>
         <small><i> Roleplay</i></small>
       </div>
@@ -16,23 +14,5 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  corClasses,
-  DEFAULT_COR,
-  DEFAULT_SIGLA,
-  DEFAULT_NOME,
-  type CorPrimaria,
-} from "~/utils/cidadeColors";
-import type { Tables } from "~/types/database.types";
-
-const props = defineProps<{
-  cityConfig?: Tables<"city_config"> | null;
-}>();
-
-const corKey = computed<CorPrimaria>(
-  () => (props.cityConfig?.cor_primaria as CorPrimaria) ?? DEFAULT_COR,
-);
-const cor = computed(() => corClasses[corKey.value]);
-const sigla = computed(() => props.cityConfig?.jornal_sigla ?? DEFAULT_SIGLA);
-const nome = computed(() => props.cityConfig?.jornal_nome ?? DEFAULT_NOME);
+const { cor, sigla, nome } = useOverlayState();
 </script>

@@ -16,14 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-import { corClasses, DEFAULT_COR, type CorPrimaria } from "~/utils/cidadeColors";
-
-const props = defineProps<{
-  corKey?: CorPrimaria;
-  cidade?: string;
-}>();
-
-const cor = computed(() => corClasses[props.corKey ?? DEFAULT_COR]);
+const { cor, cidadeSlug } = useOverlayState();
 
 const supabase = useSupabaseClient();
 
@@ -50,7 +43,7 @@ onMounted(async () => {
     .select("*")
     .order("published_at", { ascending: false });
 
-  if (props.cidade) query = query.ilike("cidade", props.cidade);
+  if (cidadeSlug.value) query = query.ilike("cidade", cidadeSlug.value);
 
   const { data } = await query;
   if (data) posts.value = data as Post[];

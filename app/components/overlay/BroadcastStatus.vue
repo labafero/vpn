@@ -17,27 +17,12 @@
         {{ characterConfig.phone }}
       </UBadge>
     </div>
-    <div v-if="config" class="text-lg text-default leading-snug">
-      {{ config.title }}
-    </div>
-    <div v-else class="text-sm text-muted italic">
-      Nenhuma configuração de transmissão encontrada.
+    <div class="text-lg text-default leading-snug">
+      {{ broadcastTitle }}
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-const props = defineProps<{
-  broadcasterId: string;
-}>();
-
-const { config, fetch } = useBroadcastConfig();
-const { config: characterConfig, fetch: characterFetch } = useCharacterConfig();
-
-onMounted(async () => {
-  await fetch(props.broadcasterId);
-  if (config.value?.cidade) {
-    await characterFetch(config.value.cidade, props.broadcasterId);
-  }
-});
+const { broadcastTitle, characterConfig } = useOverlayState();
 </script>
