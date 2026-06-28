@@ -29,13 +29,13 @@ Ao gerar um post, entregue sempre estes campos:
 
 ---
 
-## Jornais e voz editorial
+## Exemplos de Jornais e voz editorial
 
 ### Neon TV (NTV) — cidade: `neon`
 
 **Identidade:** urbano, veloz, irreverente. Cobre o crime organizado de Neon City como quem assistiu ao show da primeira fila e não teve medo de ficar.
 
-**Título:** CAIXA ALTA, impactante. De 1 a 5 palavras no estilo manchete de tablóide urbano. Pode incluir ironia ou pergunta retórica.
+**Título:** Uso de caixa alta em sentenças IMPACTANTE. De 1 a 5 palavras no estilo manchete de tablóide urbano. Pode incluir ironia ou pergunta retórica.
 
 **Body:** parágrafos curtos (1–3 frases). Tom direto, às vezes sarcástico. Frequentemente termina com um alerta ao cidadão ou comentário editorial cortante. Faz referências veladas a mecânicas do jogo ("ações médias", "spawns", "call").
 
@@ -92,6 +92,24 @@ E a polícia? Provavelmente assistindo de longe, esperando o fim do show pra con
 
 ---
 
+> **GUERRA NAS DOCAS: FACÇÃO EXPANDE TERRITÓRIO PARA O PORTO**
+>
+> Segundo apurou a Burn News, o grupo conhecido pela atuação no centro da cidade foi identificado operando nas docas desde a última semana. Moradores da área relataram movimento incomum de veículos na madrugada.
+>
+> Fontes do setor de inteligência confirmam que a expansão é parte de uma disputa maior pelo controle da rota de contrabando que corta a cidade de norte a sul.
+>
+> A Polícia Militar não se pronunciou oficialmente. A reportagem acompanha os desdobramentos.
+
+---
+
+> **DELEGACIA CENTRAL: SUSPEITO NEGA ENVOLVIMENTO — CÂMERAS CONTRADIZEM VERSÃO**
+>
+> Um homem detido na tarde de quinta-feira após abordagem na Rua das Palmeiras afirmou à Burn News que "não estava fazendo nada". As imagens de segurança do local, obtidas pela reportagem, mostram o contrário.
+>
+> O suspeito foi encaminhado para interrogatório e deve ser apresentado ao juízo até amanhã.
+
+---
+
 ### Radar Vice News (RVN) — cidade: `vice`
 
 **Identidade:** sensacionalista, tablóide, obcecado com escândalo e drama. Vice é cidade de noite, neon e excessos — o jornal reflete isso.
@@ -114,7 +132,29 @@ E a polícia? Provavelmente assistindo de longe, esperando o fim do show pra con
 
 ---
 
-### Nordeste News (NNW) — cidade: `nordeste`
+> **BOMBA! CELEBRIDADE É FLAGRADA SAINDO DO PORTO COM MALA — QUEM É ELA?**
+>
+> A fonte pediu anonimato absoluto. Mas o que vimos não dava pra guardar.
+>
+> Uma figura conhecida da noite de Vice foi fotografada saindo pelas docas às 2h da manhã. Com uma mala grande. Com pressa.
+>
+> Negócio? Fuga? Amor proibido?
+>
+> Radar Vice News tem as fotos. E vai publicar tudo.
+
+---
+
+> **O NOME QUE NINGUÉM OUSA DIZER — E NÓS DISSEMOS!**
+>
+> Todo mundo sabia. Ninguém falava. Até agora.
+>
+> O homem por trás do esquema que mantém metade da cidade em silêncio tem nome, endereço e — pasmem — uma conta verificada nas redes.
+>
+> Vice não dorme. E nem nós.
+
+---
+
+### Radar Nordeste News (RNN) — cidade: `nordeste`
 
 **Identidade:** comunitário, regional, próximo do cidadão comum. Escreve para quem vive a cidade, não para quem a observa de fora.
 
@@ -131,6 +171,26 @@ E a polícia? Provavelmente assistindo de longe, esperando o fim do show pra con
 > "A gente não aguenta mais", disse um feirante que preferiu não se identificar. "Isso tá virando rotina."
 >
 > Nordeste News cobra das autoridades um posicionamento sobre o policiamento da região. A comunidade não pode pagar esse preço.
+
+---
+
+> **Rota da BR Bloqueada por Mais de Duas Horas Após Confronto Entre Grupos**
+>
+> A principal via de acesso ao centro ficou interditada na tarde de quarta após troca de tiros entre grupos rivais. Motoristas relataram espera de até duas horas.
+>
+> "Eu perdi um dia de trabalho", disse um caminhoneiro que preferiu não se identificar.
+>
+> Nordeste News pede que a prefeitura apresente um plano de segurança para a rodovia.
+
+---
+
+> **Comerciante Perde Mercadoria Pelo Terceiro Mês Seguido: "Não Aguento Mais"**
+>
+> Dona Carminha, feirante da Feira Central há 14 anos, perdeu toda a mercadoria da semana após mais um episódio de violência no entorno da praça.
+>
+> "A gente tenta recomeçar todo mês, mas fica impossível", disse ela com a voz embargada.
+>
+> Nordeste News exige resposta das autoridades. A comunidade não pode continuar pagando esse preço.
 
 ---
 
