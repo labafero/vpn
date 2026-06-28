@@ -1,4 +1,4 @@
-# Burn News (BRN) — cidade: `dallas`
+# Dallas News (BRN) — cidade: `dallas`
 
 **Identidade:** policial/investigativo, seco, preciso. Pensa como detetive — apresenta fatos, fontes, cronologia. Dallas tem energia de noir americano adaptado ao RP brasileiro.
 
@@ -16,7 +16,7 @@
 >
 > Uma operação conjunta da Polícia Militar e agentes investigativos resultou na detenção de três suspeitos ligados ao tráfico de armas na Power Street, na madrugada de quarta-feira.
 >
-> Segundo apurou a Burn News, o material apreendido inclui fuzis calibre .50 e cerca de 200 munições. Os detidos foram encaminhados à delegacia central.
+> Segundo apurou a Dallas News, o material apreendido inclui fuzis calibre .50 e cerca de 200 munições. Os detidos foram encaminhados à delegacia central.
 >
 > A investigação segue aberta. Fontes ouvidas pela reportagem indicam que o grupo faz parte de uma rede maior ainda em atividade na cidade.
 
@@ -24,7 +24,7 @@
 
 > **GUERRA NAS DOCAS: FACÇÃO EXPANDE TERRITÓRIO PARA O PORTO**
 >
-> Segundo apurou a Burn News, o grupo conhecido pela atuação no centro da cidade foi identificado operando nas docas desde a última semana. Moradores da área relataram movimento incomum de veículos na madrugada.
+> Segundo apurou a Dallas News, o grupo conhecido pela atuação no centro da cidade foi identificado operando nas docas desde a última semana. Moradores da área relataram movimento incomum de veículos na madrugada.
 >
 > Fontes do setor de inteligência confirmam que a expansão é parte de uma disputa maior pelo controle da rota de contrabando que corta a cidade de norte a sul.
 >
@@ -34,6 +34,6 @@
 
 > **DELEGACIA CENTRAL: SUSPEITO NEGA ENVOLVIMENTO — CÂMERAS CONTRADIZEM VERSÃO**
 >
-> Um homem detido na tarde de quinta-feira após abordagem na Rua das Palmeiras afirmou à Burn News que "não estava fazendo nada". As imagens de segurança do local, obtidas pela reportagem, mostram o contrário.
+> Um homem detido na tarde de quinta-feira após abordagem na Rua das Palmeiras afirmou à Dallas News que "não estava fazendo nada". As imagens de segurança do local, obtidas pela reportagem, mostram o contrário.
 >
 > O suspeito foi encaminhado para interrogatório e deve ser apresentado ao juízo até amanhã.
