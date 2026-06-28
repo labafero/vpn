@@ -54,23 +54,6 @@ const stats = computed(() => {
     },
   ];
 });
-
-async function remove(id: number) {
-  if (!confirm("Tem certeza que deseja excluir este post?")) return;
-
-  const post = posts.value.find((p) => p.id === id);
-  if (!post) return;
-
-  if (post.cover_url) {
-    await deleteFile(post.cover_url).catch(() => {});
-  }
-  if (post.media_url) {
-    await deleteFile(post.media_url).catch(() => {});
-  }
-
-  const { error } = await supabase.from("posts").delete().eq("id", id);
-  if (!error) posts.value = posts.value.filter((p) => p.id !== id);
-}
 </script>
 
 <template>
@@ -84,14 +67,11 @@ async function remove(id: number) {
     </template>
 
     <template #body>
-      <div class="p-4 space-y-6">
+      <div class="space-y-6">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <UCard v-for="stat in stats" :key="stat.label">
             <div class="flex items-center gap-3">
-              <UIcon
-                :name="stat.icon"
-                class="text-2xl text-purple-500 shrink-0"
-              />
+              <UIcon :name="stat.icon" class="text-2xl" />
               <div>
                 <div class="text-sm text-muted">{{ stat.label }}</div>
                 <div class="text-xl font-bold">{{ stat.value }}</div>

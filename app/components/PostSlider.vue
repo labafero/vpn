@@ -41,10 +41,10 @@ watch(postsLength, (len) => {
 
 <template>
   <UCarousel v-slot="{ item }" loop :autoplay="{ delay: 10000 }" :items="posts">
-    <div class="grid grid-cols-2">
+    <div class="grid grid-cols-2 select-none">
       <div class="p-10">
-        <h2 class="text-2xl font-bold">{{ item.title }}</h2>
-        <p class="line-clamp-7 opacity-60 mt-2">
+        <h2 class="text-2xl font-bold font-serif">{{ item.title }}</h2>
+        <p class="line-clamp-7 opacity-60 mt-3 text-justify">
           {{ item.body }}
         </p>
       </div>

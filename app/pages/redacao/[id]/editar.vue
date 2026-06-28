@@ -152,12 +152,38 @@ async function handleSubmit(data: {
 
   router.push("/redacao");
 }
+async function remove(id: number) {
+  if (!confirm("Tem certeza que deseja excluir este post?")) return;
+
+  if (post.value?.cover_url) {
+    await deleteFile(post.value.cover_url).catch(() => {});
+  }
+  if (post.value?.media_url) {
+    await deleteFile(post.value.media_url).catch(() => {});
+  }
+
+  const { error } = await supabase.from("posts").delete().eq("id", id);
+  if (!error) {
+    router.push("/redacao");
+  }
+}
 </script>
 
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Editar Post"> </UDashboardNavbar>
+      <UDashboardNavbar title="Editar Post">
+        <template #right>
+          <UButton
+            variant="outline"
+            color="error"
+            loading-auto
+            @click="remove(postId)"
+          >
+            Excluir
+          </UButton>
+        </template>
+      </UDashboardNavbar>
     </template>
 
     <template #body>

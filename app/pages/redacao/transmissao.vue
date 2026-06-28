@@ -72,21 +72,9 @@ const cidadeOptions = computed(() => [
     </template>
 
     <template #body>
-      <div class="p-4 space-y-6">
+      <div class="space-y-6">
         <!-- Transmissão -->
         <UCard>
-          <template #header>
-            <div class="flex items-center gap-3">
-              <UIcon name="i-lucide-radio" class="text-2xl text-primary" />
-              <div>
-                <div class="text-lg font-bold">Transmissão</div>
-                <div class="text-sm text-muted">
-                  Título e cidade da transmissão ativa.
-                </div>
-              </div>
-            </div>
-          </template>
-
           <UForm
             :state="{ title, cidade }"
             class="space-y-4"
@@ -112,21 +100,12 @@ const cidadeOptions = computed(() => [
           </UForm>
         </UCard>
 
-        <!-- Links dos Overlays -->
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-3">
-              <UIcon name="i-lucide-link" class="text-xl text-primary" />
-              <div>
-                <div class="text-lg font-bold">Links dos Overlays</div>
-                <div class="text-sm text-muted">
-                  Use esses links no OBS como Browser Source. Se uma cidade
-                  estiver selecionada, o whitelabel é aplicado automaticamente.
-                </div>
-              </div>
-            </div>
-          </template>
-
+        <UCard
+          title="Use esses links no OBS como Browser Source"
+          description="Se uma cidade estiver selecionada, o whitelabel é aplicado
+        automaticamente."
+          variant="subtle"
+        >
           <div class="space-y-3">
             <div>
               <div class="text-sm font-medium mb-1">Jornal</div>
