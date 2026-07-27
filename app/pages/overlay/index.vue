@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-definePageMeta({ layout: "overlay" });
+definePageMeta({ layout: "overlay", colorMode: "dark" });
 useHead({ title: "Overlay Jornal" });
 
 const { init, broadcasterId, broadcastTitle, characterConfig, cor } =

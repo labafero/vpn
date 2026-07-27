@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-definePageMeta({ layout: "overlay" });
+definePageMeta({ layout: "overlay", colorMode: "dark" });
 useHead({ title: "Overlay Monitoramento" });
 
 const { init } = useOverlayState();
