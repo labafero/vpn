@@ -17,7 +17,7 @@ Pipeline de CI: `lint → typecheck`. Nenhum teste está configurado.
 
 ## Arquitetura
 
-**Nuxt 4 SPA** ("BRN Roleplay / VPN") usando a convenção de diretório `app/`. Backend é Supabase (PostgreSQL + Auth). UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
+**Nuxt 4 SPA** ("VPN Roleplay") usando a convenção de diretório `app/`. Backend é Supabase (PostgreSQL + Auth). UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
 
 ### Rotas
 

@@ -103,7 +103,7 @@ const searchGroups = computed(() => [
     <UDashboardSidebar id="dashboard" v-model:open="open" collapsible resizable>
       <template #header>
         <div class="flex items-center gap-2 px-2 py-1">
-          <span class="text-xl font-bold">BRN Roleplay</span>
+          <span class="text-xl font-bold">VPN Roleplay</span>
         </div>
       </template>
 
