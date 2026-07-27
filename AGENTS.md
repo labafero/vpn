@@ -1,53 +1,85 @@
-# BRN Roleplay
+# CLAUDE.md
 
-Nuxt 4 SPA with Supabase auth, Nuxt UI, Nuxt Content, Tailwind v4.
+Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar neste repositório.
 
-## Commands
+## Comandos
 
 ```bash
-pnpm dev                  # dev server
-pnpm build                # production build
-pnpm preview              # preview production build
-pnpm lint                 # ESLint (CI runs this first)
-pnpm typecheck            # nuxt typecheck (CI runs after lint)
-pnpm postinstall          # nuxt prepare (runs automatically)
+pnpm dev          # servidor de desenvolvimento em 0.0.0.0:3000
+pnpm build        # build de produção
+pnpm preview      # preview do build de produção
+pnpm lint         # ESLint (formatador principal — roda primeiro no CI)
+pnpm typecheck    # nuxt typecheck (roda após o lint no CI)
+pnpm format       # prettier (não obrigatório no CI)
 ```
 
-CI pipeline: `lint → typecheck` (no tests configured).
+Pipeline de CI: `lint → typecheck`. Nenhum teste está configurado.
 
-## Nuxt 4 conventions
+## Arquitetura
 
-- Uses `app/` directory (pages at `app/pages/`), not root-level `pages/`.
-- Content uses new API: `queryCollection('blog').order('date', 'DESC').all()` (defined in `content.config.ts`).
-- tsconfig references generated `.nuxt/` dirs; `.nuxt/` is gitignored.
+**Nuxt 4 SPA** ("BRN Roleplay / VPN") usando a convenção de diretório `app/`. Backend é Supabase (PostgreSQL + Auth). UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
 
-## Supabase
+### Rotas
 
-- Auth via `@nuxtjs/supabase`; env vars in `.env` (`NUXT_PUBLIC_SUPABASE_URL`, `NUXT_PUBLIC_SUPABASE_KEY`).
-- Helpers: `useSupabaseClient()`, `useSupabaseUser()`, `useNuxtApp().$supabase`.
-- Load the `supabase` skill (from `.agents/skills/supabase`) for deeper guidance.
+Duas superfícies distintas:
 
-## Style & config
+**Pública** — sem sidebar, header com marca VPN:
+- `/` — índice de notícias: slider hero de posts `destaque`, filtro por cidade, grid de posts
+- `/[cidade]` — página de notícias por cidade, temática definida por `city_config.cor_primaria`
 
-- **ESLint**: no dangling commas, 1tbs brace style (`eslint.config.mjs` extends Nuxt-generated config).
-- **Tailwind v4**: `@import "tailwindcss"` + `@import "@nuxt/ui"` syntax; theme vars in `@theme static`.
-- **Editorconfig**: 2-space indent, LF, trim trailing whitespace, final newline.
-- **Font**: `Iosevka Charon Mono` set as sans.
-- **Lang**: `pt-BR`.
-- **No formatter command** despite `prettier` in devDependencies — use ESLint (`pnpm lint`).
+**Redação** (protegida, layout dashboard com sidebar):
+- `/redacao` — lista de posts
+- `/redacao/novo` — criar post
+- `/redacao/[id]/editar` — editar post
+- `/redacao/transmissao` — configuração de transmissão por usuário
+- `/redacao/valores` — editor de valores de mercado
+- `/redacao/cidades` — CRUD de configuração de cidades
 
-## Pages
+**Overlays** (browser sources do OBS, layout `overlay` — manter simples e autocontidos):
+- `/overlay/index`, `/overlay/idle`
 
-| Route             | File                           | Purpose                         |
-| ----------------- | ------------------------------ | ------------------------------- |
-| `/`               | `app/pages/index.vue`          | Empty shell (landing)           |
-| `/login`          | `app/pages/login.vue`          | Email/password sign-in          |
-| `/confirm`        | `app/pages/confirm.vue`        | Auth callback, redirects to `/` |
-| `/overlay/record` | `app/pages/overlay/record.vue` | OBS broadcast overlay           |
-| `/overlay/tinker` | `app/pages/overlay/tinker.vue` | OBS news ticker overlay         |
+### Layouts
 
-## Package manager
+- `default` — `UDashboardGroup` + sidebar (`UDashboardSidebar`) usado em `/redacao/*`. Atalhos de teclado: `g-r` redação, `g-n` novo, `g-t` transmissão, `g-v` valores, `g-c` cidades.
+- `auth` — layout público mínimo (nome confuso; é o header VPN público, não um wrapper de login)
+- `overlay` — layout bare para páginas do OBS
 
-- `pnpm` 11.1.3 (see `package.json`).
-- `pnpm-workspace.yaml` allows `better-sqlite3` builds; blocks others (`esbuild`, `@parcel/watcher`, etc.).
-- Renovate follows `nuxt/renovate-config-nuxt`.
+### Autenticação
+
+`supabase.redirect` é `false` — redirecionamentos de auth são tratados manualmente em `app/middleware/auth.ts` via `useSupabaseUser()`. Páginas em `/redacao` usam `definePageMeta({ middleware: 'auth' })`.
+
+### Tabelas do Supabase
+
+| Tabela | Finalidade |
+|---|---|
+| `posts` | Matérias com `cidade`, `destaque`, `published_at`, `media_url`/`media_type` opcionais |
+| `broadcast_config` | Configuração de transmissão ao vivo por usuário (título, cidade) — upsert em `user_id` |
+| `city_config` | Configuração de exibição por cidade (slug, nome, jornal, `cor_primaria`, logo) — upsert em `slug` |
+| `market_values` | Entradas de mercado em série temporal por usuário |
+| `market_values_latest` | View: última entrada por label por usuário |
+
+### Composables
+
+- `useBroadcastConfig` — fetch/upsert de `broadcast_config` do usuário atual
+- `useCidadeConfig` — busca cidade por slug (`fetchBySlug` lança 404 se não encontrar), busca todas, upsert, delete
+- `useMarketValues` — insere snapshots de mercado, busca histórico e view de últimos valores
+- `usePostMedia` — helpers de upload de mídia para capa e mídia do post
+- `useServerClock` — relógio do servidor
+- `useCharacterConfig` — configuração de personagem/jogador
+
+### Temas por cidade
+
+`app/utils/cidadeColors.ts` exporta `corClasses`, um mapa de `CorPrimaria` (10 nomes de cores Tailwind + `"zinc"`) para `{ text, border, bg, muted }`. Sempre usar este mapa ao renderizar UI com marca de cidade — nunca hardcodar classes de cor em páginas de cidade.
+
+### Convenções
+
+- **ESLint** é o formatador — sem vírgulas pendentes, estilo 1tbs (`eslint.config.mjs`).
+- **Tailwind v4**: `@import "tailwindcss"` antes de `@import "@nuxt/ui"` no CSS. Variáveis de tema em `@theme static`. Classes de cor usadas em `corClasses` devem existir estaticamente (sem interpolação dinâmica de classes).
+- **Idioma**: strings de UI em português (pt-BR).
+- `app/types/database.types.ts` é gerado automaticamente pelo Supabase — não editar manualmente.
+- `pnpm-workspace.yaml` suporta builds de binários nativos. Não adicionar dependências nativas sem atualizar o workspace.
+- Não adicionar `pages/` na raiz do repositório — Nuxt 4 usa o diretório `app/`.
+
+## Forma de trabalho
+
+- **Não sugerir atalhos ou workarounds** quando o problema real ainda não foi resolvido. Diagnosticar a causa raiz e resolver corretamente.
