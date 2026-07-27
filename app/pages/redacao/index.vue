@@ -2,8 +2,11 @@
 definePageMeta({ middleware: "auth" });
 
 const supabase = useSupabaseClient();
-const user = useSupabaseUser();
-const { deleteFile } = usePostMedia();
+const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
+const { config: broadcastConfig, fetch: fetchBroadcastConfig } =
+  useBroadcastConfig();
+
+const ALL_CITIES = "__all__";
 
 type Post = {
   id: number;
@@ -16,20 +19,62 @@ type Post = {
   user_id: string;
   created_at: string;
   published_at: string;
+  cidade: string;
 };
 
 const posts = ref<Post[]>([]);
 const loading = ref(true);
+const filterCidade = ref(ALL_CITIES);
+let filterInitialized = false;
 
 onMounted(async () => {
-  const { data } = await supabase
+  await Promise.all([fetchCidades(), fetchBroadcastConfig()]);
+
+  const activeCidade = broadcastConfig.value?.cidade;
+  filterCidade.value =
+    activeCidade && cidades.value.some((cidade) => cidade.slug === activeCidade)
+      ? activeCidade
+      : ALL_CITIES;
+
+  await fetchPosts();
+  filterInitialized = true;
+});
+
+watch(
+  filterCidade,
+  () => {
+    if (filterInitialized) fetchPosts();
+  },
+  { flush: "sync" },
+);
+
+const cidadeOptions = computed(() => [
+  { label: "Todas as cidades", value: ALL_CITIES },
+  ...cidades.value.map((cidade) => ({
+    label: cidade.cidade_nome,
+    value: cidade.slug,
+  })),
+]);
+
+async function fetchPosts() {
+  loading.value = true;
+
+  let query = supabase
     .from("posts")
     .select("*")
     .order("published_at", { ascending: false });
 
+  if (filterCidade.value !== ALL_CITIES) {
+    const cidade = cidades.value.find(
+      (cidade) => cidade.slug === filterCidade.value,
+    );
+    query = query.ilike("cidade", cidade?.cidade_nome ?? filterCidade.value);
+  }
+
+  const { data } = await query;
   if (data) posts.value = data as Post[];
   loading.value = false;
-});
+}
 
 const stats = computed(() => {
   const all = posts.value;
@@ -68,6 +113,16 @@ const stats = computed(() => {
 
     <template #body>
       <div class="space-y-6">
+        <div class="flex justify-end">
+          <USelect
+            v-model="filterCidade"
+            :items="cidadeOptions"
+            value-key="value"
+            label-key="label"
+            class="w-52"
+          />
+        </div>
+
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <UCard v-for="stat in stats" :key="stat.label">
             <div class="flex items-center gap-3">
@@ -83,7 +138,7 @@ const stats = computed(() => {
         <p v-if="loading" class="text-gray-500">Carregando...</p>
 
         <p v-else-if="posts.length === 0" class="text-gray-500">
-          Nenhum post ainda.
+          Nenhuma publicação encontrada.
         </p>
 
         <div v-else class="grid grid-cols-2 gap-3">
