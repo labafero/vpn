@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col h-screen overflow-hidden">
     <div class="bg-green-500 w-full h-full"></div>
-    <OverlayHighlights />
+    <OverlayHighlights v-if="initialized" />
     <OverlayStocks />
-    <OverlayTinker />
+    <OverlayTinker v-if="initialized" />
   </div>
 </template>
 
@@ -11,7 +11,7 @@
 definePageMeta({ layout: "overlay", colorMode: "dark" });
 useHead({ title: "Overlay Monitoramento" });
 
-const { init } = useOverlayState();
+const { init, initialized } = useOverlayState();
 
 onMounted(() => init());
 </script>

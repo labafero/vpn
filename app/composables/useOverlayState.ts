@@ -26,6 +26,7 @@ export function useOverlayState() {
     () => null,
   );
   const loading = useState<boolean>("overlay:loading", () => false);
+  const initialized = useState<boolean>("overlay:initialized", () => false);
 
   const broadcasterId = computed(
     () => (route.query.broadcaster as string) || user.value?.sub || "",
@@ -55,35 +56,42 @@ export function useOverlayState() {
     if (!resolvedId) return;
 
     loading.value = true;
+    initialized.value = false;
+    broadcastConfig.value = null;
+    cidadeConfig.value = null;
+    characterConfig.value = null;
 
-    const { data: bcData } = await supabase
-      .from("broadcast_config")
-      .select("*")
-      .eq("user_id", resolvedId)
-      .maybeSingle();
+    try {
+      const { data: bcData } = await supabase
+        .from("broadcast_config")
+        .select("*")
+        .eq("user_id", resolvedId)
+        .maybeSingle();
 
-    broadcastConfig.value = bcData ?? null;
+      broadcastConfig.value = bcData ?? null;
 
-    if (bcData?.cidade) {
-      const [{ data: cityData }, { data: charData }] = await Promise.all([
-        supabase
-          .from("city_config")
-          .select("*")
-          .eq("slug", bcData.cidade)
-          .maybeSingle(),
-        supabase
-          .from("character_config")
-          .select("*")
-          .eq("user_id", resolvedId)
-          .eq("cidade", bcData.cidade)
-          .maybeSingle(),
-      ]);
+      if (bcData?.cidade) {
+        const [{ data: cityData }, { data: charData }] = await Promise.all([
+          supabase
+            .from("city_config")
+            .select("*")
+            .eq("slug", bcData.cidade)
+            .maybeSingle(),
+          supabase
+            .from("character_config")
+            .select("*")
+            .eq("user_id", resolvedId)
+            .eq("cidade", bcData.cidade)
+            .maybeSingle(),
+        ]);
 
-      cidadeConfig.value = cityData ?? null;
-      characterConfig.value = charData ?? null;
+        cidadeConfig.value = cityData ?? null;
+        characterConfig.value = charData ?? null;
+      }
+    } finally {
+      loading.value = false;
+      initialized.value = true;
     }
-
-    loading.value = false;
   }
 
   return {
@@ -91,6 +99,7 @@ export function useOverlayState() {
     cidadeConfig,
     characterConfig,
     loading,
+    initialized,
     broadcasterId,
     corKey,
     cor,

@@ -2,7 +2,7 @@
   <div class="flex flex-col h-screen">
     <div class="h-202.5 bg-green-500"></div>
     <div class="flex flex-col h-67.5 overflow-hidden">
-      <OverlayTinker />
+      <OverlayTinker v-if="initialized" />
 
       <div
         class="w-full h-full border-t flex items-center px-5 gap-5 border-neutral-700"
@@ -43,7 +43,7 @@
 definePageMeta({ layout: "overlay", colorMode: "dark" });
 useHead({ title: "Overlay Jornal" });
 
-const { init, broadcasterId, broadcastTitle, characterConfig, cor } =
+const { init, initialized, broadcasterId, broadcastTitle, characterConfig } =
   useOverlayState();
 
 if (!broadcasterId.value) {
