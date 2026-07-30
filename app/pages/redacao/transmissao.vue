@@ -44,6 +44,28 @@ const idleUrl = computed(() =>
   user.value?.sub ? `${origin.value}/overlay/idle?${baseParams.value}` : "",
 );
 
+const spectrumUrl = computed(() =>
+  user.value?.sub ? `${origin.value}/overlay/spectrum?${baseParams.value}` : "",
+);
+
+const noSignalUrl = computed(() =>
+  user.value?.sub
+    ? `${origin.value}/overlay/no-signal?${baseParams.value}`
+    : "",
+);
+
+const streamSignalUrl = computed(() =>
+  user.value?.sub
+    ? `${origin.value}/overlay/stream-signal?${baseParams.value}`
+    : "",
+);
+
+const streamSignalDeckUrl = computed(() =>
+  user.value?.sub
+    ? `${origin.value}/overlay/stream-signal-deck?${baseParams.value}`
+    : "",
+);
+
 async function copyUrl(url: string) {
   try {
     await navigator.clipboard.writeText(url);
@@ -137,6 +159,82 @@ const cidadeOptions = computed(() => [
                   icon="i-lucide-square-arrow-out-up-right"
                   variant="outline"
                   :to="idleUrl"
+                  target="_blank"
+                />
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium mb-1">Spectrum</div>
+              <div class="flex gap-2">
+                <UInput :model-value="spectrumUrl" class="flex-1" readonly />
+                <UButton
+                  icon="i-lucide-copy"
+                  variant="outline"
+                  @click="copyUrl(spectrumUrl)"
+                />
+                <UButton
+                  icon="i-lucide-square-arrow-out-up-right"
+                  variant="outline"
+                  :to="spectrumUrl"
+                  target="_blank"
+                />
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium mb-1">Sem sinal</div>
+              <div class="flex gap-2">
+                <UInput :model-value="noSignalUrl" class="flex-1" readonly />
+                <UButton
+                  icon="i-lucide-copy"
+                  variant="outline"
+                  @click="copyUrl(noSignalUrl)"
+                />
+                <UButton
+                  icon="i-lucide-square-arrow-out-up-right"
+                  variant="outline"
+                  :to="noSignalUrl"
+                  target="_blank"
+                />
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium mb-1">Sinal da transmissão</div>
+              <div class="flex gap-2">
+                <UInput
+                  :model-value="streamSignalUrl"
+                  class="flex-1"
+                  readonly
+                />
+                <UButton
+                  icon="i-lucide-copy"
+                  variant="outline"
+                  @click="copyUrl(streamSignalUrl)"
+                />
+                <UButton
+                  icon="i-lucide-square-arrow-out-up-right"
+                  variant="outline"
+                  :to="streamSignalUrl"
+                  target="_blank"
+                />
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium mb-1">Deck da transmissão</div>
+              <div class="flex gap-2">
+                <UInput
+                  :model-value="streamSignalDeckUrl"
+                  class="flex-1"
+                  readonly
+                />
+                <UButton
+                  icon="i-lucide-copy"
+                  variant="outline"
+                  @click="copyUrl(streamSignalDeckUrl)"
+                />
+                <UButton
+                  icon="i-lucide-square-arrow-out-up-right"
+                  variant="outline"
+                  :to="streamSignalDeckUrl"
                   target="_blank"
                 />
               </div>
