@@ -1,0 +1,7 @@
+interface:
+  display_name: "Criar Post"
+  short_description: "Redija, gere capa e publique posts de GTA RP"
+  default_prompt: "Use $criar-post para redigir e revisar uma matéria de GTA RP, gerar uma capa opcional e publicar o conteúdo aprovado no Supabase."
+
+policy:
+  allow_implicit_invocation: false
