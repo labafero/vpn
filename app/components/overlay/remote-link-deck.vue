@@ -68,6 +68,7 @@
           class="flex min-w-0 items-center gap-5"
         >
           <div
+            v-if="!isRandomHeadline"
             class="relative h-22 w-38 shrink-0 overflow-hidden border border-cyan-300/25 bg-black/45"
           >
             <img
@@ -102,6 +103,7 @@
               {{ activeHeadline }}
             </div>
             <div
+              v-if="!isRandomHeadline"
               class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] tracking-wide text-white/45"
             >
               <span class="text-cyan-300">
@@ -219,10 +221,11 @@ let telemetryInterval: ReturnType<typeof setInterval> | undefined;
 let newsInterval: ReturnType<typeof setInterval> | undefined;
 
 const activePost = computed(() => posts.value[activeIndex.value]);
+const isRandomHeadline = computed(
+  () => broadcastConfig.value?.title === "random-found",
+);
 const activeHeadline = computed(() => {
-  if (broadcastConfig.value?.title === "random-found") {
-    return broadcastTitle.value;
-  }
+  if (isRandomHeadline.value) return broadcastTitle.value;
 
   return activePost.value?.title ?? "AGUARDANDO NOVOS DADOS DA REDE";
 });
