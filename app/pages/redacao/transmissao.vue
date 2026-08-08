@@ -66,6 +66,12 @@ const streamSignalDeckUrl = computed(() =>
     : "",
 );
 
+const streamSignalDeckRandomUrl = computed(() =>
+  user.value?.sub
+    ? `${origin.value}/overlay/stream-signal-deck-random?${baseParams.value}`
+    : "",
+);
+
 async function copyUrl(url: string) {
   try {
     await navigator.clipboard.writeText(url);
@@ -235,6 +241,29 @@ const cidadeOptions = computed(() => [
                   icon="i-lucide-square-arrow-out-up-right"
                   variant="outline"
                   :to="streamSignalDeckUrl"
+                  target="_blank"
+                />
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium mb-1">
+                Deck com manchete aleatória
+              </div>
+              <div class="flex gap-2">
+                <UInput
+                  :model-value="streamSignalDeckRandomUrl"
+                  class="flex-1"
+                  readonly
+                />
+                <UButton
+                  icon="i-lucide-copy"
+                  variant="outline"
+                  @click="copyUrl(streamSignalDeckRandomUrl)"
+                />
+                <UButton
+                  icon="i-lucide-square-arrow-out-up-right"
+                  variant="outline"
+                  :to="streamSignalDeckRandomUrl"
                   target="_blank"
                 />
               </div>
