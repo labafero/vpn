@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-const { cor, cidadeSlug } = useOverlayState();
+const { cidadeSlug } = useOverlayState();
 
 const supabase = useSupabaseClient();
 

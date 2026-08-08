@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { latest } = useMarketValues();
-const { cor } = useOverlayState();
 
 const FALLBACK_STOCKS = [
   { label: "kit médico civil", value: "R$ 10.000", trend: "down" as const },

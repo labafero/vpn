@@ -26,12 +26,21 @@ export const TYPE_LABELS: Record<DbRecordType, string> = {
   veiculo: "Veículo"
 };
 
-export const TYPE_COLORS: Record<DbRecordType, string> = {
-  pessoa: "blue",
-  empresa_legal: "green",
-  empresa_ilegal: "red",
-  veiculo: "orange"
-};
+type BadgeColor =
+  | "error"
+  | "primary"
+  | "secondary"
+  | "success"
+  | "info"
+  | "warning"
+  | "neutral";
+
+export const TYPE_COLORS = {
+  pessoa: "info",
+  empresa_legal: "success",
+  empresa_ilegal: "error",
+  veiculo: "warning"
+} satisfies Record<DbRecordType, BadgeColor>;
 
 interface FieldDef {
   key: string;

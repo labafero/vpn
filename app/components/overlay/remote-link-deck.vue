@@ -99,7 +99,7 @@
             <div
               class="line-clamp-2 text-2xl leading-tight font-medium tracking-tight"
             >
-              {{ activePost?.title ?? "AGUARDANDO NOVOS DADOS DA REDE" }}
+              {{ activeHeadline }}
             </div>
             <div
               class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] tracking-wide text-white/45"
@@ -200,7 +200,8 @@ import type { Tables } from "~/types/database.types";
 
 const route = useRoute();
 const supabase = useSupabaseClient();
-const { cidadeSlug, initialized } = useOverlayState();
+const { broadcastConfig, broadcastTitle, cidadeSlug, initialized } =
+  useOverlayState();
 
 const now = ref(Date.now());
 const timezone = ref("LOCAL TIME");
@@ -218,6 +219,13 @@ let telemetryInterval: ReturnType<typeof setInterval> | undefined;
 let newsInterval: ReturnType<typeof setInterval> | undefined;
 
 const activePost = computed(() => posts.value[activeIndex.value]);
+const activeHeadline = computed(() => {
+  if (broadcastConfig.value?.title === "random-found") {
+    return broadcastTitle.value;
+  }
+
+  return activePost.value?.title ?? "AGUARDANDO NOVOS DADOS DA REDE";
+});
 
 const nodeId = computed(() => {
   const broadcaster = route.query.broadcaster;
