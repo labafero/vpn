@@ -1,6 +1,6 @@
 ---
 name: criar-post
-description: Redige e revisa matérias jornalísticas de GTA RP em pt-BR no estilo de NTV, BRN, RVN ou RNN, oferece gerar uma capa opcional e publica o post aprovado com a capa aprovada no Supabase. Use somente quando o usuário invocar `$criar-post` para criar e publicar um post, uma matéria, uma notícia ou uma manchete a partir de uma cidade e um briefing.
+description: Redige e revisa matérias jornalísticas de GTA RP em pt-BR no estilo de NTV, BRN, RVN ou RNN, cria chamadas de até 500 caracteres e roteiros de narração, oferece gerar uma capa opcional e publica o post aprovado com a capa aprovada no Supabase. Use somente quando o usuário invocar `$criar-post` para criar e publicar um post, uma matéria, uma notícia ou uma manchete a partir de uma cidade e um briefing.
 ---
 
 # Criar Post Jornalístico
@@ -17,8 +17,8 @@ Atuar como editor-chefe de um jornal de roleplay. Redigir eventos do mundo in-ga
    - Radar Nordeste News (RNN), cidade `nordeste`: [references/rnn.md](references/rnn.md)
 3. Identificar o briefing do evento no pedido e no contexto. Se estiver ausente ou insuficiente para uma matéria fiel, pedir somente os fatos que faltam.
 4. Redigir seguindo o tom, o título e a estrutura da referência carregada. Não inventar nomes, locais, horários, fontes ou desfechos apresentados como fatos.
-5. Entregar todos os campos abaixo e pedir que o usuário revise o texto. Não gerar imagem nesta etapa.
-6. Aplicar os ajustes solicitados e repetir a revisão até o usuário aprovar o texto ou informar que não deseja alterações.
+5. Entregar todos os campos abaixo, acompanhados da chamada para o perfil in-game definida em **Gerar textos complementares**, e pedir que o usuário revise os textos. Não gerar imagem nesta etapa.
+6. Aplicar os ajustes solicitados, manter a chamada coerente com a matéria e repetir a revisão até o usuário aprovar o texto ou informar que não deseja alterações.
 7. Somente depois da aprovação, oferecer a geração opcional de capa conforme o fluxo abaixo.
 
 ## Entregar o post
@@ -30,6 +30,22 @@ Atuar como editor-chefe de um jornal de roleplay. Redigir eventos do mundo in-ga
 | `body` | Matéria completa em pt-BR |
 | `published_at` | Data e hora do evento in-game em ISO 8601, por exemplo `2026-06-14T22:00:00`; solicitar o valor se não puder ser determinado sem inventar |
 | `destaque` | `true` somente para fatos de grande impacto; caso contrário, `false` |
+
+## Gerar textos complementares
+
+### Chamada para o perfil in-game
+
+- Gerar junto com a matéria uma chamada autônoma e natural de até 500 caracteres, incluindo espaços e quebras de linha, sempre que o briefing permitir uma síntese fiel.
+- Contar os caracteres antes de entregar e informar a contagem. Nunca exceder o limite por descuido nem cortar palavras ou frases para caber.
+- Preservar o ritmo editorial do jornal e priorizar a manchete, os fatos centrais e a pergunta ou provocação que desperta interesse pela reportagem completa. Não reduzir a chamada a frases desconectadas nem inventar informações.
+- Quando o usuário fornecer ou editar uma chamada, preservar sua construção e fazer somente os ajustes pedidos. Não substituir automaticamente uma versão aprovada.
+- O limite de 500 caracteres vale somente para essa chamada, salvo se o usuário pedir explicitamente outro limite.
+
+### Roteiro do narrador
+
+- Gerar quando o usuário pedir uma versão para locução, matéria em vídeo ou reportagem narrada.
+- Não aplicar o limite de 500 caracteres ao roteiro. Desenvolver os fatos com transições naturais, ritmo de voz e duração compatível com a solicitação do usuário; se ele não definir duração, usar a extensão necessária para uma reportagem clara, sem repetição artificial.
+- Manter o mesmo rigor factual da matéria aprovada e não transformar perguntas editoriais em fatos confirmados.
 
 ## Oferecer uma capa opcional
 
@@ -63,7 +79,7 @@ Adaptar o final para "sem capa" quando nenhuma capa tiver sido aprovada. A aprov
 Se o usuário confirmar:
 
 1. Usar [scripts/publish-post.mjs](scripts/publish-post.mjs). Não reimplementar chamadas ao Supabase em comandos avulsos.
-2. Criar um arquivo JSON temporário com somente `title`, `cidade`, `body`, `published_at` e `destaque` da versão aprovada.
+2. Criar um arquivo JSON temporário com somente `title`, `cidade`, `body`, `published_at` e `destaque` da versão aprovada. Não incluir a chamada para perfil nem o roteiro do narrador.
 3. Executar `node .codex/skills/criar-post/scripts/publish-post.mjs --check-connection` e ler o resultado. Essa checagem é somente leitura e valida credenciais e autoria sem publicar dados.
 4. Executar o publicador com `--dry-run` e ler o resultado. Passar `--cover <caminho>` somente quando houver uma capa aprovada.
 5. Se as validações passarem, executar novamente sem `--dry-run`. Essa execução é uma mutação externa autorizada pela confirmação final do usuário.
