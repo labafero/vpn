@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { normalizarCidadeSlug } from "~/utils/cidadeColors";
+
 definePageMeta({ layout: "auth" });
 
 const supabase = useSupabaseClient();
@@ -46,9 +48,6 @@ function formatDate(iso: string) {
   });
 }
 
-function cidadeSlug(cidade: string) {
-  return cidade.toLowerCase().trim().replace(/\s+/g, "-");
-}
 </script>
 
 <template>
@@ -119,7 +118,7 @@ function cidadeSlug(cidade: string) {
           <UButton
             v-for="cidade in cidades"
             :key="cidade"
-            :to="`/${cidadeSlug(cidade)}`"
+            :to="`/${normalizarCidadeSlug(cidade)}`"
             variant="subtle"
             color="neutral"
           >

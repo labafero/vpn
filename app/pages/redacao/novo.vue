@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { normalizarCidadeSlug } from "~/utils/cidadeColors";
+
 definePageMeta({ middleware: "auth", layout: "default" });
 
 const supabase = useSupabaseClient();
@@ -48,7 +50,7 @@ async function handleSubmit(data: {
   const { error } = await supabase.from("posts").insert({
     title: data.title,
     body: data.body,
-    cidade: data.cidade,
+    cidade: normalizarCidadeSlug(data.cidade),
     cover_url: coverUrl,
     media_url: mediaUrl,
     media_type: mediaType,

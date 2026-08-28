@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { normalizarCidadeSlug } from "~/utils/cidadeColors";
+
 definePageMeta({ middleware: "auth", layout: "default" });
 
 const route = useRoute();
@@ -74,7 +76,7 @@ async function handleSubmit(data: {
   } = {
     title: data.title,
     body: data.body,
-    cidade: data.cidade,
+    cidade: normalizarCidadeSlug(data.cidade),
     destaque: data.destaque,
     published_at: data.publishedAt,
   };

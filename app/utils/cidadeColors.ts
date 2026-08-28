@@ -89,3 +89,7 @@ export const corClasses: Record<
 export const DEFAULT_COR: CorPrimaria = "zinc";
 export const DEFAULT_SIGLA = "VPN";
 export const DEFAULT_NOME = "Video Productions News";
+
+export function normalizarCidadeSlug(value: string) {
+  return value.toLowerCase().trim().replace(/\s+/g, "-");
+}
