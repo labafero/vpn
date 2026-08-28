@@ -2,12 +2,12 @@
 import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, type CorPrimaria } from "~/utils/cidadeColors";
 
 definePageMeta({ layout: "auth" });
+defineRouteRules({ noScripts: true });
 
 const route = useRoute();
 const cidade = computed(() => route.params.cidade as string);
 
 const supabase = useSupabaseClient();
-const { config: cidadeConfig, fetchBySlug } = useCidadeConfig();
 
 type Post = {
   id: number;
@@ -23,23 +23,42 @@ type Post = {
   published_at: string;
 };
 
-const posts = ref<Post[]>([]);
-const loading = ref(true);
+const { data: pageData, status, error: pageError } = await useAsyncData(
+  `cidade-lp-${cidade.value}`,
+  async () => {
+    const [configResult, postsResult] = await Promise.all([
+      supabase
+        .from("city_config")
+        .select("*")
+        .eq("slug", cidade.value)
+        .maybeSingle(),
+      supabase
+        .from("posts")
+        .select("id,title,body,cidade,cover_url,media_url,media_type,destaque,published_at")
+        .eq("cidade", cidade.value)
+        .order("published_at", { ascending: false })
+        .limit(24),
+    ]);
 
-onMounted(async () => {
-  await Promise.all([
-    fetchBySlug(cidade.value),
-    supabase
-      .from("posts")
-      .select("*")
-      .ilike("cidade", cidade.value)
-      .order("published_at", { ascending: false })
-      .then(({ data }) => {
-        if (data) posts.value = data as Post[];
-      }),
-  ]);
-  loading.value = false;
-});
+    if (configResult.error) throw configResult.error;
+    if (postsResult.error) throw postsResult.error;
+    if (!configResult.data) {
+      throw createError({ statusCode: 404, message: "Cidade não encontrada" });
+    }
+
+    return {
+      config: configResult.data,
+      posts: (postsResult.data ?? []) as Post[],
+    };
+  },
+  { deep: false },
+);
+
+if (pageError.value) throw pageError.value;
+
+const cidadeConfig = computed(() => pageData.value?.config ?? null);
+const posts = computed(() => pageData.value?.posts ?? []);
+const loading = computed(() => status.value === "pending");
 
 const cor = computed(
   () => corClasses[(cidadeConfig.value?.cor_primaria as CorPrimaria) ?? DEFAULT_COR],
@@ -141,7 +160,7 @@ function formatDate(iso: string) {
             </div>
           </div>
           <div class="h-72 sm:h-[26rem] overflow-hidden rounded-2xl border border-muted bg-elevated">
-            <PostSlider :posts="destaques" label="Em destaque" />
+            <CityHighlights :posts="destaques" />
           </div>
         </section>
 
