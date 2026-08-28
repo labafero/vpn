@@ -7,7 +7,7 @@ type Post = {
   cover_url: string;
 };
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     posts: Post[];
     label?: string;
@@ -17,32 +17,13 @@ const props = withDefaults(
   },
 );
 
-const currentSlide = ref(0);
-
-let intervalId: ReturnType<typeof setInterval> | null = null;
-
-onMounted(() => {
-  if (postsLength.value <= 1) return;
-  intervalId = setInterval(() => {
-    currentSlide.value = (currentSlide.value + 1) % postsLength.value;
-  }, 10000);
-});
-
-onUnmounted(() => {
-  if (intervalId) clearInterval(intervalId);
-});
-
-const postsLength = computed(() => props.posts.length);
-
-watch(postsLength, (len) => {
-  if (currentSlide.value >= len) currentSlide.value = 0;
-});
 </script>
 
 <template>
   <UCarousel
     v-slot="{ item }"
     loop
+    arrows
     :autoplay="{ delay: 10000 }"
     fade
     auto-scroll

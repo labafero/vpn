@@ -71,26 +71,20 @@ function formatDate(iso: string) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-default text-default">
+  <div id="inicio" class="min-h-screen bg-default text-default">
     <!-- Sticky header -->
     <header
       class="sticky top-0 z-50 bg-default/90 backdrop-blur-sm border-b"
       :class="cor.border"
     >
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
+        <a href="#inicio" class="flex items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4" :class="cor.text" aria-label="Voltar ao início da LP">
           <img v-if="logoUrl" :src="logoUrl" :alt="`Logo ${nomeJornal}`" class="size-9 rounded-lg object-cover" />
           <div>
             <span class="block text-xs font-semibold uppercase tracking-[0.2em]" :class="cor.muted">{{ sigla }}</span>
             <span class="block text-sm font-semibold text-highlighted">{{ nomeCidade }}</span>
           </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <UButton to="/" size="sm" color="neutral" variant="ghost" icon="i-lucide-globe-2" class="hidden sm:inline-flex">
-            Todas as cidades
-          </UButton>
-          <UButton to="/redacao" size="sm" color="neutral" variant="ghost" icon="i-lucide-pen-line" aria-label="Redação" />
-        </div>
+        </a>
       </div>
     </header>
 
@@ -243,7 +237,7 @@ function formatDate(iso: string) {
 
         <footer class="pt-4 border-t border-muted flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm text-muted">
           <span>{{ nomeJornal }} · {{ nomeCidade }}</span>
-          <UButton to="/" color="neutral" variant="link" trailing-icon="i-lucide-arrow-right">Voltar para a cobertura geral</UButton>
+          <UButton to="/" color="neutral" variant="link" trailing-icon="i-lucide-arrow-right">Explorar a VPN</UButton>
         </footer>
       </div>
     </template>

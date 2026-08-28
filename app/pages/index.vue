@@ -31,14 +31,12 @@ onMounted(async () => {
 });
 
 const destaques = computed(() => posts.value.filter((p) => p.destaque));
-const normais = computed(() => postsFiltered.value.filter((p) => !p.destaque));
+const normais = computed(() => posts.value.filter((p) => !p.destaque));
 
 const cidades = computed(() => {
   const set = new Set(posts.value.map((p) => p.cidade).filter(Boolean));
   return [...set] as string[];
 });
-
-const selectedCidade = ref("Todas");
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -48,19 +46,13 @@ function formatDate(iso: string) {
   });
 }
 
-function filterPostsByCidade(cidade: string) {
-  selectedCidade.value = cidade;
+function cidadeSlug(cidade: string) {
+  return cidade.toLowerCase().trim().replace(/\s+/g, "-");
 }
-
-const postsFiltered = computed(() => {
-  return selectedCidade.value === "Todas"
-    ? posts.value
-    : posts.value.filter((p) => p.cidade === selectedCidade.value);
-});
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white">
+  <div id="inicio" class="min-h-screen bg-zinc-950 text-white">
     <!-- Sticky header -->
     <header
       class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600"
@@ -71,14 +63,26 @@ const postsFiltered = computed(() => {
         <span class="font-bold text-base tracking-tight">
           <span class="text-red-500">VPN</span>
         </span>
-        <UButton
-          to="/redacao"
-          size="sm"
-          color="neutral"
-          variant="ghost"
-          icon="lucide:pen-line"
-          aria-label="Redação"
-        />
+        <div class="flex items-center gap-2">
+          <UButton
+            to="/"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-globe-2"
+            class="hidden sm:inline-flex"
+          >
+            Todas as cidades
+          </UButton>
+          <UButton
+            to="/redacao"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-pen-line"
+            aria-label="Redação"
+          />
+        </div>
       </div>
     </header>
 
@@ -111,19 +115,13 @@ const postsFiltered = computed(() => {
           class="flex gap-2 overflow-x-auto pb-3 mb-6"
           style="scrollbar-width: none"
         >
-          <UButton
-            color="neutral"
-            :variant="selectedCidade === 'Todas' ? 'solid' : 'subtle'"
-            @click="filterPostsByCidade('Todas')"
-          >
-            Todas
-          </UButton>
+          <UButton to="/" color="neutral" variant="solid">Todas</UButton>
           <UButton
             v-for="cidade in cidades"
             :key="cidade"
-            :variant="selectedCidade === cidade ? 'solid' : 'subtle'"
+            :to="`/${cidadeSlug(cidade)}`"
+            variant="subtle"
             color="neutral"
-            @click="filterPostsByCidade(cidade)"
           >
             {{ cidade }}
           </UButton>
