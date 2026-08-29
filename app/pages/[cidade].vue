@@ -3,6 +3,13 @@ import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, type CorPrimaria } from "~/util
 
 definePageMeta({ layout: "auth" });
 
+if (import.meta.server && !import.meta.dev && !import.meta.prerender) {
+  throw createError({
+    statusCode: 404,
+    message: "Esta cidade ainda não está disponível no build atual",
+  });
+}
+
 const route = useRoute();
 const cidade = computed(() => route.params.cidade as string);
 
