@@ -2,7 +2,6 @@
   <div class="flex flex-col h-screen overflow-hidden">
     <div class="bg-green-500 w-full h-full"></div>
     <OverlayHighlights v-if="initialized" />
-    <OverlayStocks />
     <OverlayTinker v-if="initialized" />
   </div>
 </template>

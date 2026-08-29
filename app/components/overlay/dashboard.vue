@@ -8,30 +8,5 @@
 </template>
 
 <script lang="ts" setup>
-const { cor, broadcasterId } = useOverlayState();
-
-const supabase = useSupabaseClient();
-const { fetchLatest } = useMarketValues();
-
-onMounted(async () => {
-  await fetchLatest(broadcasterId.value);
-
-  supabase
-    .channel("market_values_overlay")
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "market_values",
-        filter: `user_id=eq.${broadcasterId.value}`,
-      },
-      () => fetchLatest(broadcasterId.value),
-    )
-    .subscribe();
-});
-
-onUnmounted(() => {
-  supabase.removeAllChannels();
-});
+const { cor } = useOverlayState();
 </script>

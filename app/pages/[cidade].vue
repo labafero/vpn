@@ -2,7 +2,6 @@
 import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, type CorPrimaria } from "~/utils/cidadeColors";
 
 definePageMeta({ layout: "auth" });
-defineRouteRules({ noScripts: true });
 
 const route = useRoute();
 const cidade = computed(() => route.params.cidade as string);

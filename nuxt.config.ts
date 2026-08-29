@@ -8,10 +8,6 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
-  experimental: {
-    inlineRouteRules: true,
-  },
-
   compatibilityDate: "2026-06-07",
 
   vite: {

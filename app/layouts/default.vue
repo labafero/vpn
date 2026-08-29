@@ -8,7 +8,6 @@ defineShortcuts({
   "g-r": () => router.push("/redacao"),
   "g-n": () => router.push("/redacao/novo"),
   "g-t": () => router.push("/redacao/transmissao"),
-  "g-v": () => router.push("/redacao/valores"),
   "g-c": () => router.push("/redacao/cidades"),
   "g-b": () => router.push("/redacao/base"),
 });
@@ -36,12 +35,6 @@ const links = computed<NavigationMenuItem[]>(() => [
     label: "Transmissão",
     icon: "i-lucide-radio",
     to: "/redacao/transmissao",
-    onSelect: closeSidebar,
-  },
-  {
-    label: "Valores",
-    icon: "i-lucide-chart-line",
-    to: "/redacao/valores",
     onSelect: closeSidebar,
   },
   {
@@ -80,12 +73,6 @@ const searchGroups = computed(() => [
         label: "Transmissão",
         icon: "i-lucide-radio",
         to: "/redacao/transmissao",
-      },
-      {
-        id: "valores",
-        label: "Valores de Mercado",
-        icon: "i-lucide-chart-line",
-        to: "/redacao/valores",
       },
       {
         id: "base",

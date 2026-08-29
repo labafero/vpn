@@ -18,25 +18,34 @@ export function useCidadeConfig() {
 
   async function fetchBySlug(slug: string) {
     loading.value = true;
-    const { data, count } = await supabase
-      .from("city_config")
-      .select("*")
-      .eq("slug", slug)
-      .maybeSingle();
-    if (!data || count === 0)
-      showError({ statusCode: 404, message: "Cidade não encontrada" });
-    config.value = data as Tables<"city_config"> | null;
-    loading.value = false;
+    try {
+      const { data, error } = await supabase
+        .from("city_config")
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        throw createError({ statusCode: 404, message: "Cidade não encontrada" });
+      }
+      config.value = data as Tables<"city_config">;
+    } finally {
+      loading.value = false;
+    }
   }
 
   async function fetchAll() {
     loading.value = true;
-    const { data } = await supabase
-      .from("city_config")
-      .select("*")
-      .order("cidade_nome");
-    all.value = (data ?? []) as Tables<"city_config">[];
-    loading.value = false;
+    try {
+      const { data, error } = await supabase
+        .from("city_config")
+        .select("*")
+        .order("cidade_nome");
+      if (error) throw error;
+      all.value = (data ?? []) as Tables<"city_config">[];
+    } finally {
+      loading.value = false;
+    }
   }
 
   async function save(values: CityConfigInsert) {

@@ -6,7 +6,18 @@ definePageMeta({ middleware: "auth" });
 const { all, loading, fetchAll, remove } = useCidadeConfig();
 const toast = useToast();
 
-onMounted(fetchAll);
+onMounted(async () => {
+  try {
+    await fetchAll();
+  } catch (error) {
+    console.error("Erro ao carregar cidades", error);
+    toast.add({
+      title: "Erro ao carregar cidades",
+      description: "Não foi possível consultar as configurações no Supabase.",
+      color: "error",
+    });
+  }
+});
 
 const confirmDelete = ref<string | null>(null);
 const deleteModalOpen = ref(false);
