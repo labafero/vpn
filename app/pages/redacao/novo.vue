@@ -14,6 +14,7 @@ async function handleSubmit(data: {
   title: string;
   body: string;
   cidade: string;
+  season: string;
   coverFile: File | null;
   mediaFile: File | null;
   removeCover: boolean;
@@ -51,6 +52,7 @@ async function handleSubmit(data: {
     title: data.title,
     body: data.body,
     cidade: normalizarCidadeSlug(data.cidade),
+    season: data.season || null,
     cover_url: coverUrl,
     media_url: mediaUrl,
     media_type: mediaType,

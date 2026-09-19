@@ -218,36 +218,6 @@ export type Database = {
           },
         ]
       }
-      market_values: {
-        Row: {
-          cidade: string
-          created_at: string
-          id: number
-          label: string
-          trend: string
-          user_id: string
-          value: string
-        }
-        Insert: {
-          cidade?: string
-          created_at?: string
-          id?: never
-          label: string
-          trend?: string
-          user_id: string
-          value: string
-        }
-        Update: {
-          cidade?: string
-          created_at?: string
-          id?: never
-          label?: string
-          trend?: string
-          user_id?: string
-          value?: string
-        }
-        Relationships: []
-      }
       posts: {
         Row: {
           body: string
@@ -259,6 +229,7 @@ export type Database = {
           media_type: string | null
           media_url: string | null
           published_at: string
+          season: string | null
           title: string
           updated_at: string
           user_id: string
@@ -273,6 +244,7 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           published_at: string
+          season?: string | null
           title: string
           updated_at?: string
           user_id?: string
@@ -287,6 +259,7 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           published_at?: string
+          season?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -319,18 +292,7 @@ export type Database = {
       }
     }
     Views: {
-      market_values_latest: {
-        Row: {
-          cidade: string | null
-          created_at: string | null
-          id: number | null
-          label: string | null
-          trend: string | null
-          user_id: string | null
-          value: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never
@@ -352,12 +314,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -381,11 +343,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -406,11 +368,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -431,11 +393,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -448,11 +410,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
