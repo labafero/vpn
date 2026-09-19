@@ -1,3 +1,25 @@
-# VPN Roleplay
+# VPN Roleplay Monorepo
 
-VPN Roleplay é um projeto que visa criar uma interface de usuário moderna e intuitiva para matérias jornalísticas para Roleplay. O objetivo é fornecer uma experiência de usuário fluida e agradável, com foco em facilidade de navegação e personalização.
+Monorepo do ecossistema VPN Roleplay.
+
+## Projetos
+
+- `vpn-news`: portal público, redação editorial e overlays OBS.
+- `vpn-monitor`: portal privado para sessões, convites e alertas.
+- `vpn-sentry`: API Nitro privada, integrações e workers.
+- `packages/contracts`: contrato OpenAPI compartilhado.
+- `packages/database`: tipos gerados do Supabase.
+
+## Desenvolvimento
+
+```bash
+pnpm install
+pnpm dev:news
+pnpm dev:monitor
+pnpm dev:sentry
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+As migrações e a configuração do Supabase permanecem em `supabase/` na raiz.

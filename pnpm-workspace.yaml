@@ -1,3 +1,9 @@
+packages:
+  - "vpn-news"
+  - "vpn-monitor"
+  - "vpn-sentry"
+  - "packages/*"
+
 allowBuilds:
   "@parcel/watcher": false
   "@tailwindcss/oxide": false

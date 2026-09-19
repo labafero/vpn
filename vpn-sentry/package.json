@@ -1,0 +1,26 @@
+{
+  "name": "@vpn/sentry",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --port 3002 --dotenv .env",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck",
+    "workers": "node workers/index.mjs"
+  },
+  "dependencies": {
+    "@nuxt/eslint": "^1.15.2",
+    "@nuxtjs/supabase": "2.0.9",
+    "nuxt": "^4.4.6",
+    "@vpn/contracts": "workspace:*",
+    "@vpn/database": "workspace:*"
+  },
+  "devDependencies": {
+    "eslint": "^10.4.0",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.0"
+  }
+}

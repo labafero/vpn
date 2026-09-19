@@ -1,0 +1,93 @@
+openapi: 3.1.0
+info:
+  title: VPN Sentry API
+  version: 0.1.0
+  description: Contrato REST compartilhado entre os portais VPN e o backend Sentry.
+servers:
+  - url: /api/v1
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Verifica a disponibilidade do Sentry
+      responses:
+        '200':
+          description: Serviço disponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /cities:
+    get:
+      operationId: listCities
+      summary: Lista configurações públicas de cidade
+      responses:
+        '200':
+          description: Cidades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CityConfig'
+  /posts:
+    get:
+      operationId: listPosts
+      summary: Lista matérias publicadas
+      parameters:
+        - name: cidade
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Matérias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, service]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        service:
+          type: string
+          example: vpn-sentry
+    CityConfig:
+      type: object
+      required: [slug, cidade_nome, jornal_nome, jornal_sigla, cor_primaria]
+      properties:
+        slug: { type: string }
+        cidade_nome: { type: string }
+        jornal_nome: { type: string }
+        jornal_sigla: { type: string }
+        cor_primaria: { type: string }
+        logo_url: { type: string, nullable: true }
+    Post:
+      type: object
+      required: [id, title, body, cidade, cover_url, destaque, published_at]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        body: { type: string }
+        cidade: { type: string }
+        cover_url: { type: string }
+        media_url: { type: string, nullable: true }
+        media_type: { type: string, nullable: true }
+        destaque: { type: boolean }
+        published_at: { type: string, format: date-time }

@@ -1,0 +1,40 @@
+{
+  "name": "@vpn/news",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 nuxt build",
+    "dev": "nuxt dev --dotenv .env",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck",
+    "format": "prettier --write .",
+    "typegen": "supabase gen types typescript --linked > ../packages/database/src/database.types.ts"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.108",
+    "@iconify-json/simple-icons": "^1.2.83",
+    "@nuxt/icon": "2.2.2",
+    "@nuxt/ui": "^4.7.1",
+    "@nuxtjs/supabase": "2.0.9",
+    "@vpn/contracts": "workspace:*",
+    "@vpn/database": "workspace:*",
+    "nuxt": "^4.4.6",
+    "obs-websocket-js": "^5.0.8",
+    "p5": "^2.3.1",
+    "tailwindcss": "^4.3.0",
+    "valibot": "^1.4.1"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.15.2",
+    "@types/node": "^25.9.2",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3",
+    "supabase": "^2.102.0",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.0"
+  },
+  "packageManager": "pnpm@11.1.3"
+}

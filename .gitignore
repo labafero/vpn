@@ -6,6 +6,13 @@
 .cache
 dist
 
+# Workspace-local generated outputs
+**/.nuxt
+**/.output
+**/.data
+**/.nitro
+**/node_modules
+
 # Node dependencies
 node_modules
 
@@ -23,7 +30,6 @@ logs
 .env.*
 !.env.example
 .vercel
-.env*
 
 # oh-my-claudecode runtime state
 .omc/

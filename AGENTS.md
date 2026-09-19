@@ -1,23 +1,23 @@
 # CLAUDE.md
 
-Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar neste repositório.
+Este arquivo fornece orientações ao trabalhar neste repositório.
 
 ## Comandos
 
 ```bash
-pnpm dev          # servidor de desenvolvimento em 0.0.0.0:3000
-pnpm build        # build de produção
-pnpm preview      # preview do build de produção
-pnpm lint         # ESLint (formatador principal — roda primeiro no CI)
-pnpm typecheck    # nuxt typecheck (roda após o lint no CI)
-pnpm format       # prettier (não obrigatório no CI)
+pnpm dev:news      # portal público e redação em 0.0.0.0:3000
+pnpm dev:monitor   # portal privado
+pnpm dev:sentry    # API Nitro em 0.0.0.0:3002
+pnpm build         # build de todos os workspaces
+pnpm lint          # ESLint de todos os workspaces
+pnpm typecheck     # typecheck de todos os workspaces
 ```
 
-Pipeline de CI: `lint → typecheck`. Nenhum teste está configurado.
+Pipeline de CI: `lint → typecheck → build`. Nenhum teste está configurado.
 
 ## Arquitetura
 
-**Nuxt 4 SPA** ("VPN Roleplay") usando a convenção de diretório `app/`. Backend é Supabase (PostgreSQL + Auth). UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
+**Monorepo pnpm** com três projetos Nuxt 4 e pacotes compartilhados. `vpn-news` usa a convenção de diretório `app/`; backend e Auth são Supabase. UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
 
 ### Rotas
 
@@ -40,7 +40,7 @@ Duas superfícies distintas:
 
 ### Layouts
 
-- `default` — `UDashboardGroup` + sidebar (`UDashboardSidebar`) usado em `/redacao/*`. Atalhos de teclado: `g-r` redação, `g-n` novo, `g-t` transmissão, `g-v` valores, `g-c` cidades.
+- `vpn-news/default` — `UDashboardGroup` + sidebar (`UDashboardSidebar`) usado em `/redacao/*`. Atalhos de teclado: `g-r` redação, `g-n` novo, `g-t` transmissão, `g-v` valores, `g-c` cidades.
 - `auth` — layout público mínimo (nome confuso; é o header VPN público, não um wrapper de login)
 - `overlay` — layout bare para páginas do OBS
 
@@ -76,9 +76,9 @@ Duas superfícies distintas:
 - **ESLint** é o formatador — sem vírgulas pendentes, estilo 1tbs (`eslint.config.mjs`).
 - **Tailwind v4**: `@import "tailwindcss"` antes de `@import "@nuxt/ui"` no CSS. Variáveis de tema em `@theme static`. Classes de cor usadas em `corClasses` devem existir estaticamente (sem interpolação dinâmica de classes).
 - **Idioma**: strings de UI em português (pt-BR).
-- `app/types/database.types.ts` é gerado automaticamente pelo Supabase — não editar manualmente.
+- `packages/database/src/database.types.ts` é gerado automaticamente pelo Supabase — não editar manualmente.
 - `pnpm-workspace.yaml` suporta builds de binários nativos. Não adicionar dependências nativas sem atualizar o workspace.
-- Não adicionar `pages/` na raiz do repositório — Nuxt 4 usa o diretório `app/`.
+- Não adicionar `pages/` na raiz do repositório — os projetos Nuxt 4 usam o diretório `app/`.
 
 ## Forma de trabalho
 
