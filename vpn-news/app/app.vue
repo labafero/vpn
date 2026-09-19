@@ -1,7 +1,11 @@
 <script setup>
 useHead({
   meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
-  link: [{ rel: "icon", href: "/favicon.ico" }],
+  link: [
+    { rel: "icon", type: "image/svg+xml", href: "/vpn-icon.svg" },
+    { rel: "apple-touch-icon", href: "/vpn-icon.svg" },
+    { rel: "manifest", href: "/site.webmanifest" },
+  ],
   htmlAttrs: {
     lang: "pt-BR",
   },
@@ -12,7 +16,7 @@ const title = "VPN Roleplay";
 useSeoMeta({
   title,
   ogTitle: title,
-  ogImage: "https://ui.nuxt.com/assets/templates/nuxt/starter-light.png",
+  ogImage: "/vpn_logo.png",
   twitterCard: "summary_large_image",
 });
 
