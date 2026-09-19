@@ -1,0 +1,25 @@
+{
+  "name": "@vpn/site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --dotenv .env",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.108",
+    "@nuxt/ui": "^4.7.1",
+    "nuxt": "^4.4.6",
+    "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.15.2",
+    "eslint": "^10.4.0",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.0"
+  }
+}

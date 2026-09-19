@@ -1,4 +1,5 @@
 packages:
+  - "vpn-site"
   - "vpn-news"
   - "vpn-monitor"
   - "vpn-sentry"

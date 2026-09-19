@@ -1,0 +1,50 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --vpn-red: #ed1c24;
+  --vpn-ink: #05090c;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--vpn-ink);
+}
+
+body {
+  min-width: 320px;
+  background: var(--vpn-ink);
+}
+
+::selection {
+  color: white;
+  background: var(--vpn-red);
+}
+
+.vpn-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+.vpn-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vpn-pulse {
+    animation: vpn-pulse 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes vpn-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1); }
+}

@@ -5,6 +5,7 @@
   "packageManager": "pnpm@11.1.3",
   "scripts": {
     "dev:news": "pnpm --filter @vpn/news dev",
+    "dev:site": "pnpm --filter @vpn/site dev",
     "dev:monitor": "pnpm --filter @vpn/monitor dev",
     "dev:sentry": "pnpm --filter @vpn/sentry dev",
     "lint": "pnpm --recursive --if-present lint",

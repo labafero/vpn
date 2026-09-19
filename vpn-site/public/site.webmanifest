@@ -1,0 +1,16 @@
+{
+  "name": "VPN Roleplay",
+  "short_name": "VPN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05090c",
+  "theme_color": "#ed1c24",
+  "icons": [
+    {
+      "src": "/vpn-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
