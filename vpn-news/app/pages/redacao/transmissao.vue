@@ -5,48 +5,10 @@ const { config, fetch, save: broadcastSave } = useBroadcastConfig();
 const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
 const user = useSupabaseUser();
 const toast = useToast();
-const {
-  status: obsStatus,
-  error: obsError,
-  config: obsConfig,
-  metadata: obsMetadata,
-  reconnectAttempt,
-  connect: connectObs,
-  disconnect: disconnectObs,
-  updateRememberPassword,
-} = useObsConnection();
 
 const title = ref("");
 const cidade = ref<string | null>(null);
 const saving = ref(false);
-
-const obsBusy = computed(
-  () => obsStatus.value === "conectando" || obsStatus.value === "reconectando",
-);
-
-const obsStatusLabel = computed(
-  () =>
-    ({
-      desconectado: "Desconectado",
-      conectando: "Conectando",
-      conectado: "Conectado",
-      reconectando: "Reconectando",
-      erro: "Erro",
-    })[obsStatus.value],
-);
-
-const obsStatusColor = computed(() => {
-  if (obsStatus.value === "conectado") return "success";
-  if (obsStatus.value === "conectando") return "primary";
-  if (obsStatus.value === "reconectando") return "warning";
-  if (obsStatus.value === "erro") return "error";
-  return "neutral";
-});
-
-const rememberObsPassword = computed({
-  get: () => obsConfig.value.rememberPassword,
-  set: (value: boolean) => updateRememberPassword(value),
-});
 
 onMounted(async () => {
   await Promise.all([fetch(), fetchCidades()]);
@@ -66,18 +28,6 @@ async function handleSave() {
   } finally {
     saving.value = false;
   }
-}
-
-async function handleObsConnect() {
-  const connected = await connectObs();
-  if (connected) {
-    toast.add({ title: "OBS conectado", color: "success" });
-  }
-}
-
-async function handleObsDisconnect() {
-  await disconnectObs();
-  toast.add({ title: "OBS desconectado", color: "neutral" });
 }
 
 const origin = computed(() => useRequestURL().origin);
@@ -178,112 +128,8 @@ const cidadeOptions = computed(() => [
           </UForm>
         </UCard>
 
-        <UCard>
-          <template #header>
-            <div class="flex items-center justify-between gap-4">
-              <div>
-                <h2 class="font-semibold">Conexão com o OBS</h2>
-                <p class="text-sm text-muted">
-                  Conecte este dispositivo diretamente ao OBS WebSocket 5.x.
-                </p>
-              </div>
-              <UBadge :color="obsStatusColor" variant="subtle">
-                {{ obsStatusLabel }}
-              </UBadge>
-            </div>
-          </template>
-
-          <div class="space-y-4">
-            <div class="grid gap-4 sm:grid-cols-[1fr_10rem]">
-              <UFormField label="Endereço" required>
-                <UInput
-                  v-model="obsConfig.host"
-                  placeholder="127.0.0.1"
-                  autocomplete="off"
-                  :disabled="obsBusy || obsStatus === 'conectado'"
-                  class="w-full"
-                />
-              </UFormField>
-
-              <UFormField label="Porta" required>
-                <UInput
-                  v-model.number="obsConfig.port"
-                  type="number"
-                  min="1"
-                  max="65535"
-                  inputmode="numeric"
-                  :disabled="obsBusy || obsStatus === 'conectado'"
-                  class="w-full"
-                />
-              </UFormField>
-            </div>
-
-            <UFormField label="Senha">
-              <UInput
-                v-model="obsConfig.password"
-                type="password"
-                placeholder="Senha configurada no OBS"
-                autocomplete="current-password"
-                :disabled="obsBusy || obsStatus === 'conectado'"
-                class="w-full"
-              />
-            </UFormField>
-
-            <UCheckbox
-              v-model="rememberObsPassword"
-              label="Lembrar senha neste dispositivo"
-              description="A senha será salva somente no armazenamento local deste navegador."
-              :disabled="obsBusy || obsStatus === 'conectado'"
-            />
-
-            <UAlert
-              v-if="obsError"
-              color="error"
-              variant="subtle"
-              icon="i-lucide-circle-alert"
-              :description="obsError.message"
-            />
-
-            <div
-              v-if="obsStatus === 'reconectando'"
-              class="text-sm text-muted"
-            >
-              Tentativa {{ reconnectAttempt }} de 5 em andamento.
-            </div>
-
-            <div
-              v-if="obsMetadata"
-              class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted"
-            >
-              <span>OBS WebSocket {{ obsMetadata.obsWebSocketVersion }}</span>
-              <span>RPC {{ obsMetadata.negotiatedRpcVersion }}</span>
-            </div>
-
-            <div class="flex justify-end">
-              <UButton
-                v-if="obsStatus === 'conectado'"
-                color="neutral"
-                variant="outline"
-                icon="i-lucide-unplug"
-                @click="handleObsDisconnect"
-              >
-                Desconectar
-              </UButton>
-              <UButton
-                v-else
-                icon="i-lucide-plug"
-                :loading="obsBusy"
-                :disabled="obsBusy"
-                @click="handleObsConnect"
-              >
-                Conectar
-              </UButton>
-            </div>
-          </div>
-        </UCard>
-
         <UCard
-          title="Use esses links no OBS como Browser Source"
+          title="Links dos overlays"
           description="Se uma cidade estiver selecionada, o whitelabel é aplicado
         automaticamente."
           variant="subtle"

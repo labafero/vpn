@@ -17,7 +17,7 @@ remoto a recursos corporativos.
 
 A produção de um jornal dentro do roleplay envolve atividades que normalmente
 ficam dispersas: escrever e publicar matérias, manter identidades locais,
-preparar elementos gráficos, configurar a pauta em transmissão e operar o OBS.
+preparar elementos gráficos e configurar o conteúdo da transmissão.
 Essa fragmentação aumenta o trabalho manual, dificulta manter o portal e a
 transmissão coerentes e eleva o risco de colocar no ar conteúdo ou estados
 incorretos.
@@ -30,9 +30,9 @@ consistente, permitindo que a equipe:
 - produza e publique matérias para um portal público organizado por cidade;
 - mantenha a identidade editorial e visual de cada cidade;
 - configure o conteúdo usado durante uma transmissão;
-- apresente overlays legíveis e estados operacionais confiáveis no OBS;
-- evolua para controlar operações essenciais do OBS com segurança, sem tentar
-  substituir sua interface completa.
+- apresente overlays legíveis e estados operacionais confiáveis em Browser Sources;
+- disponibilize overlays e links de Browser Source para uso no software de
+  transmissão, sem estabelecer conexão direta com ele.
 
 O resultado esperado é reduzir tarefas manuais e divergências entre redação,
 portal e transmissão, preservando clareza operacional durante o uso ao vivo.
@@ -43,12 +43,12 @@ portal e transmissão, preservando clareza operacional durante o uso ao vivo.
 | --- | --- | --- |
 | Leitores | Consultar notícias e destaques por cidade | Portal público em navegador |
 | Jornalistas | Criar, editar e publicar conteúdo | Redação autenticada em navegador |
-| Operadores de transmissão | Preparar a pauta, acompanhar estados e operar recursos essenciais | Painel da redação e OBS Studio |
-| Audiência da transmissão | Receber informação editorial clara e contextualizada | Overlays exibidos por Browser Sources do OBS |
-| Administração técnica | Manter aplicação, dados, permissões e integrações | Nuxt, Supabase e futura estação local do OBS |
+| Operadores de transmissão | Preparar a pauta e configurar Browser Sources | Painel da redação e software de transmissão |
+| Audiência da transmissão | Receber informação editorial clara e contextualizada | Overlays exibidos por Browser Sources |
+| Administração técnica | Manter aplicação, dados, permissões e integrações | Nuxt e Supabase |
 
 Os principais contextos de exibição são navegadores desktop e Browser Sources
-do OBS em 1920x1080, com suporte a 1280x720. O portal público deve continuar
+em 1920x1080, com suporte a 1280x720. O portal público deve continuar
 adaptável a telas menores conforme os componentes existentes.
 
 ## Escopo atual
@@ -73,42 +73,28 @@ O produto atualmente compreende três superfícies integradas:
 
 ### Overlays
 
-- páginas autocontidas para uso como Browser Sources do OBS;
+- páginas autocontidas para uso como Browser Sources;
 - estados visuais de transmissão, conexão, espera e ausência de sinal;
 - elementos editoriais e de telemetria adequados à composição sobre vídeo;
-- leitura dos estados publicados pela aplicação sem expor credenciais do OBS.
+- leitura dos estados publicados pela aplicação sem expor credenciais de transmissão.
 
 ## Evolução planejada
 
-A evolução operacional está dividida nos PRDs existentes e não deve ser tratada
-como funcionalidade já entregue:
+A evolução atual concentra-se no portal público, na redação, nos overlays e na
+separação do monorepo. Não há cliente local, reconexão, controle de cenas,
+controle de mixer ou agente para conexão direta com software de transmissão.
 
-1. [Conexão com o OBS](./plans/01-conexao-obs.md): cliente local para obs-websocket
-   5.x, com estados de conexão e reconexão controlada.
-2. [Diagnóstico da conexão](./plans/02-diagnostico-conexao.md): configuração e
-   diagnóstico compreensível no painel de transmissão.
-3. [Controle de cenas](./plans/03-cenas-programa.md): consulta, mapeamento e troca da
-   cena em programa.
-4. [Fontes e Browser Sources](./plans/04-fontes-browser-sources.md): visibilidade de
-   fontes e atualização segura de overlays.
-5. [Estado de transmissão e gravação](./plans/05-status-transmissao-gravacao.md):
-   substituição de indicadores simulados por estados e métricas reais do OBS.
-6. [Macros configuráveis](./plans/06-macros-configuraveis.md): execução validada de
-   sequências operacionais repetitivas.
-7. [Mixer e preview](./plans/07-mixer-preview.md): controles essenciais de áudio e
-   diagnóstico visual, sem reproduzir todo o OBS.
-8. [Overlays editoriais reativos](./plans/08-overlays-editoriais-reativos.md):
-   sincronização em tempo real entre pauta, redação e conteúdo no ar.
-9. [Agente local do OBS](./plans/09-agente-local-obs.md): intermediação autenticada
-   para operação fora da rede local sem expor o obs-websocket.
+Novas capacidades de operação devem começar por uma decisão explícita de produto
+e segurança. Até lá, o sistema fornece apenas conteúdo e links para Browser
+Sources, enquanto a operação do software de transmissão permanece externa.
 
 ## Fora do escopo
 
 - implantar ou administrar uma rede privada virtual;
 - fornecer túneis de rede, criptografia de tráfego ou acesso corporativo remoto;
 - substituir a interface completa, o multiview ou os recursos avançados do OBS;
-- suportar obs-websocket 4.x;
-- armazenar a senha do OBS no Supabase ou enviá-la aos overlays;
+- estabelecer conexão direta com OBS ou outro software de transmissão;
+- armazenar credenciais de software de transmissão ou enviá-las aos overlays;
 - reproduzir interfaces militares reais ou simular controles interativos nas
   Browser Sources;
 - criar um sistema jornalístico generalista fora do contexto de roleplay;
@@ -125,7 +111,7 @@ designadas:
 | Produto e negócio | Priorizar resultados, validar escopo e aprovar metas |
 | Desenvolvimento | Projetar, implementar, revisar e manter aplicação e integrações |
 | Redação | Validar fluxos editoriais, linguagem e organização do conteúdo |
-| Operação de transmissão | Validar legibilidade, segurança operacional e integração com o OBS |
+| Operação de transmissão | Validar legibilidade e segurança operacional dos overlays e Browser Sources |
 | Administração técnica | Manter Supabase, permissões, ambientes e processo de implantação |
 
 Mudanças que afetem a operação ao vivo exigem validação de desenvolvimento e
@@ -138,12 +124,9 @@ revisão da administração técnica.
 - A aplicação permanece uma SPA em Nuxt 4, Vue 3, Nuxt UI 4 e Tailwind CSS 4.
 - Supabase fornece PostgreSQL e autenticação; políticas de acesso devem separar
   conteúdo público, dados editoriais privados e comandos operacionais.
-- A integração direta pressupõe OBS Studio com obs-websocket 5.x acessível a
-  partir do dispositivo do operador.
-- A operação remota futura depende do agente local e de um canal autenticado;
-  não autoriza expor diretamente o obs-websocket à internet.
-- Credenciais do OBS não podem aparecer em URLs, logs, toasts, payloads do
-  Supabase ou Browser Sources.
+- A operação do software de transmissão ocorre externamente, usando os links
+  gerados pelo painel como Browser Sources.
+- Os overlays não recebem credenciais de software de transmissão.
 - As interfaces e mensagens para usuários permanecem em pt-BR.
 - Temas de cidade usam exclusivamente o mapa estático de cores do produto.
 - Os overlays priorizam legibilidade em 1920x1080 e devem permanecer utilizáveis
@@ -159,11 +142,10 @@ de medições reais, sem reduzir requisitos de segurança ou qualidade.
 | Indicador | Meta inicial | Momento de avaliação |
 | --- | --- | --- |
 | Qualidade do código | 100% das entregas aprovadas em `pnpm lint` e `pnpm typecheck` | A cada mudança |
-| Proteção de credenciais do OBS | Zero credenciais persistidas no Supabase ou expostas em URL, logs e mensagens | A cada integração e revisão de segurança |
+| Proteção de credenciais de transmissão | Zero credenciais persistidas no Supabase ou expostas em URL, logs e mensagens | A cada revisão de segurança |
 | Legibilidade dos overlays críticos | 100% aprovados em 1920x1080 e 1280x720, sem rolagem ou corte de informação essencial | Antes de cada entrega visual |
 | Conclusão dos fluxos editoriais críticos | Pelo menos 95% dos roteiros de aceite concluídos sem intervenção técnica | Em cada ciclo de aceite |
 | Atualização editorial no ar | Percentil 95 de até 5 segundos entre alteração confirmada e atualização do overlay | Após o PRD 08 |
-| Reconciliação com o OBS | Percentil 95 de até 2 segundos para refletir estados e comandos confirmados em conexão saudável | Após os PRDs operacionais correspondentes |
 
 Os roteiros editoriais críticos devem incluir, no mínimo, criar ou editar uma
 matéria, publicá-la, encontrá-la no portal da cidade correta e selecionar o
