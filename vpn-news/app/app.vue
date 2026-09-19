@@ -16,7 +16,7 @@ const title = "VPN Roleplay";
 useSeoMeta({
   title,
   ogTitle: title,
-  ogImage: "/vpn_logo.png",
+  ogImage: "/vpn-icon.svg",
   twitterCard: "summary_large_image",
 });
 
