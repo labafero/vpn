@@ -1,176 +1,288 @@
-# PRD — Objetivo e escopo do VPN Roleplay
+# PRD — VPN: rede de monitoramento e inteligência para roleplay
 
 ## Visão geral
 
-Este PRD estabelece a referência de produto para o VPN Roleplay: o problema que
-ele resolve, seus públicos, as capacidades já disponíveis, a evolução planejada
-e os limites que devem orientar os PRDs de implementação.
+VPN significa **Virtual Private Network**. Neste produto, a VPN é uma rede
+privada de monitoramento de transmissões de roleplay, não uma solução de túnel
+de rede ou acesso remoto.
 
-## Identidade do produto
+O produto conecta streamers, redação e comunidades de roleplay em torno de
+transmissões autorizadas. O primeiro núcleo é uma central privada que acompanha
+lives publicadas em plataformas externas, começando pela Twitch, detecta sinais
+de interesse e distribui alertas controlados. A publicação jornalística e a
+programação contínua são evoluções construídas sobre essa rede de sinais,
+eventos e evidências.
 
-Neste documento, **VPN** é o nome do produto **VPN Roleplay**, uma plataforma
-jornalística para roleplay. O produto não é uma rede privada virtual e não tem
-como finalidade fornecer conectividade de rede, túneis criptografados ou acesso
-remoto a recursos corporativos.
+## Arquitetura do monorepo
+
+O produto é organizado em projetos independentes que compartilham contratos e
+tipos:
+
+| Projeto | Responsabilidade | Superfície |
+| --- | --- | --- |
+| `vpn-news` | Portal público, redação editorial e overlays | Pública e editorial |
+| `vpn-monitor` | Sessões monitoradas, convites, eventos e alertas | Privada |
+| `vpn-sentry` | Backend privado, integrações com provedores e workers de processamento | Privada, API e execução assíncrona |
+| `packages/contracts` | Contratos REST/OpenAPI compartilhados entre aplicações | Compartilhada |
+| `packages/database` | Tipos gerados para o banco de dados | Compartilhada |
+
+As migrações, políticas e configuração do Supabase permanecem em `supabase/`
+na raiz. O `vpn-news` mantém o fluxo editorial já existente; o `vpn-monitor`
+é a nova central privada; e o `vpn-sentry` concentra operações que não devem
+ser executadas diretamente no navegador, como OAuth, integrações e workers.
+
+As superfícies devem depender de `packages/contracts` para formatos de API,
+erros, eventos e estados compartilhados. Tipos de banco gerados não devem ser
+editados manualmente.
 
 ## Problema
 
-A produção de um jornal dentro do roleplay envolve atividades que normalmente
-ficam dispersas: escrever e publicar matérias, manter identidades locais,
-preparar elementos gráficos e configurar o conteúdo da transmissão.
-Essa fragmentação aumenta o trabalho manual, dificulta manter o portal e a
-transmissão coerentes e eleva o risco de colocar no ar conteúdo ou estados
-incorretos.
+Lives de roleplay contêm acontecimentos relevantes, mas hoje estão dispersas
+entre canais e comunidades. A redação não possui uma visão central de quem está
+ao vivo, não consegue compartilhar alertas de forma estruturada e precisa
+identificar manualmente os momentos que podem exigir atenção ou virar matéria.
 
-## Objetivo
+## Objetivos
 
-Centralizar o fluxo editorial e a operação visual do jornal em uma experiência
-consistente, permitindo que a equipe:
+- Centralizar o monitoramento privado de lives autorizadas.
+- Permitir que cada streamer controle quem pode acompanhar sua transmissão.
+- Detectar sinais de possível risco usando áudio e vídeo.
+- Distribuir notificações dentro da VPN e no Discord.
+- Criar uma base de eventos, clips e evidências para posterior trabalho
+  editorial.
+- Manter a arquitetura aberta para integrações futuras com outros provedores,
+  plugins locais, agentes nativos e mensagens in-game.
 
-- produza e publique matérias para um portal público organizado por cidade;
-- mantenha a identidade editorial e visual de cada cidade;
-- configure o conteúdo usado durante uma transmissão;
-- apresente overlays legíveis e estados operacionais confiáveis em Browser Sources;
-- disponibilize overlays e links de Browser Source para uso no software de
-  transmissão, sem estabelecer conexão direta com ele.
+## Não objetivos do primeiro ciclo
 
-O resultado esperado é reduzir tarefas manuais e divergências entre redação,
-portal e transmissão, preservando clareza operacional durante o uso ao vivo.
+- Substituir Twitch, Kick ou YouTube como plataforma de transmissão.
+- Receber ou retransmitir o sinal de vídeo como um servidor de streaming próprio.
+- Controlar OBS ou operar a produção audiovisual do streamer.
+- Publicar automaticamente matérias sem revisão.
+- Enviar alertas para autoridades reais fora do contexto de roleplay.
+- Interpretar a barra de vida com precisão garantida desde a primeira versão.
+- Criar imediatamente um plugin ou executável local.
 
-## Públicos e ambientes
+## Públicos
 
-| Público | Necessidade principal | Ambiente |
-| --- | --- | --- |
-| Leitores | Consultar notícias e destaques por cidade | Portal público em navegador |
-| Jornalistas | Criar, editar e publicar conteúdo | Redação autenticada em navegador |
-| Operadores de transmissão | Preparar a pauta e configurar Browser Sources | Painel da redação e software de transmissão |
-| Audiência da transmissão | Receber informação editorial clara e contextualizada | Overlays exibidos por Browser Sources |
-| Administração técnica | Manter aplicação, dados, permissões e integrações | Nuxt e Supabase |
-
-Os principais contextos de exibição são navegadores desktop e Browser Sources
-em 1920x1080, com suporte a 1280x720. O portal público deve continuar
-adaptável a telas menores conforme os componentes existentes.
-
-## Escopo atual
-
-O produto atualmente compreende três superfícies integradas:
-
-### Portal público
-
-- índice de notícias, destaques e filtro por cidade;
-- páginas de notícias por cidade;
-- identidade visual configurável por cidade;
-- exibição de capas e mídias associadas às matérias.
-
-### Redação
-
-- autenticação e proteção das rotas administrativas;
-- criação, edição e listagem de matérias;
-- configuração editorial da transmissão por usuário;
-- manutenção de cidades e suas identidades;
-- edição de valores de mercado;
-- configuração de personagem ou jogador usada pelas experiências editoriais.
-
-### Overlays
-
-- páginas autocontidas para uso como Browser Sources;
-- estados visuais de transmissão, conexão, espera e ausência de sinal;
-- elementos editoriais e de telemetria adequados à composição sobre vídeo;
-- leitura dos estados publicados pela aplicação sem expor credenciais de transmissão.
-
-## Evolução planejada
-
-A evolução atual concentra-se no portal público, na redação, nos overlays e na
-separação do monorepo. Não há cliente local, reconexão, controle de cenas,
-controle de mixer ou agente para conexão direta com software de transmissão.
-
-Novas capacidades de operação devem começar por uma decisão explícita de produto
-e segurança. Até lá, o sistema fornece apenas conteúdo e links para Browser
-Sources, enquanto a operação do software de transmissão permanece externa.
-
-## Fora do escopo
-
-- implantar ou administrar uma rede privada virtual;
-- fornecer túneis de rede, criptografia de tráfego ou acesso corporativo remoto;
-- substituir a interface completa, o multiview ou os recursos avançados do OBS;
-- estabelecer conexão direta com OBS ou outro software de transmissão;
-- armazenar credenciais de software de transmissão ou enviá-las aos overlays;
-- reproduzir interfaces militares reais ou simular controles interativos nas
-  Browser Sources;
-- criar um sistema jornalístico generalista fora do contexto de roleplay;
-- adicionar capacidades não previstas nos PRDs sem validação de produto e
-  segurança.
-
-## Responsabilidades e partes interessadas
-
-Os responsáveis são definidos por papel até que pessoas sejam formalmente
-designadas:
-
-| Papel | Responsabilidade |
+| Público | Necessidade |
 | --- | --- |
-| Produto e negócio | Priorizar resultados, validar escopo e aprovar metas |
-| Desenvolvimento | Projetar, implementar, revisar e manter aplicação e integrações |
-| Redação | Validar fluxos editoriais, linguagem e organização do conteúdo |
-| Operação de transmissão | Validar legibilidade e segurança operacional dos overlays e Browser Sources |
-| Administração técnica | Manter Supabase, permissões, ambientes e processo de implantação |
+| Streamer | Conectar sua conta Twitch, autorizar monitoramento e controlar acessos |
+| Dono da transmissão | Receber alertas e gerenciar sua lista de transmissão |
+| Administrador VPN | Monitorar sinais autorizados e receber todos os alertas |
+| Contato autorizado | Receber avisos de transmissão e possíveis riscos |
+| Redação | Revisar eventos, clips e evidências para criar conteúdo |
+| Comunidade FiveM | Receber notificações por Discord e, futuramente, dentro do jogo |
 
-Mudanças que afetem a operação ao vivo exigem validação de desenvolvimento e
-operação de transmissão. Mudanças de fluxo editorial exigem validação de produto
-e redação. Alterações de autenticação, dados ou acesso remoto também exigem
-revisão da administração técnica.
+## Privacidade e modelo de acesso
 
-## Dependências, restrições e premissas
+Toda transmissão é privada por padrão. O acesso inicial pertence ao dono da
+transmissão e ao administrador VPN.
 
-- A aplicação permanece uma SPA em Nuxt 4, Vue 3, Nuxt UI 4 e Tailwind CSS 4.
-- Supabase fornece PostgreSQL e autenticação; políticas de acesso devem separar
-  conteúdo público, dados editoriais privados e comandos operacionais.
-- A operação do software de transmissão ocorre externamente, usando os links
-  gerados pelo painel como Browser Sources.
-- Os overlays não recebem credenciais de software de transmissão.
-- As interfaces e mensagens para usuários permanecem em pt-BR.
-- Temas de cidade usam exclusivamente o mapa estático de cores do produto.
-- Os overlays priorizam legibilidade em 1920x1080 e devem permanecer utilizáveis
-  em 1280x720, sem rolagem ou corte de informação essencial.
-- Os PRDs são a fonte de requisitos detalhados de cada etapa; este documento é a
-  referência de objetivo, fronteiras e resultados do produto.
+O dono pode criar convites com:
 
-## Indicadores de sucesso
+- validade definida;
+- escopo limitado;
+- possibilidade de revogação;
+- acesso a uma transmissão ou sessão específica.
 
-As metas abaixo são valores iniciais. Devem ser revistas após a primeira rodada
-de medições reais, sem reduzir requisitos de segurança ou qualidade.
+Em uma fase posterior, o dono poderá manter uma lista de transmissão
+persistente. Essa lista aceitará usuários da VPN e contatos vinculados ao
+Discord. O dono controlará os destinatários e suas permissões.
 
-| Indicador | Meta inicial | Momento de avaliação |
-| --- | --- | --- |
-| Qualidade do código | 100% das entregas aprovadas em `pnpm lint` e `pnpm typecheck` | A cada mudança |
-| Proteção de credenciais de transmissão | Zero credenciais persistidas no Supabase ou expostas em URL, logs e mensagens | A cada revisão de segurança |
-| Legibilidade dos overlays críticos | 100% aprovados em 1920x1080 e 1280x720, sem rolagem ou corte de informação essencial | Antes de cada entrega visual |
-| Conclusão dos fluxos editoriais críticos | Pelo menos 95% dos roteiros de aceite concluídos sem intervenção técnica | Em cada ciclo de aceite |
-| Atualização editorial no ar | Percentil 95 de até 5 segundos entre alteração confirmada e atualização do overlay | Após o PRD 08 |
+Nenhuma transmissão será indexada publicamente ou exibida no portal público sem
+autorização explícita.
 
-Os roteiros editoriais críticos devem incluir, no mínimo, criar ou editar uma
-matéria, publicá-la, encontrá-la no portal da cidade correta e selecionar o
-conteúdo destinado à transmissão. Falhas de infraestrutura externas devem ser
-registradas separadamente para não mascarar problemas do fluxo do produto.
+## Escopo do MVP
 
-## Validação do escopo
+### Conta e Twitch
 
-O escopo é considerado validado quando:
+- Cadastro e autenticação de usuário na VPN.
+- OAuth com Twitch.
+- Identificação do canal autorizado.
+- Ativação e desativação do monitoramento pelo dono.
+- Estado do canal: offline, online, indisponível ou autorização expirada.
 
-- produto, desenvolvimento, redação e operação de transmissão aprovarem as
-  fronteiras relevantes às suas responsabilidades;
-- superfícies, públicos e ambientes de uso estiverem representados;
-- estado atual e evolução planejada estiverem claramente separados;
-- dependências, restrições de segurança e premissas estiverem registradas;
-- os indicadores possuírem método e momento de avaliação;
-- novas iniciativas puderem ser relacionadas ao objetivo do produto e a um PRD
-  específico antes de serem implementadas.
+### Central privada
 
-## Rastreabilidade com o cartão de origem
+- Lista de transmissões autorizadas.
+- Visão da transmissão e do streamer monitorado.
+- Histórico de sessões monitoradas.
+- Eventos detectados e seu estado de processamento.
+- Evidências associadas, como clip, timestamp, trecho de áudio ou frame.
+- Acesso administrativo completo para o operador VPN.
 
-| Entregável solicitado | Atendimento neste documento |
-| --- | --- |
-| Problema e objetivo documentados | Seções “Problema” e “Objetivo” |
-| Usuários, equipes e ambientes mapeados | Seções “Públicos e ambientes” e “Responsabilidades e partes interessadas” |
-| Escopo e não escopo definidos | Seções “Escopo atual”, “Evolução planejada” e “Fora do escopo” |
-| Responsáveis e partes interessadas identificados | Seção “Responsabilidades e partes interessadas” |
-| Indicadores de sucesso acordados | Seção “Indicadores de sucesso”, com metas iniciais sujeitas à validação dos papéis responsáveis |
+### Alertas
+
+Os alertas devem ser enviados imediatamente para o administrador VPN, dono da
+transmissão e destinatários autorizados.
+
+O alerta deve ser tratado como **possível risco**, nunca como diagnóstico ou
+certeza. Deve incluir, quando disponível:
+
+- tipo do sinal detectado;
+- horário;
+- transmissão e streamer;
+- nível de confiança;
+- evidência ou referência ao clip;
+- estado: novo, reconhecido, em análise, resolvido ou falso positivo.
+
+### Sinais iniciais
+
+- Personagem caído.
+- Perseguição.
+- Frases-chave cadastradas pelo streamer.
+- Variação significativa na barra de vida observada no vídeo.
+- Combinações relevantes entre sinais de áudio e vídeo.
+
+### Notificações
+
+O primeiro canal é o painel da VPN. O segundo é um servidor Discord oficial da
+VPN, com um canal privado por streamer.
+
+O modelo de expansão é:
+
+```text
+VPN → Discord oficial da VPN → bot em Discords externos → mensagem in-game
+```
+
+O bot/app para Discords externos e a integração com FiveM não fazem parte do
+primeiro MVP, mas o modelo de eventos deve permitir esses destinos.
+
+## Estratégia de inteligência
+
+A validação inicial será feita com lives gravadas e clips, antes de exigir
+análise contínua em tempo real.
+
+O primeiro protótipo deve priorizar recursos gratuitos e regras simples:
+
+- processamento periódico de frames;
+- regiões configuráveis da tela;
+- comparação temporal entre frames;
+- detecção baseada em mudanças, não em interpretação completa de cada frame;
+- transcrição ou busca de frases-chave;
+- combinação de sinais com limiar de confiança.
+
+A visão computacional será considerada experimental até que os testes mostrem
+precisão suficiente. Detecções podem criar alertas, mas não devem executar ações
+irreversíveis automaticamente.
+
+Clips da Twitch são uma possível fonte de evidência e validação. A estratégia
+exata para obter clips periódicos, analisar o sinal e associá-los à sessão deve
+ser validada tecnicamente antes de virar requisito fechado.
+
+## Jornalismo e conteúdo futuro
+
+Eventos e evidências poderão originar:
+
+- rascunhos de matérias;
+- clips temáticos;
+- compilados por cidade ou servidor;
+- entrevistas e documentários;
+- boletins e programas gravados;
+- programação ao vivo em formato jornalístico 24/7.
+
+No primeiro ciclo, a IA apenas sugere eventos, evidências e rascunhos. A
+publicação final permanece sob revisão editorial.
+
+O `vpn-news` continua responsável pela visualização de matérias com texto,
+imagem e vídeo, incluindo páginas dedicadas por cidade/servidor. A central de
+monitoramento em `vpn-monitor` é uma nova superfície privada sobre essa base
+editorial, integrada ao backend e aos workers de `vpn-sentry` por meio dos
+contratos compartilhados.
+
+## Entidades iniciais
+
+- `users`: contas VPN e papéis administrativos.
+- `provider_connections`: OAuth e identidade do provedor, sem armazenar tokens
+  em texto exposto.
+- `channels`: canais monitoráveis e provedor de origem.
+- `monitoring_sessions`: períodos em que um canal esteve sendo acompanhado.
+- `access_invites`: convites, escopos, expiração e revogação.
+- `notification_recipients`: usuários VPN e contatos Discord autorizados.
+- `monitoring_events`: sinais detectados, confiança, estado e timestamps.
+- `evidence`: clips, frames, áudio, transcrições e referências temporais.
+- `notification_deliveries`: tentativas e resultados por canal.
+- `editorial_items`: vínculo futuro entre eventos/evidências e matérias.
+
+## Segurança e confiança
+
+- OAuth deve usar escopos mínimos e permitir revogação.
+- Tokens de provedores não podem aparecer em URLs, logs ou payloads públicos.
+- RLS deve separar proprietário, administrador, convidado e público.
+- Convites devem expirar e ser revogáveis.
+- Toda detecção precisa registrar origem, versão da regra/modelo e confiança.
+- Alertas devem deixar explícito que são possibilidades, com caminho para
+  reconhecer, resolver ou marcar falso positivo.
+- Evidências devem ter política de retenção e exclusão definida antes da escala.
+- A VPN deve deixar claro que o monitoramento é autorizado pelo proprietário.
+- `vpn-monitor` não deve conter segredos de provedores ou lógica de workers.
+- `vpn-sentry` deve validar autorização e escopos antes de acessar provedores.
+- APIs entre superfícies devem seguir os contratos publicados em
+  `packages/contracts`.
+
+## Fases
+
+### Fase 0 — fundação
+
+- Atualizar o modelo de produto e dados.
+- Definir autenticação, papéis, consentimento e retenção.
+- Validar a integração OAuth Twitch.
+- Consolidar contratos REST/OpenAPI em `packages/contracts`.
+- Definir as fronteiras entre `vpn-monitor`, `vpn-sentry` e `vpn-news`.
+
+### Fase 1 — monitoramento privado
+
+- Conectar canal Twitch.
+- Detectar sessões online.
+- Criar painel privado de canais e sessões em `vpn-monitor`.
+- Implementar convites temporários.
+- Expor no `vpn-sentry` a API necessária para a central privada.
+
+### Fase 2 — evidências e alertas
+
+- Processar clips ou gravações de teste em workers do `vpn-sentry`.
+- Criar eventos de possível risco.
+- Entregar notificações no painel e no Discord oficial.
+- Criar histórico e estados de reconhecimento/resolução.
+
+### Fase 3 — inteligência experimental
+
+- Frases-chave configuráveis.
+- Detecção de personagem caído e perseguição.
+- Análise temporal de regiões da tela.
+- Avaliação de precisão e falsos positivos.
+
+### Fase 4 — rede e editorial
+
+- Listas de transmissão persistentes.
+- Bot para Discords externos.
+- Vínculo entre eventos, evidências e matérias do `vpn-news`.
+- Plugins/agentes locais para telemetria adicional.
+- Integração futura com FiveM e programação 24/7.
+
+## Critérios de sucesso iniciais
+
+- Um usuário consegue conectar e revogar sua Twitch.
+- Uma sessão monitorada permanece privada e acessível apenas aos autorizados.
+- Um convite expirado não concede acesso.
+- Uma sessão online gera estado correto na central.
+- Um alerta chega ao painel e ao canal Discord correspondente.
+- O alerta contém evidência e confiança quando disponíveis.
+- O usuário consegue reconhecer e resolver um alerta.
+- Nenhum token ou conteúdo privado aparece em logs ou superfícies públicas.
+- O fluxo atual de matérias, imagens, vídeos e páginas por cidade continua
+  funcionando.
+- Os consumidores usam os contratos compartilhados sem divergência de payload.
+
+## Decisões adiadas
+
+- Estratégia final de acesso ao áudio e vídeo da live em tempo real.
+- Processamento de clips periódicos versus outra fonte de frames.
+- Provedor de visão computacional e transcrição.
+- Retenção e custo de evidências.
+- Sistema operacional e empacotamento de plugin/executável.
+- Integração técnica com Discords externos e FiveM.
+- Formato do canal jornalístico 24/7.
+- Modelo final de hospedagem e execução dos workers.
+- Limites de retenção e compartilhamento entre monitoramento e redação.
