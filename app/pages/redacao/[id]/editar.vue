@@ -8,12 +8,13 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 const { uploadFile, deleteFile, validateFile } = usePostMedia();
+const { getActiveSeason } = useCidadeConfig();
 
 type Post = {
   title: string;
   body: string;
   cidade: string;
-  season: string | null;
+  season_id: number | null;
   cover_url: string;
   media_url: string | null;
   media_type: "audio" | "video" | null;
@@ -56,7 +57,6 @@ async function handleSubmit(data: {
   title: string;
   body: string;
   cidade: string;
-  season: string;
   coverFile: File | null;
   mediaFile: File | null;
   removeCover: boolean;
@@ -66,11 +66,12 @@ async function handleSubmit(data: {
 }) {
   const userId = user.value?.sub;
   if (!userId) throw new Error("Usuário não autenticado");
+  const cidade = normalizarCidadeSlug(data.cidade);
   const update: {
     title?: string;
     body?: string;
     cidade?: string;
-    season?: string | null;
+    season_id?: number | null;
     cover_url?: string;
     media_url?: string | null;
     media_type?: "audio" | "video" | null;
@@ -79,11 +80,15 @@ async function handleSubmit(data: {
   } = {
     title: data.title,
     body: data.body,
-    cidade: normalizarCidadeSlug(data.cidade),
-    season: data.season || null,
+    cidade,
     destaque: data.destaque,
     published_at: data.publishedAt,
   };
+
+  if (post.value && update.cidade !== post.value.cidade) {
+    const activeSeason = await getActiveSeason(cidade);
+    update.season_id = activeSeason?.id ?? null;
+  }
 
   if (data.removeCover && data.coverFile) {
     const err = validateFile(data.coverFile, "cover");
@@ -202,7 +207,6 @@ async function remove(id: number) {
           :initial-title="post.title"
           :initial-body="post.body"
           :initial-cidade="post.cidade"
-          :initial-season="post.season"
           :initial-cover-url="post.cover_url"
           :initial-media-url="post.media_url ?? undefined"
           :initial-media-type="post.media_type"

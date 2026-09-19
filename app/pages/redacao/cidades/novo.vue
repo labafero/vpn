@@ -3,13 +3,14 @@ import { CORES_DISPONIVEIS, corClasses, type CorBrand } from "~/utils/cidadeColo
 
 definePageMeta({ middleware: "auth" });
 
-const { save } = useCidadeConfig();
+const { save, setActiveSeason } = useCidadeConfig();
 const toast = useToast();
 
 const saving = ref(false);
 
 const form = reactive({
   cidade_nome: "",
+  season: "",
   slug: "",
   jornal_nome: "",
   jornal_sigla: "",
@@ -41,6 +42,7 @@ async function handleSave() {
       cor_primaria: form.cor_primaria,
       logo_url: form.logo_url || null,
     });
+    await setActiveSeason(form.slug, form.season);
     toast.add({ title: "Cidade criada", color: "success" });
     await navigateTo(`/redacao/cidades/${form.slug}`);
   } catch {
@@ -71,6 +73,15 @@ async function handleSave() {
           <div class="space-y-4">
             <UFormField label="Nome da Cidade" required>
               <UInput v-model="form.cidade_nome" placeholder="Ex: Neon" class="w-full" />
+            </UFormField>
+
+            <UFormField label="Season atual (opcional)">
+              <UInput
+                v-model="form.season"
+                maxlength="50"
+                placeholder="Ex: Season 1 ou Alpha 2"
+                class="w-full"
+              />
             </UFormField>
 
             <UFormField label="Slug (URL)" required>

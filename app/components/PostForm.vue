@@ -4,7 +4,6 @@ const props = withDefaults(
     initialTitle?: string;
     initialBody?: string;
     initialCidade?: string;
-    initialSeason?: string | null;
     initialCoverUrl?: string;
     initialMediaUrl?: string;
     initialMediaType?: "audio" | "video" | null;
@@ -16,7 +15,6 @@ const props = withDefaults(
     initialTitle: "",
     initialBody: "",
     initialCidade: "",
-    initialSeason: "",
     initialCoverUrl: "",
     initialMediaUrl: "",
     initialMediaType: null,
@@ -32,7 +30,6 @@ const emit = defineEmits<{
       title: string;
       body: string;
       cidade: string;
-      season: string;
       coverFile: File | null;
       mediaFile: File | null;
       removeCover: boolean;
@@ -60,7 +57,6 @@ const submitting = ref(false);
 const title = ref(props.initialTitle);
 const body = ref(props.initialBody);
 const cidade = ref(props.initialCidade);
-const season = ref(props.initialSeason ?? "");
 const destaque = ref(props.initialDestaque);
 const publishedAt = ref(toDateInputValue(props.initialPublishedAt));
 
@@ -122,7 +118,6 @@ function handleSubmit() {
     title: title.value.trim(),
     body: body.value,
     cidade: cidade.value,
-    season: season.value.trim(),
     coverFile: coverFile.value,
     mediaFile: mediaFile.value,
     removeCover: removeCover.value,
@@ -155,15 +150,6 @@ defineExpose({ setSubmitting });
 
     <UFormField label="Cidade" name="cidade" required>
       <UInput v-model="cidade" class="w-full" placeholder="Ex: Los Santos" />
-    </UFormField>
-
-    <UFormField label="Season" name="season">
-      <UInput
-        v-model="season"
-        class="w-full"
-        maxlength="50"
-        placeholder="Ex: Season 1 ou Alpha 2"
-      />
     </UFormField>
 
     <UFormField label="Conteúdo" name="body">

@@ -10,7 +10,14 @@ definePageMeta({ middleware: "auth" });
 const route = useRoute();
 const slug = route.params.slug as string;
 
-const { config, fetchBySlug, save } = useCidadeConfig();
+const {
+  config,
+  seasons,
+  fetchBySlug,
+  fetchSeasons,
+  save,
+  setActiveSeason,
+} = useCidadeConfig();
 const {
   config: characterConfig,
   fetch: characterFetch,
@@ -23,6 +30,7 @@ const savingCharacter = ref(false);
 
 const form = reactive({
   cidade_nome: "",
+  season: "",
   jornal_nome: "",
   jornal_sigla: "",
   cor_primaria: "red" as CorBrand,
@@ -36,11 +44,12 @@ const characterForm = reactive({
 });
 
 onMounted(async () => {
-  await Promise.all([fetchBySlug(slug), characterFetch(slug)]);
+  await Promise.all([fetchBySlug(slug), fetchSeasons(slug), characterFetch(slug)]);
 
   if (config.value) {
     Object.assign(form, {
       cidade_nome: config.value.cidade_nome,
+      season: seasons.value.find((item) => !item.ended_at)?.label ?? "",
       jornal_nome: config.value.jornal_nome,
       jornal_sigla: config.value.jornal_sigla,
       cor_primaria: config.value.cor_primaria as CorBrand,
@@ -77,6 +86,7 @@ async function handleSave() {
       cor_primaria: form.cor_primaria,
       logo_url: form.logo_url || null,
     });
+    await setActiveSeason(slug, form.season);
     toast.add({ title: "Cidade salva", color: "success" });
   } catch {
     toast.add({ title: "Erro ao salvar", color: "error" });
@@ -136,6 +146,15 @@ const tabs = [
                   />
                 </UFormField>
 
+                <UFormField label="Season atual (opcional)">
+                  <UInput
+                    v-model="form.season"
+                    maxlength="50"
+                    placeholder="Ex: Season 1 ou Alpha 2"
+                    class="w-full"
+                  />
+                </UFormField>
+
                 <UFormField label="Slug (URL)">
                   <UInput :model-value="slug" readonly class="w-full" />
                 </UFormField>
@@ -189,6 +208,24 @@ const tabs = [
                   Salvar
                 </UButton>
               </template>
+            </UCard>
+
+            <UCard v-if="seasons.length > 0">
+              <template #header>
+                <span class="font-semibold text-sm text-muted">Histórico de seasons</span>
+              </template>
+              <ul class="divide-y divide-default">
+                <li
+                  v-for="season in seasons"
+                  :key="season.id"
+                  class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+                >
+                  <span class="font-medium">{{ season.label }}</span>
+                  <span class="text-xs text-muted">
+                    {{ season.ended_at ? "Encerrada" : "Atual" }}
+                  </span>
+                </li>
+              </ul>
             </UCard>
 
             <UCard>

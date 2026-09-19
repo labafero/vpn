@@ -7,6 +7,7 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 const { uploadFile, validateFile } = usePostMedia();
+const { getActiveSeason } = useCidadeConfig();
 
 const postFormRef = ref<{ setSubmitting: (v: boolean) => void } | null>(null);
 
@@ -14,7 +15,6 @@ async function handleSubmit(data: {
   title: string;
   body: string;
   cidade: string;
-  season: string;
   coverFile: File | null;
   mediaFile: File | null;
   removeCover: boolean;
@@ -24,6 +24,9 @@ async function handleSubmit(data: {
 }) {
   const userId = user.value?.sub;
   if (!userId) throw new Error("Usuário não autenticado");
+
+  const cidade = normalizarCidadeSlug(data.cidade);
+  const activeSeason = await getActiveSeason(cidade);
 
   let coverUrl = "";
   let mediaUrl: string | null = null;
@@ -51,8 +54,8 @@ async function handleSubmit(data: {
   const { error } = await supabase.from("posts").insert({
     title: data.title,
     body: data.body,
-    cidade: normalizarCidadeSlug(data.cidade),
-    season: data.season || null,
+    cidade,
+    season_id: activeSeason?.id ?? null,
     cover_url: coverUrl,
     media_url: mediaUrl,
     media_type: mediaType,

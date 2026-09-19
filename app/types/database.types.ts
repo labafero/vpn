@@ -145,6 +145,41 @@ export type Database = {
         }
         Relationships: []
       }
+      city_seasons: {
+        Row: {
+          cidade: string
+          created_at: string
+          ended_at: string | null
+          id: number
+          label: string
+          started_at: string
+        }
+        Insert: {
+          cidade: string
+          created_at?: string
+          ended_at?: string | null
+          id?: never
+          label: string
+          started_at?: string
+        }
+        Update: {
+          cidade?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: never
+          label?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "city_seasons_cidade_fkey"
+            columns: ["cidade"]
+            isOneToOne: false
+            referencedRelation: "city_config"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       db_record_notes: {
         Row: {
           body: string
@@ -229,7 +264,7 @@ export type Database = {
           media_type: string | null
           media_url: string | null
           published_at: string
-          season: string | null
+          season_id: number | null
           title: string
           updated_at: string
           user_id: string
@@ -244,7 +279,7 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           published_at: string
-          season?: string | null
+          season_id?: number | null
           title: string
           updated_at?: string
           user_id?: string
@@ -259,12 +294,20 @@ export type Database = {
           media_type?: string | null
           media_url?: string | null
           published_at?: string
-          season?: string | null
+          season_id?: number | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "city_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       server_clock: {
         Row: {

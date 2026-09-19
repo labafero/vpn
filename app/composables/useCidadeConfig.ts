@@ -14,6 +14,7 @@ export function useCidadeConfig() {
 
   const config = ref<Tables<"city_config"> | null>(null);
   const all = ref<Tables<"city_config">[]>([]);
+  const seasons = ref<Tables<"city_seasons">[]>([]);
   const loading = ref(false);
 
   async function fetchBySlug(slug: string) {
@@ -59,6 +60,62 @@ export function useCidadeConfig() {
     return data as Tables<"city_config">;
   }
 
+  async function fetchSeasons(cidade: string) {
+    const { data, error } = await supabase
+      .from("city_seasons")
+      .select("*")
+      .eq("cidade", cidade)
+      .order("started_at", { ascending: false });
+    if (error) throw error;
+    seasons.value = (data ?? []) as Tables<"city_seasons">[];
+    return seasons.value;
+  }
+
+  async function getActiveSeason(cidade: string) {
+    const { data, error } = await supabase
+      .from("city_seasons")
+      .select("*")
+      .eq("cidade", cidade)
+      .is("ended_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return (data ?? null) as Tables<"city_seasons"> | null;
+  }
+
+  async function setActiveSeason(cidade: string, label: string) {
+    const normalizedLabel = label.trim();
+
+    if (normalizedLabel.length > 50) {
+      throw new Error("A season deve ter no máximo 50 caracteres");
+    }
+
+    const current = await getActiveSeason(cidade);
+
+    if (current?.label === normalizedLabel) return current;
+
+    if (current) {
+      const { error } = await supabase
+        .from("city_seasons")
+        .update({ ended_at: new Date().toISOString() })
+        .eq("id", current.id);
+      if (error) throw error;
+    }
+
+    if (!normalizedLabel) {
+      await fetchSeasons(cidade);
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from("city_seasons")
+      .insert({ cidade, label: normalizedLabel })
+      .select()
+      .single();
+    if (error) throw error;
+    await fetchSeasons(cidade);
+    return data as Tables<"city_seasons">;
+  }
+
   async function remove(slug: string) {
     const { error } = await supabase
       .from("city_config")
@@ -68,5 +125,17 @@ export function useCidadeConfig() {
     all.value = all.value.filter((c) => c.slug !== slug);
   }
 
-  return { config, all, loading, fetchBySlug, fetchAll, save, remove };
+  return {
+    config,
+    all,
+    seasons,
+    loading,
+    fetchBySlug,
+    fetchAll,
+    fetchSeasons,
+    getActiveSeason,
+    setActiveSeason,
+    save,
+    remove,
+  };
 }
