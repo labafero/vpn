@@ -13,9 +13,9 @@ SELECT throws_ok('INSERT INTO user_roles VALUES (auth.uid(),''vpn_admin'')','425
 SELECT set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',true);
 SELECT is((SELECT count(*)::integer FROM provider_connections),0,'other member isolated');
 SELECT set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000003',true);
-SELECT is((SELECT count(*)::integer FROM provider_connections),1,'admin reads metadata');
+SELECT is((SELECT count(*)::integer FROM provider_connections WHERE id='10000000-0000-0000-0000-000000000001'),1,'admin reads metadata');
 RESET ROLE;
-DELETE FROM user_roles WHERE role='vpn_admin';
+DELETE FROM user_roles WHERE user_id='00000000-0000-0000-0000-000000000003';
 SET LOCAL ROLE authenticated;
 SELECT is((SELECT count(*)::integer FROM provider_connections),0,'role removal applies without refreshing JWT');
 RESET ROLE;

@@ -83,11 +83,18 @@ export function createTwitchOAuthService(config: TwitchConfig, repository: Found
       })
       return repository.withConnection(user.userId, (value, locked) => finishRevocation(value, locked, time))
     },
-    async validateStoredConnections(time: Date) {
+    async validateStoredConnections(time: Date, options: { maxDurationMs?: number } = {}) {
       validateConfig()
-      const result = { checked: 0, expired: 0, failed: 0 }
-      for (const userId of await repository.listWorkUsers()) {
+      const deadline = Date.now() + (options.maxDurationMs ?? Infinity)
+      const result = { checked: 0, expired: 0, failed: 0, deferred: 0 }
+      const users = await repository.listWorkUsers()
+      for (const [index, userId] of users.entries()) {
+        if (Date.now() >= deadline) {
+          result.deferred = users.length - index
+          break
+        }
         try {
+          await repository.recordWorkAttempt(userId)
           await repository.withConnection(userId, async (value, locked) => {
             if (!value || !value.credential) return
             if (value.connection.status === 'revocation_pending') {

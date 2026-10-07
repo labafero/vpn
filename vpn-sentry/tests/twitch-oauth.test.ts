@@ -51,7 +51,7 @@ beforeEach(() => {
       lock = next.catch(() => {})
       return next
     },
-    listWorkUsers: async () => current ? [owner.userId] : [], cleanAuthorizations: async () => {}
+    listWorkUsers: async () => current ? [owner.userId] : [], recordWorkAttempt: async () => {}, cleanAuthorizations: async () => {}
   }
   service = createTwitchOAuthService(config, repository, {
     exchange: async () => {
@@ -82,6 +82,13 @@ test('valid callback stores encrypted tokens and does not enable monitoring', as
   expect(JSON.stringify(result)).not.toMatch(/private-access|refresh|ciphertext/)
   expect(JSON.stringify(current?.credential)).not.toContain('private-access')
 })
+test('exhausted scheduler budget defers work without changing credentials', async () => {
+  await service.completeTwitchAuthorization(owner, await begin())
+  const credential = structuredClone(current?.credential)
+  expect(await service.validateStoredConnections(clock, { maxDurationMs: 0 })).toEqual({ checked: 0, expired: 0, failed: 0, deferred: 1 })
+  expect(current?.credential).toEqual(credential)
+})
+
 test('explicit consent is required', async () => {
   await expect(service.beginTwitchAuthorization(owner, { consentVersion: 'monitoring-v1', consentAccepted: false }, 'browser-nonce')).rejects.toMatchObject({ statusCode: 400 })
   expect(state).toBeNull()

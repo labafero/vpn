@@ -120,3 +120,15 @@ Lint e typecheck Sentry passaram após a correção.
 - CI da PR do site passou em lint/typecheck/build do site, mas falhou depois no build News por ausência de Supabase para gerar páginas estáticas. Causa confirmada por revisão independente: o workflow não fornecia URL/chave nem fonte city_config.
 - Workflow da fundação inicia Supabase isolado para build e exporta apenas API_URL/ANON_KEY locais, sem credenciais de produção, sem desabilitar o prerender e sem alterar o código News. YAML parseado e leitura pública local de city_config confirmada HTTP 200. O build em CI da combinação das PRs ainda depende da integração da PR do site, que permanece separada para revisão humana.
 - Hosting de Sentry/worker ainda sem destino definido. A política documentada exige omitir queries de callback e credenciais dos logs; não há evidência de produção até verificar esse destino.
+
+## Agendador Vercel Hobby — 7 de outubro de 2026
+
+- Destino escolhido: Vercel Hobby para Sentry/Monitor, Supabase Cron para acionar a validação a cada 30 minutos. Rota interna POST com segredo exclusivo, sem autorização por JWT de usuário.
+- Orçamento de 200 segundos por execução, função Vercel com máximo de 300 segundos e Fluid Compute. Contadores failed/deferred causam HTTP 503; fila ordenada por última tentativa persistida, separada de validated_at. Revisão identificou e corrigiu bloqueio de progresso por falhas repetidas.
+- Nova migration adiciona last_attempt_at apenas a credenciais privadas. Aplicada somente no Supabase local; tipos regenerados pela CLI, sem edição manual.
+- Prova local com extensões reais pg_cron/pg_net/Vault: configuração incompleta rejeitada, agenda idempotente, chamada HTTP ao handler real retornou 200 e zero conexões ativas. Job e segredos temporários removidos. Essa prova não equivale a execução remota agendada.
+- Nove testes pgTAP passaram novamente. O teste de administrador foi limitado à própria fixture, pois o vínculo Twitch real de teste permanece no banco local como revogado; nenhuma conexão real foi apagada para fazer a suíte passar.
+- Build com VERCEL=1 confirmou preset vercel e artefato de função. Não houve deploy remoto.
+- A documentação Vercel informa parâmetros de busca nos logs de runtime. Não há evidência de configuração que omita code/state do callback. Esse gate segue aberto e precisa ser resolvido antes da conclusão em produção; sanitizar logs da aplicação e redirecionar não remove metadados da requisição inicial.
+- Procedimento de ativação e operação: docs/validation/twitch-scheduler.md. Supabase Cron remoto ainda não ativado; requer URL publicada, segredo compartilhado em Vault e ambiente privado do Sentry, e prova real da execução agendada.
+- Verificação final desta adaptação: 60 testes em 10 arquivos passaram; lint e typecheck Sentry passaram; build Vercel passou com maxDuration 300 confirmado no artefato. Dois testes de fila executam migration e SQL reais em PGlite, incluindo falha Twitch e timeout de lock. Nove testes pgTAP passaram no Supabase completo.

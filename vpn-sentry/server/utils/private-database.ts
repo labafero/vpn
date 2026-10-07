@@ -24,6 +24,7 @@ export type FoundationRepository = {
   saveConnection: (userId: string, identity: { userId: string; login: string }, credential: Credential, now: string) => Promise<void>
   withConnection: <T>(userId: string, operation: (value: StoredConnection | null, locked: LockedConnection) => Promise<T>) => Promise<T>
   listWorkUsers: () => Promise<string[]>
+  recordWorkAttempt: (userId: string) => Promise<void>
   cleanAuthorizations: (now: string) => Promise<void>
 }
 export type FoundationTransaction = LockedConnection
@@ -45,7 +46,7 @@ export function getFoundationRepository(): FoundationRepository {
   if (repository) return repository
   const url = process.env.NUXT_PRIVATE_DATABASE_URL
   if (!url) throw new FoundationError(503)
-  database = postgres(url, { max: 5, idle_timeout: 20, connect_timeout: 10, prepare: false, onnotice: () => {} })
+  database = postgres(url, { max: 5, idle_timeout: 20, connect_timeout: 10, prepare: false, connection: { statement_timeout: 10000, lock_timeout: 5000 }, onnotice: () => {} })
   const sql = database
   async function requireDatabaseRole() {
     const rows = await sql<{ role: string }[]>`SELECT current_user AS role`
@@ -114,6 +115,8 @@ export function getFoundationRepository(): FoundationRepository {
     async withConnection<T>(userId: string, operation: (value: StoredConnection | null, locked: LockedConnection) => Promise<T>): Promise<T> {
       await requireDatabaseRole()
       const result = await sql.begin(async tx => {
+        await tx`SET LOCAL lock_timeout = '5s'`
+        await tx`SET LOCAL statement_timeout = '10s'`
         await tx`SELECT pg_advisory_xact_lock(hashtextextended(${userId}, 0))`
         const value = await readConnection(tx, userId, true)
         const id = value?.connection.id
@@ -129,8 +132,12 @@ export function getFoundationRepository(): FoundationRepository {
     },
     async listWorkUsers() {
       await requireDatabaseRole()
-      const rows = await sql<{ user_id: string }[]>`SELECT c.user_id FROM public.provider_connections c JOIN private.provider_credentials k ON k.connection_id=c.id WHERE c.status IN ('connected','expired','revocation_pending')`
+      const rows = await sql<{ user_id: string }[]>`SELECT c.user_id FROM public.provider_connections c JOIN private.provider_credentials k ON k.connection_id=c.id WHERE c.status IN ('connected','revocation_pending') ORDER BY k.last_attempt_at ASC NULLS FIRST, c.user_id ASC`
       return rows.map(row => row.user_id)
+    },
+    async recordWorkAttempt(userId) {
+      await requireDatabaseRole()
+      await sql`UPDATE private.provider_credentials k SET last_attempt_at=now() FROM public.provider_connections c WHERE k.connection_id=c.id AND c.user_id=${userId}`
     },
     async cleanAuthorizations(now) { await requireDatabaseRole(); await sql`DELETE FROM private.oauth_transactions WHERE expires_at < ${now}::timestamptz - interval '24 hours'` }
   }

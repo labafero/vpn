@@ -51,13 +51,13 @@ export type Database = {
                   ]
                 },"provider_credentials": {
                   Row: {
-                    "ciphertext": string,"connection_id": string,"expires_at": string,"iv": string,"key_version": string,"retry_until": string | null,"tag": string,"validated_at": string
+                    "ciphertext": string,"connection_id": string,"expires_at": string,"iv": string,"key_version": string,"last_attempt_at": string | null,"retry_until": string | null,"tag": string,"validated_at": string
                   }
                   Insert: {
-                    "ciphertext": string,"connection_id": string,"expires_at": string,"iv": string,"key_version": string,"retry_until"?: string | null,"tag": string,"validated_at": string
+                    "ciphertext": string,"connection_id": string,"expires_at": string,"iv": string,"key_version": string,"last_attempt_at"?: string | null,"retry_until"?: string | null,"tag": string,"validated_at": string
                   }
                   Update: {
-                    "ciphertext"?: string,"connection_id"?: string,"expires_at"?: string,"iv"?: string,"key_version"?: string,"retry_until"?: string | null,"tag"?: string,"validated_at"?: string
+                    "ciphertext"?: string,"connection_id"?: string,"expires_at"?: string,"iv"?: string,"key_version"?: string,"last_attempt_at"?: string | null,"retry_until"?: string | null,"tag"?: string,"validated_at"?: string
                   }
                   Relationships: [
 
