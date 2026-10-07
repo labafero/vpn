@@ -154,9 +154,11 @@ export function createTwitchGateway(config: TwitchConfig, fetcher = fetch): Twit
       const response = await request('validate', { headers: { Authorization: `OAuth ${accessToken}` } })
       if (response.status === 401) return null
       if (!response.ok) throw new FoundationError(503)
-      const value = await response.json() as { client_id: string; user_id: string; login: string; scopes: string[]; expires_in: number }
-      if (!value.client_id || !value.user_id || !value.login || !Array.isArray(value.scopes) || !Number.isFinite(value.expires_in) || value.expires_in < 0) throw new FoundationError(503)
-      return { clientId: value.client_id, userId: value.user_id, login: value.login, scopes: value.scopes, expiresIn: value.expires_in }
+      const value = await response.json() as { client_id: string; user_id: string; login: string; scopes: string[] | null; expires_in: number }
+      // Twitch represents no granted scopes as null in real validate responses.
+      const scopes = value.scopes === null ? [] : value.scopes
+      if (!value.client_id || !value.user_id || !value.login || !Array.isArray(scopes) || !Number.isFinite(value.expires_in) || value.expires_in < 0) throw new FoundationError(503)
+      return { clientId: value.client_id, userId: value.user_id, login: value.login, scopes, expiresIn: value.expires_in }
     },
     async revoke(accessToken) {
       const response = await request('revoke', { method: 'POST', body: new URLSearchParams({ client_id: config.clientId, token: accessToken }) })

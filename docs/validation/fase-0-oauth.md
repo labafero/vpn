@@ -96,3 +96,10 @@ Atualizar este registro com comandos/exit codes e prova real antes de marcar Fas
 - A prova Twitch real permanece pendente: aplicação ainda não registrada pelo usuário. Requer Client ID/Secret privados, callback cadastrado e consentimento da conta de teste. Logs de hosting e edição editorial autenticada permanecem sem prova.
 
 Os resultados históricos acima documentam a primeira execução; esta atualização substitui especificamente as pendências de Supabase completo, sessão real e geração dos tipos. Ainda não declara a Fase 0 concluída.`pnpm --filter @vpn/news typecheck`, Monitor e Sentry: exit 0 com os tipos novos. `pnpm contracts:check`: exit 0. Os 43 testes passaram novamente em 10,55s após encerrar o Supabase local; uma execução anterior sob carga concorrente atingiu o timeout de 5s de um subprocesso de contrato, sem alteração dos testes ou timeouts. A geração normaliza apenas whitespace final; não houve edição manual do schema gerado.
+
+### Correção observada no OAuth real
+
+A tentativa real chegou a token HTTP 200 e validate HTTP 200, mas o gateway rejeitou scopes sem array. A resposta real de autorização sem permissões usa scopes:null. O gateway agora normaliza exclusivamente null para [], preservando rejeição de campo ausente, string, número ou objeto e mantendo a rejeição de permissões não vazias pelo serviço. O teste de regressão falhou antes da correção e passou depois. Logs temporários de diagnóstico removidos; não incluíam tokens ou query strings. Credenciais da aplicação confirmadas por HTTP 200; token temporário de diagnóstico revogado com HTTP 200. Escrita restrita no banco verificada em transação com rollback.
+
+49 testes passaram em oito arquivos com `vitest run --maxWorkers=1`. A execução concorrente atingiu o timeout de cinco segundos de um subprocesso OpenAPI sob carga; não houve alteração de timeout nem dos checks. A conexão real completa permanece pendente de uma nova autorização humana, pois o estado anterior foi consumido.
+Lint e typecheck Sentry passaram após a correção.
