@@ -5,6 +5,9 @@ import { FoundationError } from './api-error'
 
 export type Credential = EncryptedTokens & { expiresAt: string; validatedAt: string; retryUntil: string | null }
 export type StoredConnection = { connection: TwitchConnection; credential: Credential | null }
+export function canAuthorizeConnection(value: StoredConnection | null): boolean {
+  return !value || value.connection.status === 'revoked' || (value.connection.status === 'revocation_pending' && !value.credential)
+}
 export type AuthorizationTransaction = { stateHash: string; userId: string; nonceHash: string; consentVersion: 'monitoring-v1'; expiresAt: string }
 export type LockedConnection = {
   setStatus: (status: TwitchConnection['status'], revokedAt: string | null) => Promise<void>
@@ -31,7 +34,7 @@ type Row = {
 }
 function mapRow(row: Row): StoredConnection {
   return {
-    connection: { id: row.id, provider: 'twitch', providerUserId: row.provider_user_id, login: row.login, status: row.status, monitoringEnabled: false, consentVersion: 'monitoring-v1', consentedAt: row.consented_at.toISOString(), connectedAt: row.connected_at.toISOString(), revokedAt: row.revoked_at?.toISOString() ?? null },
+    connection: { id: row.id, provider: 'twitch', providerUserId: row.provider_user_id, login: row.login, status: row.status, monitoringEnabled: false, canReconnect: row.status === 'revoked' || (row.status === 'revocation_pending' && !row.ciphertext), consentVersion: 'monitoring-v1', consentedAt: row.consented_at.toISOString(), connectedAt: row.connected_at.toISOString(), revokedAt: row.revoked_at?.toISOString() ?? null },
     credential: row.ciphertext ? { ciphertext: row.ciphertext, iv: row.iv, tag: row.tag, keyVersion: row.key_version, expiresAt: row.expires_at.toISOString(), validatedAt: row.validated_at.toISOString(), retryUntil: row.retry_until?.toISOString() ?? null } : null
   }
 }
@@ -92,7 +95,7 @@ export function getFoundationRepository(): FoundationRepository {
           // Serializes first connections too, where there is no row to lock yet.
           await tx`SELECT pg_advisory_xact_lock(hashtextextended(${userId}, 0))`
           const current = await readConnection(tx, userId, true)
-          if (current && current.connection.status !== 'revoked') throw new FoundationError(409)
+          if (!canAuthorizeConnection(current)) throw new FoundationError(409)
           const rows = await tx<{ id: string }[]>`
             INSERT INTO public.provider_connections(user_id,provider_user_id,login,consent_version,consented_at,connected_at)
             VALUES (${userId},${identity.userId},${identity.login},'monitoring-v1',${now},${now})

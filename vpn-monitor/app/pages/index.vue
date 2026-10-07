@@ -1,3 +1,7 @@
+<script setup lang="ts">
+definePageMeta({ colorMode: 'dark' })
+</script>
+
 <template>
   <main class="min-h-screen bg-neutral-950 px-6 py-16 text-white">
     <div class="mx-auto max-w-3xl space-y-4">

@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import type { Me } from '@vpn/contracts'
 import { FoundationError } from './api-error'
 import { decryptTokens, encryptTokens, type Tokens } from './token-crypto'
-import { getFoundationRepository, type FoundationRepository, type Credential, type StoredConnection, type LockedConnection } from './private-database'
+import { canAuthorizeConnection, getFoundationRepository, type FoundationRepository, type Credential, type StoredConnection, type LockedConnection } from './private-database'
 
 export type TwitchConfig = { clientId: string; clientSecret: string; redirectUri: string; monitorOrigin: string; encryptionKey: string; keyVersion: string }
 export type TwitchIdentity = { clientId: string; userId: string; login: string; scopes: string[]; expiresIn: number }
@@ -46,7 +46,7 @@ export function createTwitchOAuthService(config: TwitchConfig, repository: Found
       validateConfig()
       if (consent.consentVersion !== 'monitoring-v1' || consent.consentAccepted !== true || !browserNonce) throw new FoundationError(400)
       const current = await repository.getConnection(user.userId)
-      if (current && current.connection.status !== 'revoked') throw new FoundationError(409)
+      if (!canAuthorizeConnection(current)) throw new FoundationError(409)
       const state = randomBytes(32).toString('base64url')
       await repository.createAuthorization({ stateHash: hash(state), userId: user.userId, nonceHash: hash(browserNonce), consentVersion: 'monitoring-v1', expiresAt: new Date(now().getTime() + 600000).toISOString() })
       const url = new URL('https://id.twitch.tv/oauth2/authorize')
@@ -69,7 +69,8 @@ export function createTwitchOAuthService(config: TwitchConfig, repository: Found
       }
     },
     async getTwitchConnection(user: Me) {
-      return (await repository.getConnection(user.userId))?.connection ?? null
+      const value = await repository.getConnection(user.userId)
+      return value ? { ...value.connection, canReconnect: canAuthorizeConnection(value) } : null
     },
     async disconnectTwitch(user: Me) {
       validateConfig()
@@ -105,7 +106,6 @@ export function createTwitchOAuthService(config: TwitchConfig, repository: Found
               } catch (error) {
                 if (!(error instanceof FoundationError) || error.statusCode !== 401) throw error
                 await locked.setStatus('expired', null)
-                await locked.deleteCredential()
                 await locked.audit('authorization_expired')
                 result.expired++
                 return

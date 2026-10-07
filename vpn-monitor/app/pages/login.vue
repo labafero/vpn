@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import * as v from 'valibot'
 
+definePageMeta({ colorMode: 'dark' })
+
 const schema = v.object({
   email: v.pipe(v.string(), v.email('Informe um e-mail válido.')),
   password: v.pipe(v.string(), v.minLength(1, 'Informe sua senha.'))

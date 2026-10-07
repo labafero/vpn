@@ -142,6 +142,8 @@ export interface components {
             status: "connected" | "expired" | "revocation_pending" | "revoked";
             /** @constant */
             monitoringEnabled: false;
+            /** @description Permite nova autorização com consentimento explícito, sem confirmar revogação remota anterior. */
+            canReconnect: boolean;
             /** @constant */
             consentVersion: "monitoring-v1";
             /** Format: date-time */

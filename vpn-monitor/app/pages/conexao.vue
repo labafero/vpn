@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TwitchConnection } from '@vpn/contracts'
 
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: 'auth', colorMode: 'dark' })
 const connection = ref<TwitchConnection | null>(null)
 const consent = ref(false)
 const loading = ref(true)
@@ -55,7 +55,7 @@ onMounted(refresh)
             <p v-if="connection.status === 'revocation_pending'" class="text-muted">O uso local está bloqueado. A VPN tentará revogar na Twitch por até 24 horas. Você também pode remover a integração nas configurações da Twitch.</p>
           </div>
           <p v-else class="mb-4 text-muted">Nenhum canal vinculado.</p>
-          <template v-if="!connection || connection.status === 'revoked'">
+          <template v-if="!connection || connection.canReconnect">
             <UCheckbox v-model="consent" label="Autorizo vincular meu canal Twitch à VPN." description="O administrador VPN pode acessar os metadados da conexão. Posso retirar esta autorização ao desconectar. Nenhum monitoramento é ativado nesta fase." />
             <UButton class="mt-6" :disabled="!consent || !!message" :loading="busy" @click="connect">Conectar Twitch</UButton>
           </template>

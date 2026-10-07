@@ -61,6 +61,8 @@ Tokens são trocados, validados e cifrados somente no Sentry. Worker valida no i
 
 Desconexão bloqueia uso local imediatamente. Sucesso de revogação remove credenciais; indisponibilidade gera `revocation_pending`, retentativas limitadas a 24 horas e registro operacional sanitizado. Ao terminar o prazo, apagar credenciais, registrar falha remota e orientar o dono a remover a integração no painel Twitch. Não declarar revogação remota confirmada nesse caso.
 
+Após o prazo de revogação, `canReconnect=true` permite nova autorização com consentimento explícito. O estado anterior permanece pendente até que um novo vínculo seja concluído; o registro de falha remota é preservado. Uma autorização expirada mantém os tokens cifrados apenas para desconexão/revogação explícita; nunca para monitoramento. Isso permite ao dono desconectar e reconectar sem um bloqueio permanente.
+
 ## Retenção e exclusão
 
 | Categoria | Prazo | Executor |

@@ -28,7 +28,7 @@ beforeEach(() => {
   const repository: FoundationRepository = {
     sessionActive: async () => true,
     getRole: async () => 'member', getConnection: async () => current,
-    createAuthorization: async value => { state = value },
+    createAuthorization: async value => { state = value; consumed = false },
     consumeAuthorization: async (hash, nonce, userId, now) => {
       if (consumed || !state || state.stateHash !== hash || state.nonceHash !== nonce || state.userId !== userId || state.expiresAt <= now) return false
       consumed = true; return true
@@ -36,7 +36,7 @@ beforeEach(() => {
     saveConnection: async (userId, identity, credential, now) => {
       if (usedIdentity) throw new FoundationError(409)
       if (failSave) throw new FoundationError(503)
-      current = { connection: { id: userId, provider: 'twitch', providerUserId: identity.userId, login: identity.login, status: 'connected', monitoringEnabled: false, consentVersion: 'monitoring-v1', consentedAt: now, connectedAt: now, revokedAt: null }, credential }
+      current = { connection: { id: userId, provider: 'twitch', providerUserId: identity.userId, login: identity.login, status: 'connected', monitoringEnabled: false, canReconnect: false, consentVersion: 'monitoring-v1', consentedAt: now, connectedAt: now, revokedAt: null }, credential }
     },
     async withConnection(userId, operation) {
       const next = lock.then(async () => {
@@ -149,12 +149,33 @@ test('concurrent workers refresh expiring token only once', async () => {
   expect(refreshed).toBe(1)
   expect(new Date(current!.credential!.expiresAt).getTime()).toBeGreaterThan(clock.getTime())
 })
-test('invalid refresh expires and removes credentials', async () => {
+test('invalid refresh expires and retains encrypted access token for explicit revocation', async () => {
   await service.completeTwitchAuthorization(owner, await begin()); invalidRefresh = true
   clock = new Date(clock.getTime() + 3600000)
   await service.validateStoredConnections(clock)
-  expect(current?.credential).toBeNull()
+  expect(current?.credential).not.toBeNull()
   expect(current?.connection.status).toBe('expired')
+})
+test('invalid refresh allows explicit disconnect and new authorization', async () => {
+  await service.completeTwitchAuthorization(owner, await begin()); invalidRefresh = true
+  clock = new Date(clock.getTime() + 3600000)
+  await service.validateStoredConnections(clock)
+  expect(await service.disconnectTwitch(owner)).toBe('revoked')
+  expect(await service.disconnectTwitch(owner)).toBe('revoked')
+  invalidRefresh = false
+  await service.completeTwitchAuthorization(owner, await begin())
+  expect((await service.getTwitchConnection(owner))?.status).toBe('connected')
+})
+test('revocation deadline allows fresh consent without claiming remote revocation', async () => {
+  await service.completeTwitchAuthorization(owner, await begin()); unavailable = true
+  await service.disconnectTwitch(owner)
+  clock = new Date(clock.getTime() + 86400001)
+  await service.validateStoredConnections(clock)
+  expect((await service.getTwitchConnection(owner))?.status).toBe('revocation_pending')
+  expect((await service.getTwitchConnection(owner))?.canReconnect).toBe(true)
+  unavailable = false
+  await service.completeTwitchAuthorization(owner, await begin())
+  expect((await service.getTwitchConnection(owner))?.status).toBe('connected')
 })
 test('validation outage after refresh preserves rotated credential and counts failure', async () => {
   await service.completeTwitchAuthorization(owner, await begin()); failValidate = true

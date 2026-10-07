@@ -307,6 +307,7 @@ components:
         - login
         - status
         - monitoringEnabled
+        - canReconnect
         - consentVersion
         - consentedAt
         - connectedAt
@@ -332,6 +333,9 @@ components:
         monitoringEnabled:
           type: boolean
           const: false
+        canReconnect:
+          type: boolean
+          description: Permite nova autorização com consentimento explícito, sem confirmar revogação remota anterior.
         consentVersion:
           type: string
           const: monitoring-v1
