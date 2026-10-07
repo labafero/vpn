@@ -97,4 +97,12 @@ CREATE POLICY sentry_connections ON public.provider_connections TO vpn_sentry US
 CREATE POLICY sentry_channels ON public.channels TO vpn_sentry USING (true) WITH CHECK (true);
 GRANT SELECT, INSERT, UPDATE, DELETE ON private.provider_credentials, private.oauth_transactions TO vpn_sentry;
 GRANT SELECT, INSERT ON private.foundation_audit TO vpn_sentry;
+-- Backend-only lookup for immediate sign-out/session revocation. Browser callers
+-- receive no privileges on auth.sessions or this function.
+CREATE FUNCTION private.vpn_session_active(owner_id uuid, session_id uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
+  SELECT EXISTS (SELECT 1 FROM auth.sessions s WHERE s.id = session_id AND s.user_id = owner_id AND (s.not_after IS NULL OR s.not_after > now()));
+$$;
+REVOKE ALL ON FUNCTION private.vpn_session_active(uuid, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION private.vpn_session_active(uuid, uuid) TO vpn_sentry;
 -- No LOGIN/password, role membership or role assignment endpoint is provisioned here.
