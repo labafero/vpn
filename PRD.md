@@ -290,4 +290,3 @@ contratos compartilhados.
 ## Fundação detalhada
 
 Decisões de acesso, consentimento e retenção: [fundação](docs/architecture/foundation.md). Twitch vincula um canal à conta VPN, mantendo monitoramento desabilitado na Fase 0.
-

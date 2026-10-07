@@ -33,5 +33,32 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: API contracts
+        run: pnpm contracts:check
+
+      - name: Foundation tests
+        run: pnpm test:foundation
+
       - name: Build
         run: pnpm build
+
+  foundation-db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+      - name: Start isolated Supabase
+        run: supabase start
+      - name: Database policies
+        run: supabase test db
+      - name: Generate schema types for review
+        run: supabase gen types typescript --local --schema public,private > foundation-database.types.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: foundation-database-types
+          path: foundation-database.types.ts
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup

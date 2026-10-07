@@ -36,7 +36,7 @@ Duas superfícies distintas:
 - `/redacao/cidades` — CRUD de configuração de cidades
 
 **Overlays** (browser sources do OBS, layout `overlay` — manter simples e autocontidos):
-- `/overlay/index`, `/overlay/idle`
+- `/overlay` (página `overlay/index.vue`, exige `?broadcaster=<uuid>`), `/overlay/idle`
 
 ### Layouts
 
@@ -87,4 +87,3 @@ Duas superfícies distintas:
 ## Fundação privada
 
 Consultar docs/architecture/foundation.md para papéis, consentimento e retenção. Tipos API são gerados de packages/contracts/openapi.yaml. Credenciais Twitch ficam no schema privado. Nunca promover usuários por user_metadata.
-
