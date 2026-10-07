@@ -20,5 +20,3 @@ O worker contínuo `pnpm --filter @vpn/sentry workers:twitch` permanece disponí
 O código sanitiza suas respostas e logs, mas a documentação da Vercel informa que os logs de runtime incluem parâmetros de busca. O callback Twitch recebe `code` e `state` pela URL; o redirecionamento posterior não elimina o registro da requisição inicial. Não está comprovada a ausência desses parâmetros nos logs da hospedagem. A exigência de não registrar o código OAuth precisa ser resolvida e verificada antes de fechar esse gate da Fase 0. Não registrar access token, refresh token nem o segredo do cron em ferramentas de diagnóstico.
 
 Referências: [Supabase Cron e Vault](https://supabase.com/docs/guides/functions/schedule-functions), [duração Vercel](https://vercel.com/docs/functions/configuring-functions/duration), [logs Vercel](https://vercel.com/docs/logs/runtime).
-
-
