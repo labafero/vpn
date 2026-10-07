@@ -17,7 +17,7 @@ Pipeline de CI: `lint → typecheck → build`. Nenhum teste está configurado.
 
 ## Arquitetura
 
-**Monorepo pnpm** com três projetos Nuxt 4 e pacotes compartilhados. `vpn-news` usa a convenção de diretório `app/`; backend e Auth são Supabase. UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
+**Monorepo pnpm** com quatro projetos Nuxt 4 (incluindo o site institucional vpn-site) e pacotes compartilhados. `vpn-news` usa a convenção de diretório `app/`; backend e Auth são Supabase. UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
 
 ### Rotas
 
@@ -83,3 +83,8 @@ Duas superfícies distintas:
 ## Forma de trabalho
 
 - **Não sugerir atalhos ou workarounds** quando o problema real ainda não foi resolvido. Diagnosticar a causa raiz e resolver corretamente.
+
+## Fundação privada
+
+Consultar docs/architecture/foundation.md para papéis, consentimento e retenção. Tipos API são gerados de packages/contracts/openapi.yaml. Credenciais Twitch ficam no schema privado. Nunca promover usuários por user_metadata.
+
