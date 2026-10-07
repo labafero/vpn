@@ -4,6 +4,7 @@
       <p class="text-sm uppercase tracking-[0.3em] text-primary">VPN Monitor</p>
       <h1 class="text-4xl font-semibold">Portal operacional</h1>
       <p class="text-neutral-300">Sessões, convites e alertas serão administrados aqui.</p>
+      <UButton to="/conexao">Gerenciar conexão Twitch</UButton>
     </div>
   </main>
 </template>

@@ -56,47 +56,366 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Post'
-  /me: {"get":{"security":[{"bearerAuth":[]}],"operationId":"getMe","responses":{"200":{"description":"Solicitação concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Me"}}}},"401":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"503":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}}
-  /provider-connections/twitch/authorize: {"post":{"security":[{"bearerAuth":[]}],"operationId":"authorizeTwitch","parameters":[{"name":"X-OAuth-Nonce","in":"header","required":true,"schema":{"type":"string"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","additionalProperties":false,"required":["consentVersion","consentAccepted"],"properties":{"consentVersion":{"type":"string","const":"monitoring-v1"},"consentAccepted":{"type":"boolean","const":true}}}}}},"responses":{"200":{"description":"Solicitação concluída","content":{"application/json":{"schema":{"type":"object","required":["authorizationUrl"],"properties":{"authorizationUrl":{"type":"string","format":"uri"}}}}}},"400":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"503":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}}
-  /provider-connections/twitch/callback: {"get":{"security":[{"bearerAuth":[]}],"operationId":"completeTwitchAuthorization","parameters":[{"name":"X-OAuth-Nonce","in":"header","required":true,"schema":{"type":"string"}},{"name":"code","in":"query","required":false,"schema":{"type":"string"}},{"name":"state","in":"query","required":true,"schema":{"type":"string"}},{"name":"error","in":"query","required":false,"schema":{"type":"string"}}],"responses":{"303":{"description":"Retorno fixo ao Monitor","headers":{"Location":{"schema":{"type":"string","format":"uri"}}}},"400":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"503":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}}
-  /provider-connections/twitch: {"get":{"security":[{"bearerAuth":[]}],"operationId":"getTwitchConnection","responses":{"200":{"description":"Solicitação concluída","content":{"application/json":{"schema":{"anyOf":[{"$ref":"#/components/schemas/TwitchConnection"},{"type":"null"}]}}}},"401":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"503":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}},"delete":{"security":[{"bearerAuth":[]}],"operationId":"disconnectTwitch","responses":{"202":{"description":"Solicitação concluída","content":{"application/json":{"schema":{"type":"object","required":["status"],"properties":{"status":{"type":"string","const":"revocation_pending"}}}}}},"204":{"description":"Desconectado"},"401":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"503":{"description":"Solicitação não concluída","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}}
+  /me:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: getMe
+      responses:
+        '200':
+          description: Solicitação concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /provider-connections/twitch/authorize:
+    post:
+      security:
+        - bearerAuth: []
+      operationId: authorizeTwitch
+      parameters:
+        - name: X-OAuth-Nonce
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - consentVersion
+                - consentAccepted
+              properties:
+                consentVersion:
+                  type: string
+                  const: monitoring-v1
+                consentAccepted:
+                  type: boolean
+                  const: true
+      responses:
+        '200':
+          description: Solicitação concluída
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - authorizationUrl
+                properties:
+                  authorizationUrl:
+                    type: string
+                    format: uri
+        '400':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /provider-connections/twitch/callback:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: completeTwitchAuthorization
+      parameters:
+        - name: X-OAuth-Nonce
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '303':
+          description: Retorno fixo ao Monitor
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        '400':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /provider-connections/twitch:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: getTwitchConnection
+      responses:
+        '200':
+          description: Solicitação concluída
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/TwitchConnection'
+                  - type: 'null'
+        '401':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    delete:
+      security:
+        - bearerAuth: []
+      operationId: disconnectTwitch
+      responses:
+        '202':
+          description: Solicitação concluída
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    const: revocation_pending
+        '204':
+          description: Desconectado
+        '401':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '503':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 components:
   securitySchemes:
-    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
-    ApiError: {"type":"object","additionalProperties":false,"required":["code","message","requestId"],"properties":{"code":{"type":"string"},"message":{"type":"string"},"requestId":{"type":"string","format":"uuid"}}}
-    Me: {"type":"object","additionalProperties":false,"required":["userId","role"],"properties":{"userId":{"type":"string","format":"uuid"},"role":{"type":"string","enum":["member","vpn_admin"]}}}
-    TwitchConnection: {"type":"object","additionalProperties":false,"required":["id","provider","providerUserId","login","status","monitoringEnabled","consentVersion","consentedAt","connectedAt","revokedAt"],"properties":{"id":{"type":"string","format":"uuid"},"provider":{"type":"string","const":"twitch"},"providerUserId":{"type":"string"},"login":{"type":"string"},"status":{"type":"string","enum":["connected","expired","revocation_pending","revoked"]},"monitoringEnabled":{"type":"boolean","const":false},"consentVersion":{"type":"string","const":"monitoring-v1"},"consentedAt":{"type":"string","format":"date-time"},"connectedAt":{"type":"string","format":"date-time"},"revokedAt":{"type":["string","null"],"format":"date-time"}}}
+    ApiError:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - requestId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        requestId:
+          type: string
+          format: uuid
+    Me:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - role
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum:
+            - member
+            - vpn_admin
+    TwitchConnection:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - provider
+        - providerUserId
+        - login
+        - status
+        - monitoringEnabled
+        - consentVersion
+        - consentedAt
+        - connectedAt
+        - revokedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+          const: twitch
+        providerUserId:
+          type: string
+        login:
+          type: string
+        status:
+          type: string
+          enum:
+            - connected
+            - expired
+            - revocation_pending
+            - revoked
+        monitoringEnabled:
+          type: boolean
+          const: false
+        consentVersion:
+          type: string
+          const: monitoring-v1
+        consentedAt:
+          type: string
+          format: date-time
+        connectedAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
     HealthResponse:
       type: object
-      required: [status, service]
+      required:
+        - status
+        - service
       properties:
         status:
           type: string
-          enum: [ok]
+          enum:
+            - ok
         service:
           type: string
           example: vpn-sentry
     CityConfig:
       type: object
-      required: [slug, cidade_nome, jornal_nome, jornal_sigla, cor_primaria, logo_url]
+      required:
+        - slug
+        - cidade_nome
+        - jornal_nome
+        - jornal_sigla
+        - cor_primaria
+        - logo_url
       properties:
-        slug: { type: string }
-        cidade_nome: { type: string }
-        jornal_nome: { type: string }
-        jornal_sigla: { type: string }
-        cor_primaria: { type: string }
-        logo_url: { type: [string, "null"] }
+        slug:
+          type: string
+        cidade_nome:
+          type: string
+        jornal_nome:
+          type: string
+        jornal_sigla:
+          type: string
+        cor_primaria:
+          type: string
+        logo_url:
+          type:
+            - string
+            - 'null'
     Post:
       type: object
-      required: [id, title, body, cidade, cover_url, media_url, media_type, destaque, published_at]
+      required:
+        - id
+        - title
+        - body
+        - cidade
+        - cover_url
+        - media_url
+        - media_type
+        - destaque
+        - published_at
       properties:
-        id: { type: integer }
-        title: { type: string }
-        body: { type: string }
-        cidade: { type: string }
-        cover_url: { type: string }
-        media_url: { type: [string, "null"] }
-        media_type: { type: [string, "null"] }
-        destaque: { type: boolean }
-        published_at: { type: string, format: date-time }
+        id:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        cidade:
+          type: string
+        cover_url:
+          type: string
+        media_url:
+          type:
+            - string
+            - 'null'
+        media_type:
+          type:
+            - string
+            - 'null'
+        destaque:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time

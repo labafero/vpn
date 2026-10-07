@@ -36,10 +36,12 @@ export function requireVpnUser(event: H3Event): Promise<Me> {
     key: process.env.NUXT_PUBLIC_SUPABASE_KEY || ''
   }, fetch, id => getFoundationRepository().getRole(id), async (userId, authorization) => {
     // Decode only after the Auth server has verified the token and its owner.
+    let sessionId: string
     try {
       const payload = JSON.parse(Buffer.from(authorization.slice(7).split('.')[1] || '', 'base64url').toString('utf8')) as { session_id?: string }
       if (!payload.session_id || !/^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(payload.session_id)) return false
-      return getFoundationRepository().sessionActive(userId, payload.session_id)
+      sessionId = payload.session_id
     } catch { return false }
+    return getFoundationRepository().sessionActive(userId, sessionId)
   })
 }
