@@ -54,7 +54,7 @@ jobs:
       - name: Database policies
         run: supabase test db
       - name: Generate schema types for review
-        run: supabase gen types typescript --local --schema public,private > foundation-database.types.ts
+        run: supabase gen types typescript --local --schema public,private,graphql_public > foundation-database.types.ts
       - uses: actions/upload-artifact@v4
         with:
           name: foundation-database-types

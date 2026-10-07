@@ -18,12 +18,12 @@ Subir Monitor com `pnpm --filter @vpn/monitor dev --port 3001` e Sentry com `pnp
 | --- | --- | --- |
 | Referências/schema OpenAPI e divergência de tipos | Fixtures inválidas rejeitadas; tipos gerados da fonte | Validado por testes |
 | Isolamento RLS dono/membro/admin/anon | Migration executada em Postgres PGlite, sem simular policies | Validado nesse ambiente |
-| RLS sobre instalação Supabase completa | `supabase test db` não conectou em 127.0.0.1:54322 | Pendente; job de CI preparado |
-| Identidade, papel atual e sessão revogada | Testes de validação e lookup de sessão | Validado por testes; sessão real pendente |
+| RLS sobre instalação Supabase completa | Migrations aplicadas e 9 testes pgTAP passaram localmente e na CI | Validado |
+| Identidade, papel atual e sessão revogada | Signup/Auth real local e handler Sentry com papel atual e logout | Validado com Supabase real |
 | Callback OAuth e credenciais cifradas | Consentimento, replay, concorrência, falhas, cifra e revogação cobertos | Validado por testes com provedor simulado |
 | Proxy HTTP privado | H3 real com auth/provedor simulados; CSRF, cookies, destino e erros | Validado por testes |
 | Conta Twitch real conectada/revogada | Nenhuma credencial Twitch de teste fornecida no worktree | Pendente |
-| Tipos do banco após migration | Arquivo gerado existente preservado; CI exporta novo artefato | Regeneração/revisão pendentes |
+| Tipos do banco após migration | CLI 2.119.0 gerou public, private e graphql_public a partir do banco local | Gerados automaticamente; verificação de compatibilidade abaixo |
 | Lint/typecheck/build globais | Registrar os resultados finais abaixo | Sem presumir sucesso |
 
 ### Resultado final local
@@ -83,3 +83,16 @@ Se Twitch emitir token e a persistência falhar, o callback tenta revogá-lo ant
 ## Fechamento
 
 Atualizar este registro com comandos/exit codes e prova real antes de marcar Fase 0 concluída. Nenhuma migration foi aplicada a ambiente remoto; nenhuma publicação foi feita.
+
+## Atualização de integração — 7 de outubro de 2026
+
+- Docker Desktop disponível e ativo. CLI Supabase 2.119.0 executada via `pnpm dlx`; pgTAP incluído no banco, sem instalação separada.
+- `supabase start`: instalação local completa iniciada, com todas as migrations aplicadas. O projeto remoto não foi alterado.
+- `supabase test db`: PASS, nove testes. A CI da PR #4 também passou no job foundation-db: https://github.com/labafero/vpn/actions/runs/37559249167/job/112592541780.
+- `supabase gen types typescript --local --schema public,private,graphql_public`: arquivo de tipos do banco regenerado automaticamente. graphql_public preservado também no comando da CI.
+- Prova HTTP com Auth real: signup local, identidade validada pelo handler Sentry, member → vpn_admin → member com o mesmo JWT, logout global e resposta 401 imediata. Usou conexão Postgres restrita vpn_sentry; conta temporária excluída e role devolvida a NOLOGIN/PASSWORD NULL no finally.
+- `supabase db advisors --local --type security --level warn --fail-on error`: exit 0, nenhum ERROR. Três WARN preexistentes: search_path de public.set_updated_at e policies INSERT/UPDATE de public.city_seasons para authenticated. Não pertencem ao modelo privado desta migration e não foram alteradas nesta verificação.
+- Problemas preexistentes do vpn-site seguem em branch/PR independente para não ampliar o escopo da PR #4.
+- A prova Twitch real permanece pendente: aplicação ainda não registrada pelo usuário. Requer Client ID/Secret privados, callback cadastrado e consentimento da conta de teste. Logs de hosting e edição editorial autenticada permanecem sem prova.
+
+Os resultados históricos acima documentam a primeira execução; esta atualização substitui especificamente as pendências de Supabase completo, sessão real e geração dos tipos. Ainda não declara a Fase 0 concluída.`pnpm --filter @vpn/news typecheck`, Monitor e Sentry: exit 0 com os tipos novos. `pnpm contracts:check`: exit 0. Os 43 testes passaram novamente em 10,55s após encerrar o Supabase local; uma execução anterior sob carga concorrente atingiu o timeout de 5s de um subprocesso de contrato, sem alteração dos testes ou timeouts. A geração normaliza apenas whitespace final; não houve edição manual do schema gerado.
