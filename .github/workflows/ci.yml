@@ -39,8 +39,25 @@ jobs:
       - name: Foundation tests
         run: pnpm test:foundation
 
+      - name: Install Supabase CLI for build
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+
+      - name: Start isolated Supabase for build
+        id: build-supabase
+        run: supabase start
+
+      - name: Configure local public API for prerender
+        run: |
+          supabase status -o json | jq -r '"NUXT_PUBLIC_SUPABASE_URL=\(.API_URL)\nNUXT_PUBLIC_SUPABASE_KEY=\(.ANON_KEY)"' >> "$GITHUB_ENV"
+
       - name: Build
         run: pnpm build
+
+      - name: Stop build database
+        if: always() && steps.build-supabase.outcome == 'success'
+        run: supabase stop --no-backup
 
   foundation-db:
     runs-on: ubuntu-latest

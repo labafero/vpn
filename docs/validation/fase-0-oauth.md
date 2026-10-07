@@ -22,7 +22,7 @@ Subir Monitor com `pnpm --filter @vpn/monitor dev --port 3001` e Sentry com `pnp
 | Identidade, papel atual e sessão revogada | Signup/Auth real local e handler Sentry com papel atual e logout | Validado com Supabase real |
 | Callback OAuth e credenciais cifradas | Consentimento, replay, concorrência, falhas, cifra e revogação cobertos | Validado por testes com provedor simulado |
 | Proxy HTTP privado | H3 real com auth/provedor simulados; CSRF, cookies, destino e erros | Validado por testes |
-| Conta Twitch real conectada/revogada | Nenhuma credencial Twitch de teste fornecida no worktree | Pendente |
+| Conta Twitch real conectada/revogada | Vínculo pela UI, validate/refresh reais, retirada pela UI e token inválido na Twitch | Validado; reconexão completa ainda sem nova autorização |
 | Tipos do banco após migration | CLI 2.119.0 gerou public, private e graphql_public a partir do banco local | Gerados automaticamente; verificação de compatibilidade abaixo |
 | Lint/typecheck/build globais | Registrar os resultados finais abaixo | Sem presumir sucesso |
 
@@ -103,3 +103,20 @@ A tentativa real chegou a token HTTP 200 e validate HTTP 200, mas o gateway reje
 
 49 testes passaram em oito arquivos com `vitest run --maxWorkers=1`. A execução concorrente atingiu o timeout de cinco segundos de um subprocesso OpenAPI sob carga; não houve alteração de timeout nem dos checks. A conexão real completa permanece pendente de uma nova autorização humana, pois o estado anterior foi consumido.
 Lint e typecheck Sentry passaram após a correção.
+
+### Prova Twitch real concluída — 7 de outubro de 2026
+
+- Monitor exibiu canal conectado depois da autorização humana. Consentimento monitoring-v1 registrado, monitoramento false e identidade vinculada ao client/user esperado.
+- validate real confirmou identidade e zero permissões. DTO de conexão não continha access token nem refresh token.
+- Worker executou validação real: checked=1, expired=0, failed=0.
+- Para testar refresh sem esperar horas, somente expires_at da credencial de teste foi antecipado no banco local; token Twitch não foi artificialmente invalidado. O worker fez refresh real, persistiu cifra e validou o novo access token, sem avançar o relógio.
+- Desconexão feita pelo botão do Monitor. O banco ficou revoked, credencial removida e reconexão disponível. A Twitch rejeitou o access token atualizado em validate (401).
+- Script de prova terminou com exit 0. Tokens ficaram somente em memória; saída continha apenas asserções de sucesso, sem credenciais ou queries de callback.
+- Reconexão disponível na UI ainda requer novo consentimento humano para uma segunda prova de ligação. Hosting e redação autenticada continuam em verificação; esta evidência não encerra toda a Fase 0.
+### Redação autenticada e CI
+
+- News apontado somente ao Supabase local por .env.foundation ignorado, preservando o .env existente do projeto.
+- Conta local autenticou no News, abriu redação, criou matéria descartável, editou o título e salvou pela interface. Consulta SQL independente confirmou novo título e owner esperado; a matéria de teste foi removida somente do banco local depois da prova. Nenhuma alteração de código News foi necessária.
+- CI da PR do site passou em lint/typecheck/build do site, mas falhou depois no build News por ausência de Supabase para gerar páginas estáticas. Causa confirmada por revisão independente: o workflow não fornecia URL/chave nem fonte city_config.
+- Workflow da fundação inicia Supabase isolado para build e exporta apenas API_URL/ANON_KEY locais, sem credenciais de produção, sem desabilitar o prerender e sem alterar o código News. YAML parseado e leitura pública local de city_config confirmada HTTP 200. O build em CI da combinação das PRs ainda depende da integração da PR do site, que permanece separada para revisão humana.
+- Hosting de Sentry/worker ainda sem destino definido. A política documentada exige omitir queries de callback e credenciais dos logs; não há evidência de produção até verificar esse destino.
