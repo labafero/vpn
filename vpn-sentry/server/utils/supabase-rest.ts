@@ -1,11 +1,11 @@
 function getSupabaseConfig() {
-  const url = process.env.SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = process.env.NUXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NUXT_PUBLIC_SUPABASE_KEY
 
   if (!url || !key) {
     throw createError({
       statusCode: 503,
-      statusMessage: "Supabase do Sentry não está configurado",
+      statusMessage: "NUXT_PUBLIC_SUPABASE_URL e NUXT_PUBLIC_SUPABASE_KEY são obrigatórias no Sentry",
     })
   }
 
