@@ -47,7 +47,7 @@ export function getMonitoringRepository(): MonitoringRepository {
       await requireRole()
       let position: { at: string; id: string } | null = null
       if (cursor) {
-        try { const value = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as { at?: unknown; id?: unknown }; if (typeof value.at !== 'string' || typeof value.id !== 'string' || !Number.isFinite(Date.parse(value.at)) || !/^[\da-f-]{36}$/i.test(value.id)) throw new Error(); position = { at: value.at, id: value.id } } catch { throw new FoundationError(400) }
+        try { const value = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as { at?: unknown; id?: unknown }; if (typeof value.at !== 'string' || typeof value.id !== 'string' || !Number.isFinite(Date.parse(value.at)) || !/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(value.id)) throw new Error(); position = { at: new Date(value.at).toISOString(), id: value.id } } catch { throw new FoundationError(400) }
       }
       const rows = await sql<SessionRow[]>`SELECT * FROM private.monitoring_sessions WHERE (${admin} OR owner_id=${userId} OR id IN (SELECT ai.session_id FROM private.access_invites ai JOIN private.monitoring_sessions shared ON shared.id=ai.session_id WHERE ai.accepted_by=${userId} AND ai.accepted_at IS NOT NULL AND ai.revoked_at IS NULL AND ai.expires_at>now() AND shared.ended_at IS NULL)) AND (${channelId ?? null}::uuid IS NULL OR channel_id=${channelId ?? null}::uuid) AND (${position?.at ?? null}::timestamptz IS NULL OR (started_at,id)<(${position?.at ?? null}::timestamptz,${position?.id ?? null}::uuid)) ORDER BY started_at DESC,id DESC LIMIT ${limit + 1}`
       const items = rows.slice(0, limit).map(mapSession)
