@@ -45,7 +45,7 @@
 - Regenerate: `packages/database/src/database.types.ts`
 
 **Interfaces:**
-- Cria `public.monitoring_sessions`, `public.access_invites` e tabelas privadas necessárias para subscriptions/deduplicação, com constraints para ID Twitch único, consentimento vigente, sessão ativa, expiração e escopo.
+- Cria `public.monitoring_sessions` e tabelas privadas para convites, subscriptions e deduplicação, com constraints para ID Twitch único, consentimento vigente, sessão ativa, expiração e escopo.
 - Adiciona `channels.monitoring_consent_version` e `channels.monitoring_consented_at`; exige `monitoring-v2` vigente para ativação e substitui a constraint que fixa `monitoring_enabled=false`, mantendo `DEFAULT false`.
 - Define privilégios que permitem ao papel `vpn_sentry` as operações necessárias e mantêm clientes browser sem escrita direta.
 
@@ -76,8 +76,8 @@
 
 **Interfaces:**
 - `verifyTwitchWebhook(headers, rawBody, secret, now): VerifiedEventSubMessage | null` valida HMAC, timestamp e estrutura antes de chamar o serviço.
-- `createMonitoringService(repository, gateway, clock)` retorna `setMonitoring(userId, channelId, enabled, consent)`, `handleEvent(message)` e `reconcile(now)`; mutações de sessão e consumo de evento são atômicos no repositório.
-- `FoundationRepository` recebe operações transacionais para ativação/consentimento, início/fim de sessão, deduplicação e seleção/reconciliação de canais ativos.
+- `createMonitoringService(repository, gateway, clock)` retorna operações de canais, sessões, convites, `setMonitoring(userId, channelId, enabled, consent)`, `handleEvent(message)` e `reconcile(now)`; mutações de sessão e consumo de evento são atômicos no repositório.
+- `FoundationRepository` recebe operações transacionais para ativação/consentimento, início/fim de sessão, convites de uso único em schema privado, deduplicação e seleção/reconciliação de canais ativos.
 - `POST /api/eventsub/twitch` responde ao challenge Twitch e processa notificações sem autenticação de usuário, mas exige assinatura válida para notificações.
 - `POST /api/internal/twitch/reconcile` usa `NUXT_TWITCH_CRON_SECRET`, segredo distinto de credenciais de usuário, compara estado atual e encerra/abre sessões sem duplicar.
 

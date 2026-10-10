@@ -2,7 +2,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-
+  
   "graphql_public": {
           Tables: {
             [_ in never]: never
@@ -23,7 +23,20 @@ export type Database = {
           }
         },"private": {
           Tables: {
-            "foundation_audit": {
+            "access_invites": {
+                  Row: {
+                    "accepted_at": string | null,"accepted_by": string | null,"created_at": string,"expires_at": string,"id": string,"owner_id": string,"revoked_at": string | null,"session_id": string,"token_hash": string
+                  }
+                  Insert: {
+                    "accepted_at"?: string | null,"accepted_by"?: string | null,"created_at"?: string,"expires_at": string,"id"?: string,"owner_id": string,"revoked_at"?: string | null,"session_id": string,"token_hash": string
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"accepted_by"?: string | null,"created_at"?: string,"expires_at"?: string,"id"?: string,"owner_id"?: string,"revoked_at"?: string | null,"session_id"?: string,"token_hash"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"foundation_audit": {
                   Row: {
                     "code": string,"connection_id": string,"created_at": string,"id": string
                   }
@@ -34,7 +47,7 @@ export type Database = {
                     "code"?: string,"connection_id"?: string,"created_at"?: string,"id"?: string
                   }
                   Relationships: [
-
+                    
                   ]
                 },"oauth_transactions": {
                   Row: {
@@ -47,7 +60,7 @@ export type Database = {
                     "browser_nonce_hash"?: string,"consent_version"?: string,"consumed_at"?: string | null,"expires_at"?: string,"state_hash"?: string,"user_id"?: string
                   }
                   Relationships: [
-
+                    
                   ]
                 },"provider_credentials": {
                   Row: {
@@ -60,7 +73,33 @@ export type Database = {
                     "ciphertext"?: string,"connection_id"?: string,"expires_at"?: string,"iv"?: string,"key_version"?: string,"last_attempt_at"?: string | null,"retry_until"?: string | null,"tag"?: string,"validated_at"?: string
                   }
                   Relationships: [
-
+                    
+                  ]
+                },"twitch_eventsub_messages": {
+                  Row: {
+                    "message_id": string,"message_type": string,"received_at": string
+                  }
+                  Insert: {
+                    "message_id": string,"message_type": string,"received_at"?: string
+                  }
+                  Update: {
+                    "message_id"?: string,"message_type"?: string,"received_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"twitch_eventsub_subscriptions": {
+                  Row: {
+                    "channel_id": string,"event_type": string,"id": string,"last_error_code": string | null,"status": string,"subscription_id": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "channel_id": string,"event_type": string,"id"?: string,"last_error_code"?: string | null,"status": string,"subscription_id"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "channel_id"?: string,"event_type"?: string,"id"?: string,"last_error_code"?: string | null,"status"?: string,"subscription_id"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 }
           }
@@ -104,13 +143,13 @@ isOneToOne: false
                   ]
                 },"channels": {
                   Row: {
-                    "connection_id": string,"id": string,"monitoring_enabled": boolean,"owner_id": string
+                    "connection_id": string,"id": string,"monitoring_consent_version": string | null,"monitoring_consented_at": string | null,"monitoring_enabled": boolean,"monitoring_reconciled_at": string | null,"owner_id": string
                   }
                   Insert: {
-                    "connection_id": string,"id"?: string,"monitoring_enabled"?: boolean,"owner_id": string
+                    "connection_id": string,"id"?: string,"monitoring_consent_version"?: string | null,"monitoring_consented_at"?: string | null,"monitoring_enabled"?: boolean,"monitoring_reconciled_at"?: string | null,"owner_id": string
                   }
                   Update: {
-                    "connection_id"?: string,"id"?: string,"monitoring_enabled"?: boolean,"owner_id"?: string
+                    "connection_id"?: string,"id"?: string,"monitoring_consent_version"?: string | null,"monitoring_consented_at"?: string | null,"monitoring_enabled"?: boolean,"monitoring_reconciled_at"?: string | null,"owner_id"?: string
                   }
                   Relationships: [
                     {
@@ -151,7 +190,7 @@ isOneToOne: false
                     "cidade_nome"?: string,"cor_primaria"?: string,"created_at"?: string | null,"id"?: never,"jornal_nome"?: string,"jornal_sigla"?: string,"logo_url"?: string | null,"slug"?: string,"updated_at"?: string | null
                   }
                   Relationships: [
-
+                    
                   ]
                 },"city_seasons": {
                   Row: {
@@ -210,6 +249,25 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
+                },"monitoring_sessions": {
+                  Row: {
+                    "category": string | null,"channel_id": string,"created_at": string,"ended_at": string | null,"id": string,"owner_id": string,"provider_stream_id": string,"started_at": string,"title": string
+                  }
+                  Insert: {
+                    "category"?: string | null,"channel_id": string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"owner_id": string,"provider_stream_id": string,"started_at": string,"title": string
+                  }
+                  Update: {
+                    "category"?: string | null,"channel_id"?: string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"owner_id"?: string,"provider_stream_id"?: string,"started_at"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "monitoring_sessions_channel_id_fkey"
+      columns: ["channel_id"]
+isOneToOne: false
+      referencedRelation: "channels"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"posts": {
                   Row: {
                     "body": string,"cidade": string,"cover_url": string,"created_at": string,"destaque": boolean,"id": number,"media_type": string | null,"media_url": string | null,"published_at": string,"season_id": number | null,"title": string,"updated_at": string,"user_id": string
@@ -240,7 +298,7 @@ isOneToOne: false
                     "connected_at"?: string,"consent_version"?: string,"consented_at"?: string,"id"?: string,"login"?: string,"provider"?: string,"provider_user_id"?: string,"revoked_at"?: string | null,"status"?: string,"user_id"?: string
                   }
                   Relationships: [
-
+                    
                   ]
                 },"server_clock": {
                   Row: {
@@ -253,7 +311,7 @@ isOneToOne: false
                     "brt_reference"?: string,"id"?: number,"ls_hours"?: number,"ls_minutes"?: number,"updated_at"?: string
                   }
                   Relationships: [
-
+                    
                   ]
                 },"user_roles": {
                   Row: {
@@ -266,7 +324,7 @@ isOneToOne: false
                     "role"?: string,"user_id"?: string
                   }
                   Relationships: [
-
+                    
                   ]
                 }
           }
@@ -393,15 +451,15 @@ export type CompositeTypes<
 export const Constants = {
   "graphql_public": {
           Enums: {
-
+            
           }
         },"private": {
           Enums: {
-
+            
           }
         },"public": {
           Enums: {
-
+            
           }
         }
 } as const
