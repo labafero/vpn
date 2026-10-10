@@ -34,4 +34,7 @@ jobs:
         run: pnpm typecheck
 
       - name: Build
+        env:
+          NUXT_PUBLIC_SUPABASE_URL: ${{ vars.NUXT_PUBLIC_SUPABASE_URL }}
+          NUXT_PUBLIC_SUPABASE_KEY: ${{ vars.NUXT_PUBLIC_SUPABASE_KEY }}
         run: pnpm build
