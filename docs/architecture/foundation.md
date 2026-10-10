@@ -7,7 +7,7 @@ Decisões do plano da Fase 0 aprovado em 6 de outubro de 2026. VPN identifica a 
 | Superfície | Responsabilidade | Limite |
 | --- | --- | --- |
 | vpn-news | Matérias, redação, cidades e overlays | Não publica transmissões ou credenciais privadas |
-| vpn-monitor | Login VPN, consentimento e conexão Twitch; sessões em fase posterior | Browser consome proxy de mesma origem, nunca banco privado |
+| vpn-monitor | Login VPN, consentimento e conexão Twitch; central privada de sessões na Fase 1 | Browser consome proxy de mesma origem, nunca banco privado |
 | vpn-sentry | Autorização, OAuth, persistência privada e workers | Confere identidade e dono em cada operação |
 | vpn-site | Site institucional existente | Sem mudança nesta fase |
 | packages/contracts | OpenAPI e tipos gerados de API | Fonte de formatos compartilhados |
@@ -41,8 +41,8 @@ RLS protege todas as tabelas públicas. Clientes autenticados podem somente ler 
 
 | Entidade futura | Relações e responsabilidade | Fase |
 | --- | --- | --- |
-| monitoring_sessions | Canal, dono, início/fim e consentimento que permitiu coleta | 1 |
-| access_invites | Sessão/canal, emissor, escopo, expiração e revogação | 1 |
+| `private.monitoring_sessions` | Canal, dono, início/fim e consentimento que permitiu coleta; leitura apenas pelo Sentry | 1 |
+| `private.access_invites` | Hash do convite de uso único, sessão/canal, emissor, expiração e revogação | 1 |
 | notification_recipients | Dono, destinatário VPN/Discord e autorização | 2/4 |
 | monitoring_events | Sessão, origem, versão de regra, confiança e estado de possível risco | 2 |
 | evidence | Evento/sessão, referência temporal, mídia privada e expiração | 2 |

@@ -17,9 +17,13 @@ Monitor e Sentry têm domínios verificados, associados à produção por solici
 
 A proteção de previews permanece ativa. Monitor usa uma credencial privada de automação para acessar Sentry; Cron usa uma credencial separada, além do segredo próprio do endpoint. Não enviar esses valores ao browser nem em query strings. Os domínios personalizados de produção usam a autenticação própria VPN; a proteção dos previews permanece ativa.
 
+Para a Fase 1, Sentry também requer `NUXT_TWITCH_EVENTSUB_SECRET` e `NUXT_TWITCH_EVENTSUB_CALLBACK=https://vpn-sentry.labafero.com/api/eventsub/twitch`. Armazenar apenas no projeto Sentry; nunca no Monitor/browser. O endpoint Cron usa `NUXT_TWITCH_CRON_SECRET` e a proteção Vercel configurada para o domínio de produção.
+
 ## Supabase
 
 CLI 2.119.0 autenticada e worktree vinculado ao projeto vpn, ref zxzigoaddoslkokbzmyc, ACTIVE_HEALTHY, us-east-2, Postgres 17.6.1.155. As 20 migrations estão alinhadas, incluindo foundation_access e twitch_validation_attempts, aplicadas com autorização específica do usuário.
+
+A migration da Fase 1 mantém sessões, convites, estado EventSub e deduplicação no schema `private`, fora da Data API; o papel `vpn_sentry` é o único que acessa esses registros. O SQL `supabase/operations/schedule-twitch-reconciliation.sql` é uma operação manual após revisão: agenda chamadas em :15 e :45, intercaladas à validação OAuth. As chaves exigidas em Vault e os passos de observação/remoção estão no próprio SQL. Não executar no banco remoto até revisão e autorização de implantação.
 
 RLS ativa nas três tabelas públicas da fundação. Credenciais privadas sem acesso SELECT para authenticated. Papel vpn_sentry LOGIN NOINHERIT, conexão TLS pelo pooler, permissões restritas verificadas. Criptografia e segredos remotos armazenados fora do Git. Advisors sem ERROR; dois WARN preexistentes: search_path de set_updated_at e proteção de senhas vazadas no Auth.
 
