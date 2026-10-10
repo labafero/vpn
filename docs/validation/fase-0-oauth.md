@@ -172,3 +172,10 @@ CI geral da PR #4 continua falhando; correção separada do Site permanece na PR
 Execução normal da agenda em 10/10/2026 às 15h30 (America/Sao_Paulo): cron.job_run_details status succeeded; resposta pg_net HTTP 200, timed_out=false, checked=1, failed=0. Esta é prova de validação periódica da conexão remota real, sem job temporário nem alteração de timestamps.
 
 CI da PR #5: diagnosticada ausência de configuração pública Supabase no passo Build. Variáveis públicas do repositório configuradas e workflow corrigido no commit d63fce5; nova execução 38076027238 disparada. Nenhuma chave de serviço enviada ao GitHub Actions.
+
+## Produção e auditoria de logs — 10 de outubro de 2026
+
+Usuário solicitou explicitamente domínios em produção, sem ambiente adicional. Variáveis provisionadas para production e builds realizados com target production. Monitor dpl_2SULH45mVne1w4CynZhot6KjkGP8 e Sentry dpl_CvRmLfoyZnZdVy5bQcxyvzL6hnLG READY. Domínios personalizados associados a esses deployments; gitBranch=null em ambos. Não houve merge das PRs. Publicado o código da fundação já validado, preservando conexão remota e chave de criptografia. Endpoint Sentry de produção respondeu HTTP 200 com checked=1, failed=0, expired=0, deferred=0.
+
+Auditoria Supabase projeto zxzigoaddoslkokbzmyc, janela 09/10 15h38–10/10 15h38 (America/Sao_Paulo): 28 warnings 01006 de REVOKE pg_net, 1 warning HTTP 406 do teste da Data API, erro 42501 de UPDATE cron.job substituído por cron.alter_job e erro 42703 da consulta diagnóstica p.scopes corrigida. Todos originados nas nossas operações/validações. Auth, PostgREST, Storage, Realtime, Edge Functions, Supavisor, PgBouncer e Compute sem warnings/errors nessa janela; Auth apresentou eventos HTTP 200 do login remoto. Nenhuma evidência de falha da aplicação nessa amostra; não confundir estes logs com os avisos dos advisors.
+Verificação final de produção: Monitor /login HTTP 200, UI autenticada mostra vpn_rp conectado; Sentry sem segredo HTTP 401. Sessão e vínculo preservados após troca do deployment.

@@ -13,9 +13,9 @@ CLI 62.7.0 autenticada como quila; equipe anilson-lopes-projects, plano Hobby, F
 | Monitor | vpn-monitor | vpn-monitor.labafero.com |
 | Sentry | vpn-sentry | vpn-sentry.labafero.com |
 
-Monitor e Sentry têm domínios verificados, associados à branch codex/fase-0-fundacao durante a validação. Ambos os previews estão READY. Monitor: dpl_46KjxWu47XxUxesGC89gFQeD7WAN; Sentry: dpl_HF9HvtJZz2MAJT77m1njsSATvwuv. Não houve promoção de main nem merge. As variáveis estão configuradas para preview; produção ainda não foi provisionada. Os primeiros deploys dos projetos novos foram classificados como produção pela Vercel apesar da opção preview e foram cancelados antes de servir.
+Monitor e Sentry têm domínios verificados, associados à produção por solicitação explícita do usuário. A associação anterior à branch de preview foi removida. Ambos os previews estão READY. Monitor: dpl_46KjxWu47XxUxesGC89gFQeD7WAN; Sentry: dpl_HF9HvtJZz2MAJT77m1njsSATvwuv. Produção publicada a partir do código validado da fundação, sem merge de main. Variáveis de produção provisionadas. Deployments de produção READY: Monitor dpl_2SULH45mVne1w4CynZhot6KjkGP8; Sentry dpl_CvRmLfoyZnZdVy5bQcxyvzL6hnLG. Os primeiros deploys dos projetos novos foram classificados como produção pela Vercel apesar da opção preview e foram cancelados antes de servir.
 
-A proteção de previews permanece ativa. Monitor usa uma credencial privada de automação para acessar Sentry; Cron usa uma credencial separada, além do segredo próprio do endpoint. Não enviar esses valores ao browser nem em query strings. A associação do domínio a uma branch de preview também aplica a proteção Vercel ao domínio personalizado.
+A proteção de previews permanece ativa. Monitor usa uma credencial privada de automação para acessar Sentry; Cron usa uma credencial separada, além do segredo próprio do endpoint. Não enviar esses valores ao browser nem em query strings. Os domínios personalizados de produção usam a autenticação própria VPN; a proteção dos previews permanece ativa.
 
 ## Supabase
 
