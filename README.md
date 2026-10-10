@@ -23,3 +23,7 @@ pnpm build
 ```
 
 As migrações e a configuração do Supabase permanecem em `supabase/` na raiz.
+
+## Fundação privada
+
+Consulte [fundação](docs/architecture/foundation.md) para acesso, consentimento e retenção. O workspace vpn-site mantém o site institucional.

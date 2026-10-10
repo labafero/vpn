@@ -9,14 +9,18 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
-    "workers": "node workers/index.mjs"
+    "workers": "node workers/index.mjs",
+    "workers:twitch": "tsx --env-file=.env workers/validate-twitch.mjs"
   },
   "dependencies": {
     "@nuxt/eslint": "^1.15.2",
     "@nuxtjs/supabase": "2.0.9",
-    "nuxt": "^4.4.6",
     "@vpn/contracts": "workspace:*",
-    "@vpn/database": "workspace:*"
+    "@vpn/database": "workspace:*",
+    "h3": "1.15.4",
+    "nuxt": "^4.4.6",
+    "postgres": "3.4.9",
+    "tsx": "4.23.15"
   },
   "devDependencies": {
     "eslint": "^10.4.0",

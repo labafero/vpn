@@ -286,3 +286,7 @@ contratos compartilhados.
 - Formato do canal jornalístico 24/7.
 - Modelo final de hospedagem e execução dos workers.
 - Limites de retenção e compartilhamento entre monitoramento e redação.
+
+## Fundação detalhada
+
+Decisões de acesso, consentimento e retenção: [fundação](docs/architecture/foundation.md). Twitch vincula um canal à conta VPN, mantendo monitoramento desabilitado na Fase 0.

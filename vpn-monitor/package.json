@@ -14,9 +14,11 @@
     "@nuxt/icon": "2.2.2",
     "@nuxt/ui": "^4.7.1",
     "@nuxtjs/supabase": "2.0.9",
-    "nuxt": "^4.4.6",
     "@vpn/contracts": "workspace:*",
-    "@vpn/database": "workspace:*"
+    "@vpn/database": "workspace:*",
+    "h3": "1.15.4",
+    "nuxt": "^4.4.6",
+    "valibot": "^1.4.1"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",

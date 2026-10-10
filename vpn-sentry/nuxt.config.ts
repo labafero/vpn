@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2026-06-07",
   ssr: false,
   nitro: {
-    preset: "node-server",
+    preset: process.env.VERCEL ? "vercel" : "node-server",
+    vercel: { functions: { maxDuration: 300 } },
   },
 })

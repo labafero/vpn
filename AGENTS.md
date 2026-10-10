@@ -17,7 +17,7 @@ Pipeline de CI: `lint → typecheck → build`. Nenhum teste está configurado.
 
 ## Arquitetura
 
-**Monorepo pnpm** com três projetos Nuxt 4 e pacotes compartilhados. `vpn-news` usa a convenção de diretório `app/`; backend e Auth são Supabase. UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
+**Monorepo pnpm** com quatro projetos Nuxt 4 (incluindo o site institucional vpn-site) e pacotes compartilhados. `vpn-news` usa a convenção de diretório `app/`; backend e Auth são Supabase. UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
 
 ### Rotas
 
@@ -36,7 +36,7 @@ Duas superfícies distintas:
 - `/redacao/cidades` — CRUD de configuração de cidades
 
 **Overlays** (browser sources do OBS, layout `overlay` — manter simples e autocontidos):
-- `/overlay/index`, `/overlay/idle`
+- `/overlay` (página `overlay/index.vue`, exige `?broadcaster=<uuid>`), `/overlay/idle`
 
 ### Layouts
 
@@ -83,3 +83,9 @@ Duas superfícies distintas:
 ## Forma de trabalho
 
 - **Não sugerir atalhos ou workarounds** quando o problema real ainda não foi resolvido. Diagnosticar a causa raiz e resolver corretamente.
+- Para planejar, executar, retomar ou entregar uma fase, seguir [docs/workflows/entrega.md](docs/workflows/entrega.md). Recuperar plano, autorizações e evidências existentes antes de propor um novo plano ou repetir perguntas.
+- Para descobrir ambientes e acessos, consultar [docs/operations/environments.md](docs/operations/environments.md) e verificar CLI/API/MCP antes de pedir nomes ou URLs ao usuário. Revalidar o registro na conta; não tratá-lo como estado atual garantido.
+
+## Fundação privada
+
+Consultar docs/architecture/foundation.md para papéis, consentimento e retenção. Tipos API são gerados de packages/contracts/openapi.yaml. Credenciais Twitch ficam no schema privado. Nunca promover usuários por user_metadata.

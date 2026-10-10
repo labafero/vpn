@@ -11,6 +11,15 @@
     "lint": "pnpm --recursive --if-present lint",
     "typecheck": "pnpm --recursive --if-present typecheck",
     "build": "pnpm --workspace-concurrency=1 --recursive --if-present build",
-    "contracts:check": "node packages/contracts/scripts/check-openapi.mjs"
+    "contracts:check": "node packages/contracts/scripts/check-openapi.mjs",
+    "contracts:generate": "node packages/contracts/scripts/generate-types.mjs",
+    "test:foundation": "vitest run"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "13.1.0",
+    "@electric-sql/pglite": "0.5.8",
+    "@redocly/cli": "2.58.1",
+    "openapi-typescript": "7.13.0",
+    "vitest": "5.0.3"
   }
 }
