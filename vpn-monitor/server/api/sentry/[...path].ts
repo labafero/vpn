@@ -31,6 +31,7 @@ export default defineEventHandler(async event => {
     const authorize = path.endsWith('/authorize')
     const nonce = authorize ? randomBytes(32).toString('base64url') : getCookie(event, 'vpn-oauth-nonce') || ''
     const headers: Record<string, string> = { Authorization: `Bearer ${session.session.access_token}` }
+    if (config.sentryProtectionBypassSecret) headers['x-vercel-protection-bypass'] = config.sentryProtectionBypassSecret
     if (authorize || callback) headers['X-OAuth-Nonce'] = nonce
     let body: string | undefined
     if (method === 'POST') {
