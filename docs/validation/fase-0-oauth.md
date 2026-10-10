@@ -168,3 +168,7 @@ Endpoint Cron no domínio personalizado respondeu HTTP 200 com segredo próprio 
 Logs consultados pela CLI incluíram callback de teste 401 e callback OAuth real 303. requestPath veio sem query e a string canário não apareceu no registro retornado. Isso comprova a representação consultada, não assegura ausência de parâmetros em todas as superfícies de logs da plataforma; manter essa fronteira explícita no fechamento.
 
 CI geral da PR #4 continua falhando; correção separada do Site permanece na PR #5 e nenhum merge foi realizado. Não declarar entrega integral concluída enquanto os gates finais não estiverem resolvidos e verificados.
+
+Execução normal da agenda em 10/10/2026 às 15h30 (America/Sao_Paulo): cron.job_run_details status succeeded; resposta pg_net HTTP 200, timed_out=false, checked=1, failed=0. Esta é prova de validação periódica da conexão remota real, sem job temporário nem alteração de timestamps.
+
+CI da PR #5: diagnosticada ausência de configuração pública Supabase no passo Build. Variáveis públicas do repositório configuradas e workflow corrigido no commit d63fce5; nova execução 38076027238 disparada. Nenhuma chave de serviço enviada ao GitHub Actions.
