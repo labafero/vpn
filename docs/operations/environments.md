@@ -29,7 +29,7 @@ Filtrar a resposta para metadados necessários antes de exibir ou registrar. Con
 
 ## Supabase
 
-As configurações locais de News, Monitor e Sentry apontam para https://zxzigoaddoslkokbzmyc.supabase.co. Isso identifica o destino configurado, mas ainda não comprova nome, organização, estado ou migrations do projeto remoto. A CLI 2.119.0 consultada não tinha sessão de gerenciamento; login oficial foi iniciado. Chave pública ou service key da aplicação não substitui autenticação de gerenciamento.
+As configurações locais de News, Monitor e Sentry apontam para https://zxzigoaddoslkokbzmyc.supabase.co. Isso identifica o destino configurado, mas ainda não comprova nome, organização, estado ou migrations do projeto remoto. Login oficial da CLI 2.119.0 concluído em 10 de outubro. Consulta autenticada confirmou projeto vpn, referência zxzigoaddoslkokbzmyc, ACTIVE_HEALTHY, região us-east-2 e Postgres 17.6.1.155. Chave pública ou service key da aplicação não substitui autenticação de gerenciamento.
 
 ```powershell
 pnpm dlx supabase@2.119.0 projects list --help
@@ -38,7 +38,7 @@ pnpm dlx supabase@2.119.0 projects list --output-format json
 pnpm dlx supabase@2.119.0 login --no-browser --agent no --output-format text
 ```
 
-Após autenticar, confirmar o projeto pela referência e consultar ajuda dos comandos de migrations/query/link. Vincular somente o worktree de trabalho ao destino confirmado. Preparar comparação/dry run antes de aplicar migrations remotas, preservando as restrições e autorizações da fase.
+Worktree da fundação vinculado ao projeto confirmado. migration list encontrou 18 migrations remotas alinhadas e duas pendentes: 20261007011841_foundation_access.sql e 20261007124000_twitch_validation_attempts.sql. db push --dry-run --skip-vault confirmou somente essas duas, sem seeds ou roles adicionais. Consulta SQL confirmou ausência das tabelas e do papel vpn_sentry no destino. Vault instalado; pg_cron e pg_net ainda não instalados. Consultar ajuda dos comandos de migrations/query/link antes de novos passos. Vincular somente o worktree de trabalho ao destino confirmado. Preparar comparação/dry run antes de aplicar migrations remotas, preservando as restrições e autorizações da fase.
 
 O .env remoto de desenvolvimento do Sentry contém configuração Supabase e Client ID/Secret Twitch, mas não fornece ainda conexão privada vpn_sentry, chave de criptografia, segredo Cron ou callback remoto. A existência de segredos locais não demonstra que as variáveis estejam configuradas na Vercel. Não copiar o .env local de teste: ele aponta para Supabase local e usa material gerado para essa prova.
 
