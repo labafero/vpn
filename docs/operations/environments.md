@@ -1,57 +1,36 @@
 # Ambientes e descoberta
 
-Registro de consulta, sem credenciais. Última consulta remota: 10 de outubro de 2026. Revalidar antes de alterar configurações; ausência abaixo vale somente para essa consulta.
+Estado verificado em 10 de outubro de 2026. Revalidar destino, conta e projeto antes de alterar configurações. Nunca imprimir credenciais ou respostas completas de variáveis privadas.
 
 ## Vercel
 
-CLI 62.7.0 autenticada como quila. Única equipe retornada: anilson-lopes-projects, plano Hobby. Repositório GitHub: labafero/vpn.
+CLI 62.7.0 autenticada como quila; equipe anilson-lopes-projects, plano Hobby, Fluid Compute ativo. Todos os projetos ligados a labafero/vpn, produção main.
 
-| Aplicativo | Projeto | Root Directory | Domínio de produção observado |
-|---|---|---|---|
-| News | vpn-news | vpn-news | vpn-news.labafero.com |
-| Site | vpn-site | vpn-site | vpn.labafero.com |
-| Sentry | vpn-sentry | vpn-sentry | Não publicado |
-| Monitor | vpn-monitor | vpn-monitor | Não publicado |
+| Aplicativo | Projeto / Root Directory | Domínio |
+|---|---|---|
+| News | vpn-news | vpn-news.labafero.com |
+| Site | vpn-site | vpn.labafero.com |
+| Monitor | vpn-monitor | vpn-monitor.labafero.com |
+| Sentry | vpn-sentry | vpn-sentry.labafero.com |
 
-News e Site estão ligados ao repositório e têm Fluid Compute ativo. A PR #4 possui previews desses dois projetos; isso não demonstra deploy de Sentry ou Monitor.
+Monitor e Sentry têm domínios verificados, associados à branch codex/fase-0-fundacao durante a validação. Ambos os previews estão READY. Monitor: dpl_46KjxWu47XxUxesGC89gFQeD7WAN; Sentry: dpl_HF9HvtJZz2MAJT77m1njsSATvwuv. Não houve promoção de main nem merge. As variáveis estão configuradas para preview; produção ainda não foi provisionada. Os primeiros deploys dos projetos novos foram classificados como produção pela Vercel apesar da opção preview e foram cancelados antes de servir.
 
-Sentry e Monitor não existiam na consulta inicial e foram provisionados nesta equipe em 10 de outubro, pela API autenticada, sem vincular Git nem publicar deployments. A leitura posterior confirmou configuração e zero deployments, com Fluid Compute ativo em ambos. IDs: Sentry prj_LSA0iDCAKmk8cMBmQJVMJkwRVyjk; Monitor prj_Zad1GA7fd9Gn4I1Y7k2daO0VTxm7. A integração Git e as variáveis de ambiente ainda precisam ser preparadas; não configurar produção por consequência de um push sem verificar o destino.
-
-Consulta sem vincular nem criar projeto:
-
-```powershell
-vercel whoami
-vercel teams list --format json
-vercel api '/v9/projects?limit=100' --scope anilson-lopes-projects --raw
-```
-
-Filtrar a resposta para metadados necessários antes de exibir ou registrar. Conferir paginação antes de concluir que um projeto não existe. Não imprimir respostas de endpoints de variáveis privadas.
+A proteção de previews permanece ativa. Monitor usa uma credencial privada de automação para acessar Sentry; Cron usa uma credencial separada, além do segredo próprio do endpoint. Não enviar esses valores ao browser nem em query strings. A associação do domínio a uma branch de preview também aplica a proteção Vercel ao domínio personalizado.
 
 ## Supabase
 
-As configurações locais de News, Monitor e Sentry apontam para https://zxzigoaddoslkokbzmyc.supabase.co. Isso identifica o destino configurado, mas ainda não comprova nome, organização, estado ou migrations do projeto remoto. Login oficial da CLI 2.119.0 concluído em 10 de outubro. Consulta autenticada confirmou projeto vpn, referência zxzigoaddoslkokbzmyc, ACTIVE_HEALTHY, região us-east-2 e Postgres 17.6.1.155. Chave pública ou service key da aplicação não substitui autenticação de gerenciamento.
+CLI 2.119.0 autenticada e worktree vinculado ao projeto vpn, ref zxzigoaddoslkokbzmyc, ACTIVE_HEALTHY, us-east-2, Postgres 17.6.1.155. As 20 migrations estão alinhadas, incluindo foundation_access e twitch_validation_attempts, aplicadas com autorização específica do usuário.
 
-```powershell
-pnpm dlx supabase@2.119.0 projects list --help
-pnpm dlx supabase@2.119.0 projects list --output-format json
-# Fluxo humano, sem imprimir ou versionar token de acesso:
-pnpm dlx supabase@2.119.0 login --no-browser --agent no --output-format text
-```
+RLS ativa nas três tabelas públicas da fundação. Credenciais privadas sem acesso SELECT para authenticated. Papel vpn_sentry LOGIN NOINHERIT, conexão TLS pelo pooler, permissões restritas verificadas. Criptografia e segredos remotos armazenados fora do Git. Advisors sem ERROR; dois WARN preexistentes: search_path de set_updated_at e proteção de senhas vazadas no Auth.
 
-Worktree da fundação vinculado ao projeto confirmado. migration list encontrou 18 migrations remotas alinhadas e duas pendentes: 20261007011841_foundation_access.sql e 20261007124000_twitch_validation_attempts.sql. db push --dry-run --skip-vault confirmou somente essas duas, sem seeds ou roles adicionais. Consulta SQL confirmou ausência das tabelas e do papel vpn_sentry no destino. Vault instalado; pg_cron e pg_net ainda não instalados. Consultar ajuda dos comandos de migrations/query/link antes de novos passos. Vincular somente o worktree de trabalho ao destino confirmado. Preparar comparação/dry run antes de aplicar migrations remotas, preservando as restrições e autorizações da fase.
+Cron vpn-twitch-validation ativo a cada 30 minutos; URL no Vault atualizada para https://vpn-sentry.labafero.com/api/internal/twitch/validate. Prova agendada temporária executou o mesmo comando com HTTP 200; job temporário removido. Endpoint personalizado também respondeu 200 com credenciais corretas, checked=0, failed=0, deferred=0, expired=0; ainda sem vínculo remoto real nesta consulta.
 
-O .env remoto de desenvolvimento do Sentry contém configuração Supabase e Client ID/Secret Twitch, mas não fornece ainda conexão privada vpn_sentry, chave de criptografia, segredo Cron ou callback remoto. A existência de segredos locais não demonstra que as variáveis estejam configuradas na Vercel. Não copiar o .env local de teste: ele aponta para Supabase local e usa material gerado para essa prova.
+Supabase gerencia grants de pg_net e postgres não consegue revogá-los. net está excluído da Data API (406 PGRST106), anon/authenticated são NOLOGIN e todos os papéis LOGIN foram auditados como confiáveis. Não declarar que as filas são inacessíveis a outros logins SQL confiáveis. Consultar docs/validation/twitch-scheduler.md.
 
-## Fundação
+## Twitch e entrega
 
-Plano: docs/superpowers/plans/2026-10-06-fase-0-fundacao.md. Evidências: docs/validation/fase-0-oauth.md. Operação do agendador: docs/validation/twitch-scheduler.md.
+Conta VPN_RP e Client ID conferidos contra o .env antes da alteração. Callback configurado para https://vpn-monitor.labafero.com/api/sentry/provider-connections/twitch/callback. Conta quilamcz contém outro aplicativo e não deve ser usada para gerenciar esta aplicação.
 
-- PR #4: fundação, branch codex/fase-0-fundacao. Job foundation-db aprovado no commit 0cb46da; CI geral falhou no lint preexistente do Site.
-- PR #5: correção separada do Site, branch codex/vpn-site-checks. Ambas abertas na consulta de 10 de outubro; nenhum merge realizado pelo agente.
-- Supabase Cron e OAuth reais já têm provas locais. Deployment Sentry/Monitor, migrations/job remotos e ausência de parâmetros OAuth nos logs de hosting ainda não foram comprovados.
+PR #4: fundação, codex/fase-0-fundacao. PR #5: correção separada do Site, codex/vpn-site-checks. Nenhum merge realizado. Workflow obrigatório: docs/workflows/entrega.md. Evidências: docs/validation/fase-0-oauth.md.
 
-Esses fatos devem evitar perguntas repetidas, não substituir verificação ao vivo. Atualizar o registro após novas descobertas e entregas.
-
-## Estado após aplicação autorizada
-
-Em 10 de outubro o usuário autorizou especificamente as duas migrations da fundação no projeto vpn. Aplicadas e verificadas: 20 versões alinhadas, RLS ativa nas três tabelas públicas e browser sem acesso às credenciais. Papel vpn_sentry permanece NOLOGIN; last_attempt_at confirmado. A comparação de duas pendências acima registra o preflight histórico, não o estado posterior. Advisors: nenhum erro, avisos em public.set_updated_at e proteção contra senhas vazadas do Auth. Ainda não há deployment Sentry/Monitor nem job remoto.
+OAuth local completo já comprovado. OAuth remoto e inspeção dos parâmetros nos logs ainda em validação. Não declarar Fase 0 concluída antes de registrar os resultados. Login VPN no domínio personalizado confirmado pelo usuário; estado de conexão carregado corretamente.

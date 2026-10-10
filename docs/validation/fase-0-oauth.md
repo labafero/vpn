@@ -152,3 +152,7 @@ Usuário autorizou explicitamente aplicar as duas migrations no Supabase vpn, am
 Advisors remotos security/warn/fail-on-error: exit 0, nenhum ERROR. WARN em public.set_updated_at (search_path mutável) e Auth (proteção contra senhas vazadas desabilitada). Nenhum warning aponta para as novas estruturas. Não alterei função preexistente ou configuração Auth nesta aplicação.
 
 Ainda pendentes: provisionamento de acesso restrito do Sentry e variáveis privadas, previews Sentry/Monitor, callback Twitch remoto, habilitação pg_cron/pg_net e ativação/prova do job remoto, gate de logs OAuth. Nenhum deployment publicado ou job remoto ativado nesta etapa.
+
+### Autorização de conclusão — 10 de outubro de 2026
+
+Usuário reiterou a autorização para concluir a Fase 0 e pediu não repetir confirmações gerais. Continuação autorizada: configurar serviços e acesso restrito, publicar previews na equipe Vercel identificada, configurar e provar Cron no Supabase vpn e investigar/resolver logs OAuth. Pedir intervenção somente diante de um bloqueio concreto que exija ação humana ou mudança material de escopo. Esta autorização amplia a restrição original do plano para essas operações. Não autoriza merge das PRs, custos pagos ou promoção automática da branch main.

@@ -50,3 +50,9 @@ Na entrega ao usuário, informar o que mudou, o que passou, o que permanece aber
 ## Melhorar a rotina
 
 Transformar falhas recorrentes demonstradas em instruções curtas ou scripts verificáveis. Preferir documentos versionados ligados pelo AGENTS.md para contexto específico do VPN. Criar uma skill quando houver técnica reutilizável que exija orientação própria; avaliar RAG quando o volume e a recuperação de fontes demonstrarem essa necessidade. Não criar infraestrutura adicional apenas para armazenar fatos que cabem nestes registros.
+
+## Conta, domínio e processos
+
+Antes de configurar OAuth, conferir a conta do console e comparar o Client ID com o ambiente sem exibir segredos. Usar o domínio personalizado escolhido pelo usuário; perguntar apenas o nome se ele não estiver definido. No primeiro deploy de projeto Vercel, conferir o target retornado: a plataforma pode classificá-lo como produção mesmo quando solicitado preview. Cancelar imediatamente um target inesperado e verificar o próximo deployment antes de associar domínios.
+
+Uma resposta final encerra a execução do agente, embora comandos externos possam continuar. Não dizer que está executando ou aguardando sem consultar o processo/deployment. Perguntas de status durante execução devem receber resposta em commentary, seguida da continuidade autorizada. Registrar bloqueios humanos concretos e continuar verificações independentes enquanto aguarda.
