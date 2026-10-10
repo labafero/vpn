@@ -45,9 +45,9 @@
 - Regenerate: `packages/database/src/database.types.ts`
 
 **Interfaces:**
-- Cria `public.monitoring_sessions` e tabelas privadas para convites, subscriptions e deduplicação, com constraints para ID Twitch único, consentimento vigente, sessão ativa, expiração e escopo.
+- Cria `private.monitoring_sessions`, `private.access_invites` e tabelas privadas de subscription/deduplicação, fora da Data API; somente `vpn_sentry` acessa dados de sessão no banco, enquanto Sentry aplica escopo de dono/admin/convidado.
 - Adiciona `channels.monitoring_consent_version` e `channels.monitoring_consented_at`; exige `monitoring-v2` vigente para ativação e substitui a constraint que fixa `monitoring_enabled=false`, mantendo `DEFAULT false`.
-- Define privilégios que permitem ao papel `vpn_sentry` as operações necessárias e mantêm clientes browser sem escrita direta.
+- Define privilégios para `vpn_sentry` e impede leitura/escrita direta de qualquer sessão, convite ou subscription por clientes browser.
 
 - [ ] **Step 1: Escrever casos SQL de segurança e invariantes** em `supabase/tests/monitoring.test.sql`: dono lê metadados; outro membro e `anon` não leem sessões/convites diretamente; admin lê metadados; `vpn_sentry` tem privilégios de persistência; monitoramento inicia falso; ativação exige `monitoring-v2`; sessão não duplica `provider_stream_id`; convite não pode ser reutilizado nem aceito após expiração/revogação/fim da sessão.
 - [ ] **Step 2: Subir o Supabase local e rodar o teste SQL para confirmar falha** com `pnpm dlx supabase@2.119.0 start` e `pnpm dlx supabase@2.119.0 test db`; resultado esperado: falha apontando os objetos/constraints novos ausentes.

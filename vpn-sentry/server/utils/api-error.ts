@@ -5,12 +5,15 @@ import type { ApiError } from '@vpn/contracts'
 const messages = {
   400: ['INVALID_REQUEST', 'Solicitação inválida. Inicie a conexão novamente.'],
   401: ['UNAUTHORIZED', 'Entre na sua conta VPN para continuar.'],
+  403: ['FORBIDDEN', 'Você não tem permissão para acessar este conteúdo.'],
+  404: ['NOT_FOUND', 'O conteúdo solicitado não está disponível.'],
   409: ['CONNECTION_CONFLICT', 'Desconecte o vínculo existente antes de conectar outro canal.'],
+  410: ['GONE', 'Este convite expirou ou já foi utilizado.'],
   503: ['SERVICE_UNAVAILABLE', 'Serviço temporariamente indisponível. Tente novamente.']
 } as const
 
 export class FoundationError extends Error {
-  constructor(public statusCode: 400 | 401 | 409 | 503) {
+  constructor(public statusCode: 400 | 401 | 403 | 404 | 409 | 410 | 503) {
     super(messages[statusCode][1])
   }
 }

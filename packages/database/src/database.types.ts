@@ -34,7 +34,13 @@ export type Database = {
                     "accepted_at"?: string | null,"accepted_by"?: string | null,"created_at"?: string,"expires_at"?: string,"id"?: string,"owner_id"?: string,"revoked_at"?: string | null,"session_id"?: string,"token_hash"?: string
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "access_invites_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "monitoring_sessions"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"foundation_audit": {
                   Row: {
@@ -45,6 +51,19 @@ export type Database = {
                   }
                   Update: {
                     "code"?: string,"connection_id"?: string,"created_at"?: string,"id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"monitoring_sessions": {
+                  Row: {
+                    "category": string | null,"channel_id": string,"created_at": string,"ended_at": string | null,"id": string,"owner_id": string,"provider_stream_id": string,"started_at": string,"title": string
+                  }
+                  Insert: {
+                    "category"?: string | null,"channel_id": string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"owner_id": string,"provider_stream_id": string,"started_at": string,"title": string
+                  }
+                  Update: {
+                    "category"?: string | null,"channel_id"?: string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"owner_id"?: string,"provider_stream_id"?: string,"started_at"?: string,"title"?: string
                   }
                   Relationships: [
                     
@@ -247,25 +266,6 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "city_config"
       referencedColumns: ["slug"]
-    }
-                  ]
-                },"monitoring_sessions": {
-                  Row: {
-                    "category": string | null,"channel_id": string,"created_at": string,"ended_at": string | null,"id": string,"owner_id": string,"provider_stream_id": string,"started_at": string,"title": string
-                  }
-                  Insert: {
-                    "category"?: string | null,"channel_id": string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"owner_id": string,"provider_stream_id": string,"started_at": string,"title": string
-                  }
-                  Update: {
-                    "category"?: string | null,"channel_id"?: string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"owner_id"?: string,"provider_stream_id"?: string,"started_at"?: string,"title"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "monitoring_sessions_channel_id_fkey"
-      columns: ["channel_id"]
-isOneToOne: false
-      referencedRelation: "channels"
-      referencedColumns: ["id"]
     }
                   ]
                 },"posts": {

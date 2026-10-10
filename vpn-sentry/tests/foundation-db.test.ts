@@ -52,7 +52,7 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     await db.exec("UPDATE channels SET monitoring_consent_version='monitoring-v2', monitoring_consented_at=now(), monitoring_enabled=true")
     expect((await db.query('SELECT monitoring_enabled FROM channels')).rows[0]?.monitoring_enabled).toBe(true)
     await db.exec(`
-      INSERT INTO public.monitoring_sessions(id,channel_id,owner_id,provider_stream_id,title,started_at)
+      INSERT INTO private.monitoring_sessions(id,channel_id,owner_id,provider_stream_id,title,started_at)
       VALUES ('30000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','stream-1','Live',now());
       INSERT INTO private.access_invites(session_id,owner_id,token_hash,expires_at)
       VALUES ('30000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','hash-1',now()+interval '1 hour');
@@ -62,9 +62,9 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     const secondAccept = await db.query("UPDATE private.access_invites SET accepted_by='00000000-0000-0000-0000-000000000003',accepted_at=now() WHERE token_hash='hash-1' AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at>now() RETURNING id")
     expect(secondAccept.rows).toHaveLength(0)
     await asUser(1)
-    expect((await db.query('SELECT * FROM monitoring_sessions')).rows).toHaveLength(1)
+    await expect(db.query('SELECT * FROM private.monitoring_sessions')).rejects.toThrow(/permission denied/)
     await db.exec('RESET ROLE; SET ROLE anon;')
-    await expect(db.query('SELECT * FROM monitoring_sessions')).rejects.toThrow(/permission denied/)
+    await expect(db.query('SELECT * FROM private.monitoring_sessions')).rejects.toThrow(/permission denied/)
     await expect(db.query('SELECT * FROM private.access_invites')).rejects.toThrow(/permission denied/)
   } finally { await db.close() }
 }, 30000)

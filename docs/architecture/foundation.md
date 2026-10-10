@@ -65,6 +65,12 @@ Após o prazo de revogação, `canReconnect=true` permite nova autorização com
 
 ## Retenção e exclusão
 
+### Monitoramento privado da Fase 1
+
+O vínculo OAuth usa `monitoring-v1` e não ativa coleta. O dono precisa aceitar `monitoring-v2` separadamente. Enquanto a conexão estiver válida e o consentimento vigente, Sentry processa somente os eventos Twitch `stream.online` e `stream.offline`; guarda ID, título, categoria e horários. Não há player, áudio ou vídeo. A UI declara monitoramento ativo apenas quando as duas inscrições EventSub estão habilitadas e a primeira reconciliação terminou.
+
+Sessões, hashes de convites de uso único, subscriptions e IDs deduplicados ficam em `private`, fora da Data API; somente o papel `vpn_sentry` tem acesso ao banco. Sentry autoriza dono, administrador ou convidado autenticado por sessão, revalidando concessão e sessão ativa a cada leitura. Desativar ou perder a conexão encerra sessões e revoga convites em transação; limpeza de subscriptions remotas é retentada pelo Cron.
+
 | Categoria | Prazo | Executor |
 | --- | --- | --- |
 | Transação OAuth | Até 24 horas após expiração | Worker Sentry |
