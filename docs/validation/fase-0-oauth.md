@@ -144,3 +144,11 @@ Lint e typecheck Sentry passaram após a correção.
 ### Login e comparação remota — 10 de outubro de 2026
 
 Login da CLI Supabase concluído pelo fluxo oficial. Projeto vpn confirmado ACTIVE_HEALTHY, referência zxzigoaddoslkokbzmyc. Worktree vinculado localmente. migration list: 18 versões alinhadas, somente foundation_access e twitch_validation_attempts pendentes. db push --dry-run --skip-vault confirmou as duas, seeds=[] e roles=[]. Consultas SQL de catálogo confirmaram ausência de user_roles/provider_connections/channels/provider_credentials e vpn_sentry; Vault instalado, pg_cron/pg_net ausentes. Nenhuma migration de produto aplicada. Próximo passo preparado: aplicar essas duas migrations no projeto confirmado mediante autorização específica compatível com a restrição do plano original; verificar histórico, objetos e advisors depois da aplicação. Não executar testes com fixtures de escrita no banco de produção.
+
+### Migrations remotas aplicadas — 10 de outubro de 2026
+
+Usuário autorizou explicitamente aplicar as duas migrations no Supabase vpn, ampliando a restrição original do plano somente para esta aplicação. db push --linked --skip-vault --yes aplicou 20261007011841_foundation_access.sql e 20261007124000_twitch_validation_attempts.sql, sem seeds ou roles adicionais. migration list posterior confirmou todas as 20 versões alinhadas. Consultas de catálogo confirmaram RLS em user_roles/provider_connections/channels, coluna last_attempt_at, authenticated sem SELECT nas credenciais e sem UPDATE em provider_connections; vpn_sentry pode atualizar credenciais, mas permanece NOLOGIN. USAGE no schema private para authenticated existe para chamar o helper de RLS; não concede acesso às tabelas privadas.
+
+Advisors remotos security/warn/fail-on-error: exit 0, nenhum ERROR. WARN em public.set_updated_at (search_path mutável) e Auth (proteção contra senhas vazadas desabilitada). Nenhum warning aponta para as novas estruturas. Não alterei função preexistente ou configuração Auth nesta aplicação.
+
+Ainda pendentes: provisionamento de acesso restrito do Sentry e variáveis privadas, previews Sentry/Monitor, callback Twitch remoto, habilitação pg_cron/pg_net e ativação/prova do job remoto, gate de logs OAuth. Nenhum deployment publicado ou job remoto ativado nesta etapa.

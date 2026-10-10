@@ -51,3 +51,7 @@ Plano: docs/superpowers/plans/2026-10-06-fase-0-fundacao.md. Evidências: docs/v
 - Supabase Cron e OAuth reais já têm provas locais. Deployment Sentry/Monitor, migrations/job remotos e ausência de parâmetros OAuth nos logs de hosting ainda não foram comprovados.
 
 Esses fatos devem evitar perguntas repetidas, não substituir verificação ao vivo. Atualizar o registro após novas descobertas e entregas.
+
+## Estado após aplicação autorizada
+
+Em 10 de outubro o usuário autorizou especificamente as duas migrations da fundação no projeto vpn. Aplicadas e verificadas: 20 versões alinhadas, RLS ativa nas três tabelas públicas e browser sem acesso às credenciais. Papel vpn_sentry permanece NOLOGIN; last_attempt_at confirmado. A comparação de duas pendências acima registra o preflight histórico, não o estado posterior. Advisors: nenhum erro, avisos em public.set_updated_at e proteção contra senhas vazadas do Auth. Ainda não há deployment Sentry/Monitor nem job remoto.
