@@ -156,3 +156,15 @@ Ainda pendentes: provisionamento de acesso restrito do Sentry e variáveis priva
 ### Autorização de conclusão — 10 de outubro de 2026
 
 Usuário reiterou a autorização para concluir a Fase 0 e pediu não repetir confirmações gerais. Continuação autorizada: configurar serviços e acesso restrito, publicar previews na equipe Vercel identificada, configurar e provar Cron no Supabase vpn e investigar/resolver logs OAuth. Pedir intervenção somente diante de um bloqueio concreto que exija ação humana ou mudança material de escopo. Esta autorização amplia a restrição original do plano para essas operações. Não autoriza merge das PRs, custos pagos ou promoção automática da branch main.
+
+## Prova remota — domínio personalizado, 10 de outubro de 2026
+
+Monitor e Sentry conectados ao GitHub labafero/vpn na Vercel, Root Directories vpn-monitor e vpn-sentry, branch de produção main. Domínios vpn-monitor.labafero.com e vpn-sentry.labafero.com verificados e vinculados à branch codex/fase-0-fundacao durante a validação; proteção de preview permanece ativa. Previews manuais READY: dpl_46KjxWu47XxUxesGC89gFQeD7WAN e dpl_HF9HvtJZz2MAJT77m1njsSATvwuv. Push posterior gerou checks de deployments automáticos, ainda em andamento nesta consulta.
+
+Conta Twitch VPN_RP e Client ID comparados ao ambiente antes da alteração. Usuário concluiu login VPN e consentimento Twitch no domínio personalizado. Callback retornou 303; UI mostrou canal vpn_rp conectado. Consulta remota confirmou status connected, credencial com ciphertext/iv/tag presentes, validated_at preenchido e monitoring_enabled=false. Não foram exibidos tokens nem alteradas datas para simular elegibilidade do worker.
+
+Endpoint Cron no domínio personalizado respondeu HTTP 200 com segredo próprio e bypass Vercel. URL do Vault atualizada para o domínio personalizado. Prova agendada anterior executou o mesmo comando com HTTP 200; checked=0 é esperado antes da elegibilidade das credenciais recém-validadas. Não equivale a prova de refresh remoto; refresh e revogação real foram comprovados localmente.
+
+Logs consultados pela CLI incluíram callback de teste 401 e callback OAuth real 303. requestPath veio sem query e a string canário não apareceu no registro retornado. Isso comprova a representação consultada, não assegura ausência de parâmetros em todas as superfícies de logs da plataforma; manter essa fronteira explícita no fechamento.
+
+CI geral da PR #4 continua falhando; correção separada do Site permanece na PR #5 e nenhum merge foi realizado. Não declarar entrega integral concluída enquanto os gates finais não estiverem resolvidos e verificados.

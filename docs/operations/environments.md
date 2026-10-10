@@ -23,7 +23,7 @@ CLI 2.119.0 autenticada e worktree vinculado ao projeto vpn, ref zxzigoaddoslkok
 
 RLS ativa nas três tabelas públicas da fundação. Credenciais privadas sem acesso SELECT para authenticated. Papel vpn_sentry LOGIN NOINHERIT, conexão TLS pelo pooler, permissões restritas verificadas. Criptografia e segredos remotos armazenados fora do Git. Advisors sem ERROR; dois WARN preexistentes: search_path de set_updated_at e proteção de senhas vazadas no Auth.
 
-Cron vpn-twitch-validation ativo a cada 30 minutos; URL no Vault atualizada para https://vpn-sentry.labafero.com/api/internal/twitch/validate. Prova agendada temporária executou o mesmo comando com HTTP 200; job temporário removido. Endpoint personalizado também respondeu 200 com credenciais corretas, checked=0, failed=0, deferred=0, expired=0; ainda sem vínculo remoto real nesta consulta.
+Cron vpn-twitch-validation ativo a cada 30 minutos; URL no Vault atualizada para https://vpn-sentry.labafero.com/api/internal/twitch/validate. Prova agendada temporária executou o mesmo comando com HTTP 200; job temporário removido. Endpoint personalizado também respondeu 200 com credenciais corretas, checked=0, failed=0, deferred=0, expired=0; vínculo remoto posteriormente confirmado com credencial criptografada e monitoramento desativado.
 
 Supabase gerencia grants de pg_net e postgres não consegue revogá-los. net está excluído da Data API (406 PGRST106), anon/authenticated são NOLOGIN e todos os papéis LOGIN foram auditados como confiáveis. Não declarar que as filas são inacessíveis a outros logins SQL confiáveis. Consultar docs/validation/twitch-scheduler.md.
 
@@ -33,4 +33,5 @@ Conta VPN_RP e Client ID conferidos contra o .env antes da alteração. Callback
 
 PR #4: fundação, codex/fase-0-fundacao. PR #5: correção separada do Site, codex/vpn-site-checks. Nenhum merge realizado. Workflow obrigatório: docs/workflows/entrega.md. Evidências: docs/validation/fase-0-oauth.md.
 
-OAuth local completo já comprovado. OAuth remoto e inspeção dos parâmetros nos logs ainda em validação. Não declarar Fase 0 concluída antes de registrar os resultados. Login VPN no domínio personalizado confirmado pelo usuário; estado de conexão carregado corretamente.
+OAuth local completo já comprovado. OAuth remoto comprovado com callback 303 e vínculo persistido; CLI de logs retornou requestPath sem query, sem assegurar outras superfícies da plataforma. Não declarar Fase 0 concluída antes de registrar os resultados. Login VPN no domínio personalizado confirmado pelo usuário; estado de conexão carregado corretamente.
+
