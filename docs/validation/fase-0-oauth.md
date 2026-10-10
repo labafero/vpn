@@ -179,3 +179,9 @@ Usuário solicitou explicitamente domínios em produção, sem ambiente adiciona
 
 Auditoria Supabase projeto zxzigoaddoslkokbzmyc, janela 09/10 15h38–10/10 15h38 (America/Sao_Paulo): 28 warnings 01006 de REVOKE pg_net, 1 warning HTTP 406 do teste da Data API, erro 42501 de UPDATE cron.job substituído por cron.alter_job e erro 42703 da consulta diagnóstica p.scopes corrigida. Todos originados nas nossas operações/validações. Auth, PostgREST, Storage, Realtime, Edge Functions, Supavisor, PgBouncer e Compute sem warnings/errors nessa janela; Auth apresentou eventos HTTP 200 do login remoto. Nenhuma evidência de falha da aplicação nessa amostra; não confundir estes logs com os avisos dos advisors.
 Verificação final de produção: Monitor /login HTTP 200, UI autenticada mostra vpn_rp conectado; Sentry sem segredo HTTP 401. Sessão e vínculo preservados após troca do deployment.
+
+## Revisão antes do merge — 10 de outubro de 2026
+
+PR #5 revisada sem achados Critical/Important e merged com autorização do usuário, squash c973abda476935b82c745c45025ddce32f8e12da. Origin/main integrado na branch da fundação. Workflow combinado preserva Supabase local isolado no Build, removendo override das variáveis do repositório introduzido pela correção do Site. Revisão da fundação sem novo blocker de código; CI combinada deve ser verificada.
+
+Gate de logs confirmado como NÃO ATENDIDO: painel Vercel Runtime Logs, detalhe da chamada canário 84grq-1791656818743-4100a4c5aa24, exibe Search Params com code e state contendo F0_LOG_CANARY_20261010. A representação da CLI omitia queries, mas não significa ausência de armazenamento na plataforma. Não abrir o detalhe do callback real para evitar exibir credenciais. PR #4 permanece draft e não merged. Essa evidência impede declarar todos os critérios da fundação atendidos; sanitização dos logs da aplicação não remove os metadados de ingresso da Vercel.

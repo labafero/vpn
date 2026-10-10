@@ -53,9 +53,6 @@ jobs:
           supabase status -o json | jq -r '"NUXT_PUBLIC_SUPABASE_URL=\(.API_URL)\nNUXT_PUBLIC_SUPABASE_KEY=\(.ANON_KEY)"' >> "$GITHUB_ENV"
 
       - name: Build
-        env:
-          NUXT_PUBLIC_SUPABASE_URL: ${{ vars.NUXT_PUBLIC_SUPABASE_URL }}
-          NUXT_PUBLIC_SUPABASE_KEY: ${{ vars.NUXT_PUBLIC_SUPABASE_KEY }}
         run: pnpm build
 
       - name: Stop build database
