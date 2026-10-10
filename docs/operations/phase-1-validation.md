@@ -2,7 +2,7 @@
 
 ## Código e execução local
 
-- Branch: `codex/fase-1-monitoramento-privado` (SHA registrado na PR após push).
+- Branch: `codex/fase-1-monitoramento-privado`, [PR #6](https://github.com/labafero/vpn/pull/6).
 - `pnpm install --frozen-lockfile`: passou; lockfile consistente.
 - `pnpm dlx supabase@2.119.0 db reset --local`: passou; migration `20261010194553` aplicada.
 - `pnpm dlx supabase@2.119.0 test db`: passou; 22 assertions pgTAP em 2 arquivos.
@@ -20,7 +20,7 @@ Testes automatizados cobrem assinatura, replay/ordem EventSub, consentimento, de
 
 | Ambiente | Commit/domínio | Evidência | Reversão | Estado |
 | --- | --- | --- | --- | --- |
-| Preview/CI | A preencher após abertura da PR | CI e preview aguardam execução para o commit publicado | Descartar preview | Pendente |
+| Preview/CI | Head atual da PR #6 | CI `ci` e `foundation-db` verdes; quatro previews Vercel concluídos. Smoke test de interface no preview protegido não executado. | Descartar previews | Build/CI validado; smoke test pendente |
 | Supabase remoto `vpn` | Projeto existente | Migration não aplicada por esta PR | Revisar e aplicar migration reversa | Pendente |
 | Cron remoto | `vpn-sentry.labafero.com` | SQL versionado; job desta fase não agendado | Remover somente `vpn-twitch-reconciliation` | Pendente |
 | Produção | `vpn-monitor.labafero.com` / `vpn-sentry.labafero.com` | Não promovido por esta PR | Processo de entrega após revisão e autorização | Pendente |
