@@ -18,7 +18,11 @@ async function login() {
   try {
     const { error } = await client.auth.signInWithPassword(state)
     if (error) message.value = 'Não foi possível entrar. Confira seu e-mail e senha.'
-    else await navigateTo('/conexao')
+    else {
+      const destination = sessionStorage.getItem('vpn-auth-return')
+      sessionStorage.removeItem('vpn-auth-return')
+      await navigateTo(destination?.startsWith('/') && !destination.startsWith('//') ? destination : '/conexao')
+    }
   } catch { message.value = 'Não foi possível entrar. Tente novamente.' } finally { busy.value = false }
 }
 </script>
