@@ -260,6 +260,117 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+  /channels:
+    get:
+      security: [{ bearerAuth: [] }]
+      operationId: listMonitoringChannels
+      responses:
+        '200':
+          description: Canais monitoráveis
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/MonitoringChannel' } }
+  /channels/{id}/monitoring:
+    patch:
+      security: [{ bearerAuth: [] }]
+      operationId: setChannelMonitoring
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+                consentVersion: { type: string, const: monitoring-v2 }
+                consentAccepted: { type: boolean, const: true }
+      responses:
+        '200':
+          description: Estado de monitoramento atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MonitoringChannel' }
+  /sessions:
+    get:
+      security: [{ bearerAuth: [] }]
+      operationId: listMonitoringSessions
+      parameters:
+        - { name: channelId, in: query, schema: { type: string, format: uuid } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 256 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+      responses:
+        '200':
+          description: Sessões autorizadas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MonitoringSessionPage' }
+  /sessions/{id}:
+    get:
+      security: [{ bearerAuth: [] }]
+      operationId: getMonitoringSession
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Sessão autorizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MonitoringSession' }
+  /sessions/{id}/invites:
+    get:
+      security: [{ bearerAuth: [] }]
+      operationId: listSessionInvites
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Convites sem token
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/AccessInvite' } }
+    post:
+      security: [{ bearerAuth: [] }]
+      operationId: createSessionInvite
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '201':
+          description: Token de uso único
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InviteCreated' }
+  /invites/{id}:
+    delete:
+      security: [{ bearerAuth: [] }]
+      operationId: revokeSessionInvite
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Convite revogado }
+  /invites/accept:
+    post:
+      security: [{ bearerAuth: [] }]
+      operationId: acceptSessionInvite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token]
+              properties:
+                token: { type: string, minLength: 32, maxLength: 128 }
+      responses:
+        '200':
+          description: Convite consumido
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: false, required: [sessionId], properties: { sessionId: { type: string, format: uuid } } }
 components:
   securitySchemes:
     bearerAuth:
@@ -332,7 +443,6 @@ components:
             - revoked
         monitoringEnabled:
           type: boolean
-          const: false
         canReconnect:
           type: boolean
           description: Permite nova autorização com consentimento explícito, sem confirmar revogação remota anterior.
@@ -350,6 +460,56 @@ components:
             - string
             - 'null'
           format: date-time
+    MonitoringChannel:
+      type: object
+      additionalProperties: false
+      required: [id, login, providerUserId, connectionStatus, monitoringEnabled, consentVersion, subscriptionStatus]
+      properties:
+        id: { type: string, format: uuid }
+        login: { type: string }
+        providerUserId: { type: string }
+        connectionStatus: { type: string, enum: [connected, expired, revocation_pending, revoked] }
+        monitoringEnabled: { type: boolean }
+        consentVersion: { type: [string, 'null'] }
+        subscriptionStatus: { type: [string, 'null'], enum: [enabled, pending, error, 'null'] }
+    MonitoringSession:
+      type: object
+      additionalProperties: false
+      required: [id, channelId, streamId, title, category, startedAt, endedAt, canManageInvites]
+      properties:
+        id: { type: string, format: uuid }
+        channelId: { type: string, format: uuid }
+        streamId: { type: string }
+        title: { type: string }
+        category: { type: [string, 'null'] }
+        startedAt: { type: string, format: date-time }
+        endedAt: { type: [string, 'null'], format: date-time }
+        canManageInvites: { type: boolean }
+    MonitoringSessionPage:
+      type: object
+      additionalProperties: false
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/MonitoringSession' } }
+        nextCursor: { type: [string, 'null'] }
+    AccessInvite:
+      type: object
+      additionalProperties: false
+      required: [id, sessionId, expiresAt, createdAt, revokedAt, acceptedAt]
+      properties:
+        id: { type: string, format: uuid }
+        sessionId: { type: string, format: uuid }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        revokedAt: { type: [string, 'null'], format: date-time }
+        acceptedAt: { type: [string, 'null'], format: date-time }
+    InviteCreated:
+      type: object
+      additionalProperties: false
+      required: [invite, token]
+      properties:
+        invite: { $ref: '#/components/schemas/AccessInvite' }
+        token: { type: string }
     HealthResponse:
       type: object
       required:

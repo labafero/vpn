@@ -31,11 +31,12 @@ export type FoundationTransaction = LockedConnection
 
 type Row = {
   id: string; user_id: string; provider_user_id: string; login: string; status: TwitchConnection['status']; consented_at: Date; connected_at: Date; revoked_at: Date | null
+  monitoring_enabled: boolean | null
   ciphertext: string | null; iv: string; tag: string; key_version: string; expires_at: Date; validated_at: Date; retry_until: Date | null
 }
 function mapRow(row: Row): StoredConnection {
   return {
-    connection: { id: row.id, provider: 'twitch', providerUserId: row.provider_user_id, login: row.login, status: row.status, monitoringEnabled: false, canReconnect: row.status === 'revoked' || (row.status === 'revocation_pending' && !row.ciphertext), consentVersion: 'monitoring-v1', consentedAt: row.consented_at.toISOString(), connectedAt: row.connected_at.toISOString(), revokedAt: row.revoked_at?.toISOString() ?? null },
+    connection: { id: row.id, provider: 'twitch', providerUserId: row.provider_user_id, login: row.login, status: row.status, monitoringEnabled: row.monitoring_enabled ?? false, canReconnect: row.status === 'revoked' || (row.status === 'revocation_pending' && !row.ciphertext), consentVersion: 'monitoring-v1', consentedAt: row.consented_at.toISOString(), connectedAt: row.connected_at.toISOString(), revokedAt: row.revoked_at?.toISOString() ?? null },
     credential: row.ciphertext ? { ciphertext: row.ciphertext, iv: row.iv, tag: row.tag, keyVersion: row.key_version, expiresAt: row.expires_at.toISOString(), validatedAt: row.validated_at.toISOString(), retryUntil: row.retry_until?.toISOString() ?? null } : null
   }
 }
@@ -55,8 +56,8 @@ export function getFoundationRepository(): FoundationRepository {
 
   async function readConnection(tx: postgres.Sql | postgres.TransactionSql, userId: string, lock = false): Promise<StoredConnection | null> {
     const rows = await tx<Row[]>`
-      SELECT c.*, k.ciphertext, k.iv, k.tag, k.key_version, k.expires_at, k.validated_at, k.retry_until
-      FROM public.provider_connections c LEFT JOIN private.provider_credentials k ON k.connection_id = c.id
+      SELECT c.*, k.ciphertext, k.iv, k.tag, k.key_version, k.expires_at, k.validated_at, k.retry_until, ch.monitoring_enabled
+      FROM public.provider_connections c LEFT JOIN private.provider_credentials k ON k.connection_id = c.id LEFT JOIN public.channels ch ON ch.connection_id=c.id
       WHERE c.user_id = ${userId} ${lock ? tx`FOR UPDATE OF c` : tx``}
     `
     return rows[0] ? mapRow(rows[0]) : null
@@ -142,6 +143,12 @@ export function getFoundationRepository(): FoundationRepository {
     async cleanAuthorizations(now) { await requireDatabaseRole(); await sql`DELETE FROM private.oauth_transactions WHERE expires_at < ${now}::timestamptz - interval '24 hours'` }
   }
   return repository
+}
+
+export function getFoundationDatabase() {
+  getFoundationRepository()
+  if (!database) throw new FoundationError(503)
+  return database
 }
 
 export async function closePrivateDatabase() {

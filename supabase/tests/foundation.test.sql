@@ -1,6 +1,6 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(9);
+SELECT plan(10);
 INSERT INTO auth.users(id) VALUES ('00000000-0000-0000-0000-000000000001'), ('00000000-0000-0000-0000-000000000002'), ('00000000-0000-0000-0000-000000000003');
 INSERT INTO public.user_roles VALUES ('00000000-0000-0000-0000-000000000003','vpn_admin');
 INSERT INTO public.provider_connections(id,user_id,provider_user_id,login,consent_version,consented_at) VALUES ('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','1','owner','monitoring-v1',now());
@@ -23,6 +23,8 @@ SET LOCAL ROLE anon;
 SELECT throws_ok('SELECT * FROM provider_connections','42501',NULL,'public denied');
 RESET ROLE;
 INSERT INTO public.channels(connection_id,owner_id) VALUES ('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001');
-SELECT throws_ok('UPDATE channels SET monitoring_enabled=true','23514',NULL,'monitoring disabled in foundation');
+SELECT throws_ok('UPDATE channels SET monitoring_enabled=true','23514',NULL,'monitoring requires explicit v2 consent');
+UPDATE channels SET monitoring_consent_version='monitoring-v2',monitoring_consented_at=now(),monitoring_enabled=true;
+SELECT is((SELECT monitoring_enabled FROM channels),true,'monitoring activates with explicit v2 consent');
 SELECT * FROM finish();
 ROLLBACK;

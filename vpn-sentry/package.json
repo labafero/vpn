@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "workers": "node workers/index.mjs",
-    "workers:twitch": "tsx --env-file=.env workers/validate-twitch.mjs"
+    "workers:twitch": "tsx --env-file=.env workers/validate-twitch.mjs",
+    "workers:reconcile": "tsx --env-file=.env workers/reconcile-twitch.mjs"
   },
   "dependencies": {
     "@nuxt/eslint": "^1.15.2",
@@ -20,7 +21,8 @@
     "h3": "1.15.4",
     "nuxt": "^4.4.6",
     "postgres": "3.4.9",
-    "tsx": "4.23.15"
+    "tsx": "4.23.15",
+    "valibot": "^1.4.1"
   },
   "devDependencies": {
     "eslint": "^10.4.0",

@@ -21,12 +21,14 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     `)
     const migration = readdirSync('supabase/migrations').find(name => name.endsWith('_foundation_access.sql'))!
     await db.exec(readFileSync(`supabase/migrations/${migration}`, 'utf8'))
+    const monitoringMigration = readdirSync('supabase/migrations').find(name => name.endsWith('_fase_1_monitoramento_privado.sql'))!
+    await db.exec(readFileSync(`supabase/migrations/${monitoringMigration}`, 'utf8'))
     await db.exec(`
       INSERT INTO public.user_roles VALUES ('00000000-0000-0000-0000-000000000003', 'vpn_admin');
       INSERT INTO public.provider_connections(id,user_id,provider_user_id,login,consent_version,consented_at) VALUES
       ('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','twitch-1','owner','monitoring-v1',now());
-      INSERT INTO public.channels(connection_id,owner_id) VALUES
-      ('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001');
+      INSERT INTO public.channels(id,connection_id,owner_id) VALUES
+      ('20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001');
     `)
     async function asUser(id: number) {
       await db.exec(`RESET ROLE; SET request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000${id}'; SET ROLE authenticated;`)
@@ -47,5 +49,22 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     await expect(db.query('SELECT * FROM provider_connections')).rejects.toThrow(/permission denied/)
     await db.exec('RESET ROLE;')
     await expect(db.exec('UPDATE channels SET monitoring_enabled=true')).rejects.toThrow(/check constraint/)
+    await db.exec("UPDATE channels SET monitoring_consent_version='monitoring-v2', monitoring_consented_at=now(), monitoring_enabled=true")
+    expect((await db.query('SELECT monitoring_enabled FROM channels')).rows[0]?.monitoring_enabled).toBe(true)
+    await db.exec(`
+      INSERT INTO private.monitoring_sessions(id,channel_id,owner_id,provider_stream_id,title,started_at)
+      VALUES ('30000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','stream-1','Live',now());
+      INSERT INTO private.access_invites(session_id,owner_id,token_hash,expires_at)
+      VALUES ('30000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','hash-1',now()+interval '1 hour');
+      UPDATE private.access_invites SET accepted_by='00000000-0000-0000-0000-000000000002',accepted_at=now()
+      WHERE token_hash='hash-1' AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at>now();
+    `)
+    const secondAccept = await db.query("UPDATE private.access_invites SET accepted_by='00000000-0000-0000-0000-000000000003',accepted_at=now() WHERE token_hash='hash-1' AND accepted_at IS NULL AND revoked_at IS NULL AND expires_at>now() RETURNING id")
+    expect(secondAccept.rows).toHaveLength(0)
+    await asUser(1)
+    await expect(db.query('SELECT * FROM private.monitoring_sessions')).rejects.toThrow(/permission denied/)
+    await db.exec('RESET ROLE; SET ROLE anon;')
+    await expect(db.query('SELECT * FROM private.monitoring_sessions')).rejects.toThrow(/permission denied/)
+    await expect(db.query('SELECT * FROM private.access_invites')).rejects.toThrow(/permission denied/)
   } finally { await db.close() }
 }, 30000)

@@ -39,3 +39,9 @@ test('rejectsSecretsInConnectionSchema', () => {
   expect(document).toContain('TwitchConnection:')
   expect(check(document.replaceAll('providerUserId', 'access_token')).status).not.toBe(0)
 })
+test('defines the private monitoring and invitation contract', () => {
+  expect(check(document).status).toBe(0)
+  for (const operation of ['/channels:', '/channels/{id}/monitoring:', '/sessions:', '/sessions/{id}:', '/sessions/{id}/invites:', '/invites/{id}:', '/invites/accept:']) expect(document).toContain(operation)
+  expect(document).toContain('additionalProperties: false')
+  expect(document).not.toContain('token_hash')
+})
