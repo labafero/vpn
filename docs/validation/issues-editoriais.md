@@ -91,3 +91,5 @@ Antes de migrar remotamente: revalidar conta/projeto registrado em `docs/operati
 Preview precisa de banco isolado com migrations/membros/fixtures compatíveis. Provar fluxo no destino real, executar CI e decidir merge separadamente. Sucesso local não substitui prova remota. Issues continuam abertas até entrega validada.
 
 Rollback da UI: reverter interfaces e retirar stocks do ticker, preservando catálogo/snapshots/registros/notas. Se RLS bloquear usuários previstos, corrigir associação aprovada por operação administrativa; não reabrir acesso a todo autenticado. Rollback de banco exige operação revisada e preservação de dados, sem drops automáticos. Cascade de relações é destrutivo; operações remotas sobre registros exigem backup.
+
+Limpeza: servidor de produção local encerrado depois da aceitação. A remoção dos dois diretórios temporários de ledger em `.superpowers/sdd` foi rejeitada automaticamente como `blocked by policy`; permanecem ignorados, sem afetar o código. Não tentar contornar o bloqueio. Worktree preservado para a decisão de integração. Parada do projeto Supabase isolado executada separadamente, preservando os dados locais.
