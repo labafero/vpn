@@ -249,6 +249,31 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"db_record_relations": {
+                  Row: {
+                    "created_at": string,"created_by": string,"id": number,"kind": string,"source_id": number,"target_id": number
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string,"id"?: never,"kind": string,"source_id": number,"target_id": number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"id"?: never,"kind"?: string,"source_id"?: number,"target_id"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "db_record_relations_source_id_fkey"
+      columns: ["source_id"]
+isOneToOne: false
+      referencedRelation: "db_records"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "db_record_relations_target_id_fkey"
+      columns: ["target_id"]
+isOneToOne: false
+      referencedRelation: "db_records"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"db_records": {
                   Row: {
                     "cidade": string | null,"created_at": string,"created_by": string,"dados": NonNullable<Json>,"id": number,"nome": string,"type": string,"updated_at": string
@@ -415,7 +440,15 @@ isOneToOne: false
         to: "market_items"
         isOneToOne: true
         isSetofReturn: false
-      } }
+      } },
+"get_overlay_market_values":
+{ Args: { "p_broadcaster_id": string,"p_cidade"?: string }; Returns: {
+              "amount": number,"cidade": string,"created_at": string,"id": number,"item_id": number,"item_name": string,"trend": string
+            }[]
+                           },
+"valid_record_data":
+{ Args: { "data": Json }; Returns: boolean
+                           }
           }
           Enums: {
             [_ in never]: never
