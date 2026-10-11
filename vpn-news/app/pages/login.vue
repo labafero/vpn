@@ -18,6 +18,7 @@ const state = reactive({
 
 const toast = useToast();
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   const { error } = await supabase.auth.signInWithPassword({
@@ -31,7 +32,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     return;
   }
 
-  navigateTo("/redacao");
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  if (claimsError || !claimsData?.claims) {
+    toast.add({ title: "Não foi possível confirmar sua sessão. Tente novamente.", color: "error" });
+    return;
+  }
+  user.value = claimsData.claims;
+  await navigateTo("/redacao");
 }
 </script>
 

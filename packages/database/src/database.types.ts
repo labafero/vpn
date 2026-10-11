@@ -2,7 +2,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  
+
   "graphql_public": {
           Tables: {
             [_ in never]: never
@@ -53,7 +53,7 @@ isOneToOne: false
                     "code"?: string,"connection_id"?: string,"created_at"?: string,"id"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"monitoring_sessions": {
                   Row: {
@@ -66,7 +66,7 @@ isOneToOne: false
                     "category"?: string | null,"channel_id"?: string,"created_at"?: string,"ended_at"?: string | null,"id"?: string,"owner_id"?: string,"provider_stream_id"?: string,"started_at"?: string,"title"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"oauth_transactions": {
                   Row: {
@@ -79,7 +79,7 @@ isOneToOne: false
                     "browser_nonce_hash"?: string,"consent_version"?: string,"consumed_at"?: string | null,"expires_at"?: string,"state_hash"?: string,"user_id"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"provider_credentials": {
                   Row: {
@@ -92,7 +92,7 @@ isOneToOne: false
                     "ciphertext"?: string,"connection_id"?: string,"expires_at"?: string,"iv"?: string,"key_version"?: string,"last_attempt_at"?: string | null,"retry_until"?: string | null,"tag"?: string,"validated_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"twitch_eventsub_messages": {
                   Row: {
@@ -105,7 +105,7 @@ isOneToOne: false
                     "message_id"?: string,"message_type"?: string,"received_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"twitch_eventsub_subscriptions": {
                   Row: {
@@ -118,7 +118,7 @@ isOneToOne: false
                     "channel_id"?: string,"event_type"?: string,"id"?: string,"last_error_code"?: string | null,"status"?: string,"subscription_id"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 }
           }
@@ -209,7 +209,7 @@ isOneToOne: false
                     "cidade_nome"?: string,"cor_primaria"?: string,"created_at"?: string | null,"id"?: never,"jornal_nome"?: string,"jornal_sigla"?: string,"logo_url"?: string | null,"slug"?: string,"updated_at"?: string | null
                   }
                   Relationships: [
-                    
+
                   ]
                 },"city_seasons": {
                   Row: {
@@ -249,6 +249,31 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"db_record_relations": {
+                  Row: {
+                    "created_at": string,"created_by": string,"id": number,"kind": string,"source_id": number,"target_id": number
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string,"id"?: never,"kind": string,"source_id": number,"target_id": number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"id"?: never,"kind"?: string,"source_id"?: number,"target_id"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "db_record_relations_source_id_fkey"
+      columns: ["source_id"]
+isOneToOne: false
+      referencedRelation: "db_records"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "db_record_relations_target_id_fkey"
+      columns: ["target_id"]
+isOneToOne: false
+      referencedRelation: "db_records"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"db_records": {
                   Row: {
                     "cidade": string | null,"created_at": string,"created_by": string,"dados": NonNullable<Json>,"id": number,"nome": string,"type": string,"updated_at": string
@@ -266,6 +291,57 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "city_config"
       referencedColumns: ["slug"]
+    }
+                  ]
+                },"editorial_members": {
+                  Row: {
+                    "created_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"market_items": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": number,"name": string,"normalized_name": string | null
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: never,"name": string,"normalized_name"?: never
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: never,"name"?: string,"normalized_name"?: never
+                  }
+                  Relationships: [
+
+                  ]
+                },"market_values": {
+                  Row: {
+                    "amount": number,"cidade": string,"created_at": string,"id": number,"item_id": number,"user_id": string
+                  }
+                  Insert: {
+                    "amount": number,"cidade": string,"created_at"?: string,"id"?: never,"item_id": number,"user_id"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"cidade"?: string,"created_at"?: string,"id"?: never,"item_id"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "market_values_cidade_fkey"
+      columns: ["cidade"]
+isOneToOne: false
+      referencedRelation: "city_config"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "market_values_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+      referencedRelation: "market_items"
+      referencedColumns: ["id"]
     }
                   ]
                 },"posts": {
@@ -298,7 +374,7 @@ isOneToOne: false
                     "connected_at"?: string,"consent_version"?: string,"consented_at"?: string,"id"?: string,"login"?: string,"provider"?: string,"provider_user_id"?: string,"revoked_at"?: string | null,"status"?: string,"user_id"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"server_clock": {
                   Row: {
@@ -311,7 +387,7 @@ isOneToOne: false
                     "brt_reference"?: string,"id"?: number,"ls_hours"?: number,"ls_minutes"?: number,"updated_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"user_roles": {
                   Row: {
@@ -324,15 +400,55 @@ isOneToOne: false
                     "role"?: string,"user_id"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 }
           }
           Views: {
-            [_ in never]: never
+            "market_values_latest": {
+                  Row: {
+                    "amount": number | null,"cidade": string | null,"created_at": string | null,"id": number | null,"item_id": number | null,"user_id": string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "market_values_cidade_fkey"
+      columns: ["cidade"]
+isOneToOne: false
+      referencedRelation: "city_config"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "market_values_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+      referencedRelation: "market_items"
+      referencedColumns: ["id"]
+    }
+                  ]
+                }
           }
           Functions: {
-            [_ in never]: never
+            "find_or_create_market_item":
+{ Args: { "p_name": string }; Returns: {
+              "created_at": string,
+"created_by": string | null,
+"id": number,
+"name": string,
+"normalized_name": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "market_items"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"get_overlay_market_values":
+{ Args: { "p_broadcaster_id": string,"p_cidade"?: string }; Returns: {
+              "amount": number,"cidade": string,"created_at": string,"id": number,"item_id": number,"item_name": string,"trend": string
+            }[]
+                           },
+"valid_record_data":
+{ Args: { "data": Json }; Returns: boolean
+                           }
           }
           Enums: {
             [_ in never]: never
@@ -451,15 +567,15 @@ export type CompositeTypes<
 export const Constants = {
   "graphql_public": {
           Enums: {
-            
+
           }
         },"private": {
           Enums: {
-            
+
           }
         },"public": {
           Enums: {
-            
+
           }
         }
 } as const
