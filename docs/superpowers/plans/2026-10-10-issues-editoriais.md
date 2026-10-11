@@ -15,10 +15,10 @@ Os planos de monitoramento Fase 0/1 permanecem separados. Não criar novos servi
 
 Regra já confirmada: Base compartilhada entre autorizados da redação. Propostas a revisar: valores por broadcaster; sem cidade, último valor por item entre cidades com identificação de origem; leitura pública de preços como antes; catálogo global com oito nomes sem preços; Base com tipos atuais, relações direcionadas e três exportações CSV; associação editorial administrada fora da UI neste lote.
 
-Planejamento autorizado pelo usuário. Implementação, atribuição de membros editoriais, push/preview, merge, migrations remotas e produção não receberam autorização neste pedido. Este registro preserva as propostas concretas para revisão; não marca nenhuma issue concluída.
+Planos e implementação local aprovados pelo usuário em 10/10/2026. Atribuição de membros editoriais reais, push/preview, merge, migrations remotas e produção continuam sem autorização. A execução local está registrada em `docs/validation/issues-editoriais.md`; nenhuma issue remota foi fechada.
 
 ## Verificação e entrega
 
-A CI atual possui Vitest e pgTAP, além de lint → typecheck → build; instruções antigas sobre ausência de testes estão desatualizadas. Ampliar suite existente para `vpn-news/tests`, sem remover checks. Rodar `pnpm lint`, `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:foundation`, `pnpm dlx supabase@2.119.0 test db` e `pnpm build` com Supabase local/configuração pública de build. Nenhum desses checks foi executado para código de produto neste planejamento.
+A CI atual possui Vitest e pgTAP, além de lint → typecheck → build; instruções antigas sobre ausência de testes estão desatualizadas. Ampliar suite existente para `vpn-news/tests`, sem remover checks. Rodar `pnpm lint`, `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:foundation`, `pnpm dlx supabase@2.119.0 test db` e `pnpm build` com Supabase local/configuração pública de build. Os resultados da execução estão no registro de validação.
 
 Na execução, criar `docs/validation/issues-editoriais.md` com autorizações, commit/worktree/PR, evidências locais/preview/remotas, pendências e reversão por entrega. Não fechar issues apenas com UI pronta se banco, RLS ou prova de fluxo ainda estiverem pendentes. Estratégia sugerida: execução direta nesta sessão após revisão, dada a dependência do modelo e das políticas; delegação apenas se escolhida pelo usuário.

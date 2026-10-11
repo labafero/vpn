@@ -1,6 +1,6 @@
 # Base de Dados — proposta para issue #3
 
-Status: proposta para revisão; regra de compartilhamento confirmada pelo usuário em 10/10/2026. Sem autorização de implementação ou produção.
+Status: design e implementação local aprovados pelo usuário em 10/10/2026. Produção e operações remotas exigem autorização separada. Evidências em `docs/validation/issues-editoriais.md`.
 
 Issue: https://github.com/labafero/vpn/issues/3.
 

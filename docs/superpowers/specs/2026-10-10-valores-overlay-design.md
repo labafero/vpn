@@ -1,6 +1,6 @@
 # Valores e overlay — proposta para issues #1 e #2
 
-Status: proposta para revisão; planejamento autorizado, implementação e produção ainda não autorizadas.
+Status: design e implementação local aprovados pelo usuário em 10/10/2026. Produção e operações remotas exigem autorização separada. Evidências em `docs/validation/issues-editoriais.md`.
 
 ## Objetivo e contexto verificado
 
