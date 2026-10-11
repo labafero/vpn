@@ -5,14 +5,18 @@ function getSupabaseConfig() {
   if (!url || !key) {
     throw createError({
       statusCode: 503,
-      statusMessage: "NUXT_PUBLIC_SUPABASE_URL e NUXT_PUBLIC_SUPABASE_KEY são obrigatórias no Sentry",
+      statusMessage:
+        'NUXT_PUBLIC_SUPABASE_URL e NUXT_PUBLIC_SUPABASE_KEY são obrigatórias no Sentry'
     })
   }
 
-  return { url: url.replace(/\/$/, ""), key }
+  return { url: url.replace(/\/$/, ''), key }
 }
 
-export async function querySupabase<T>(resource: string, params: Record<string, string>): Promise<{ data: T }> {
+export async function querySupabase<T>(
+  resource: string,
+  params: Record<string, string>
+): Promise<{ data: T }> {
   const { url, key } = getSupabaseConfig()
   const endpoint = new URL(`/rest/v1/${resource}`, url)
 
@@ -21,14 +25,14 @@ export async function querySupabase<T>(resource: string, params: Record<string, 
   const response = await fetch(endpoint.toString(), {
     headers: {
       apikey: key,
-      Authorization: `Bearer ${key}`,
-    },
+      Authorization: `Bearer ${key}`
+    }
   })
 
   if (!response.ok) {
     throw createError({
       statusCode: 502,
-      statusMessage: `Supabase respondeu ${response.status}`,
+      statusMessage: `Supabase respondeu ${response.status}`
     })
   }
 

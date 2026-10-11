@@ -1,57 +1,57 @@
 <script setup lang="ts">
-import { normalizarCidadeSlug } from "~/utils/cidadeColors";
+import { normalizarCidadeSlug } from '~/utils/cidadeColors'
 
-definePageMeta({ middleware: "auth", layout: "default" });
+definePageMeta({ middleware: 'auth', layout: 'default' })
 
-const supabase = useSupabaseClient();
-const user = useSupabaseUser();
-const router = useRouter();
-const { uploadFile, validateFile } = usePostMedia();
-const { getActiveSeason } = useCidadeConfig();
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+const router = useRouter()
+const { uploadFile, validateFile } = usePostMedia()
+const { getActiveSeason } = useCidadeConfig()
 
-const postFormRef = ref<{ setSubmitting: (v: boolean) => void } | null>(null);
+const postFormRef = ref<{ setSubmitting: (v: boolean) => void } | null>(null)
 
 async function handleSubmit(data: {
-  title: string;
-  body: string;
-  cidade: string;
-  coverFile: File | null;
-  mediaFile: File | null;
-  removeCover: boolean;
-  removeMedia: boolean;
-  destaque: boolean;
-  publishedAt: string;
+  title: string
+  body: string
+  cidade: string
+  coverFile: File | null
+  mediaFile: File | null
+  removeCover: boolean
+  removeMedia: boolean
+  destaque: boolean
+  publishedAt: string
 }) {
-  const userId = user.value?.sub;
-  if (!userId) throw new Error("Usuário não autenticado");
+  const userId = user.value?.sub
+  if (!userId) throw new Error('Usuário não autenticado')
 
-  const cidade = normalizarCidadeSlug(data.cidade);
-  const activeSeason = await getActiveSeason(cidade);
+  const cidade = normalizarCidadeSlug(data.cidade)
+  const activeSeason = await getActiveSeason(cidade)
 
-  let coverUrl = "";
-  let mediaUrl: string | null = null;
-  let mediaType: "audio" | "video" | null = null;
+  let coverUrl = ''
+  let mediaUrl: string | null = null
+  let mediaType: 'audio' | 'video' | null = null
 
   if (data.coverFile) {
-    const err = validateFile(data.coverFile, "cover");
+    const err = validateFile(data.coverFile, 'cover')
     if (err) {
-      postFormRef.value?.setSubmitting(false);
-      return;
+      postFormRef.value?.setSubmitting(false)
+      return
     }
-    coverUrl = await uploadFile(data.coverFile, userId);
+    coverUrl = await uploadFile(data.coverFile, userId)
   }
 
   if (data.mediaFile) {
-    const err = validateFile(data.mediaFile, "media");
+    const err = validateFile(data.mediaFile, 'media')
     if (err) {
-      postFormRef.value?.setSubmitting(false);
-      return;
+      postFormRef.value?.setSubmitting(false)
+      return
     }
-    mediaUrl = await uploadFile(data.mediaFile, userId);
-    mediaType = data.mediaFile.type.startsWith("video/") ? "video" : "audio";
+    mediaUrl = await uploadFile(data.mediaFile, userId)
+    mediaType = data.mediaFile.type.startsWith('video/') ? 'video' : 'audio'
   }
 
-  const { error } = await supabase.from("posts").insert({
+  const { error } = await supabase.from('posts').insert({
     title: data.title,
     body: data.body,
     cidade,
@@ -61,27 +61,30 @@ async function handleSubmit(data: {
     media_type: mediaType,
     destaque: data.destaque,
     published_at: data.publishedAt || new Date().toISOString(),
-    user_id: userId,
-  });
+    user_id: userId
+  })
 
   if (error) {
-    postFormRef.value?.setSubmitting(false);
-    return;
+    postFormRef.value?.setSubmitting(false)
+    return
   }
 
-  router.push("/redacao");
+  router.push('/redacao')
 }
 </script>
 
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Novo Post"> </UDashboardNavbar>
+      <UDashboardNavbar title="Novo Post"></UDashboardNavbar>
     </template>
 
     <template #body>
       <div class="min-w-0">
-        <PostForm ref="postFormRef" @submit="handleSubmit" />
+        <PostForm
+          ref="postFormRef"
+          @submit="handleSubmit"
+        />
       </div>
     </template>
   </UDashboardPanel>

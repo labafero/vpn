@@ -1,1 +1,1 @@
-console.log("VPN Sentry workers ready")
+console.log('VPN Sentry workers ready')

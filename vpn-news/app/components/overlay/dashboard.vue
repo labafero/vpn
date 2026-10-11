@@ -8,5 +8,5 @@
 </template>
 
 <script lang="ts" setup>
-const { cor } = useOverlayState();
+const { cor } = useOverlayState()
 </script>

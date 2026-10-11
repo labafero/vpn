@@ -1,35 +1,37 @@
 <script setup>
-import { pt_br } from "@nuxt/ui/locale";
+import { pt_br } from '@nuxt/ui/locale'
 
 useHead({
-  meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
+  meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   link: [
-    { rel: "icon", type: "image/svg+xml", href: "/vpn-icon.svg" },
-    { rel: "apple-touch-icon", href: "/vpn-icon.svg" },
-    { rel: "manifest", href: "/site.webmanifest" },
+    { rel: 'icon', type: 'image/svg+xml', href: '/vpn-icon.svg' },
+    { rel: 'apple-touch-icon', href: '/vpn-icon.svg' },
+    { rel: 'manifest', href: '/site.webmanifest' }
   ],
   htmlAttrs: {
-    lang: "pt-BR",
-  },
-});
+    lang: 'pt-BR'
+  }
+})
 
-const title = "VPN Roleplay";
+const title = 'VPN Roleplay'
 
 useSeoMeta({
   title,
   ogTitle: title,
-  ogImage: "/vpn-icon.svg",
-  twitterCard: "summary_large_image",
-});
+  ogImage: '/vpn-icon.svg',
+  twitterCard: 'summary_large_image'
+})
 
-const colorMode = useColorMode();
+const colorMode = useColorMode()
 
 useHead({
-  meta: [{
-    name: "theme-color",
-    content: () => colorMode.value === "dark" ? "#1b1718" : "white",
-  }],
-});
+  meta: [
+    {
+      name: 'theme-color',
+      content: () => (colorMode.value === 'dark' ? '#1b1718' : 'white')
+    }
+  ]
+})
 </script>
 
 <template>

@@ -8,7 +8,12 @@ export function useMarketItems() {
   const items = ref<MarketItem[]>([])
   async function fetchItems() {
     const rows = await collectKeysetPages(async (cursor, limit) => {
-      const { data, error } = await client.from('market_items').select('*').gt('id', cursor).order('id').limit(limit)
+      const { data, error } = await client
+        .from('market_items')
+        .select('*')
+        .gt('id', cursor)
+        .order('id')
+        .limit(limit)
       if (error) throw error
       return data ?? []
     })

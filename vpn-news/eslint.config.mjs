@@ -1,10 +1,4 @@
-import withNuxt from "./.nuxt/eslint.config.mjs";
-import eslintConfigPrettier from "eslint-config-prettier/flat";
+import withNuxt from './.nuxt/eslint.config.mjs'
+import prettier from 'eslint-config-prettier/flat'
 
-export default withNuxt({
-  ...eslintConfigPrettier,
-  rules: {
-    ...(eslintConfigPrettier.rules || {}),
-    "vue/no-multiple-template-root": "off",
-  },
-});
+export default withNuxt({ rules: { 'vue/no-multiple-template-root': 'off' } }, prettier)

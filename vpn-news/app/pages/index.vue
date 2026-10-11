@@ -1,64 +1,62 @@
 <script setup lang="ts">
-import { normalizarCidadeSlug } from "~/utils/cidadeColors";
+import { normalizarCidadeSlug } from '~/utils/cidadeColors'
 
-definePageMeta({ layout: "auth" });
+definePageMeta({ layout: 'auth' })
 
-const supabase = useSupabaseClient();
+const supabase = useSupabaseClient()
 
 type Post = {
-  id: number;
-  title: string;
-  body: string;
-  cidade: string;
-  cover_url: string;
-  media_url: string | null;
-  media_type: "audio" | "video" | null;
-  destaque: boolean;
-  user_id: string;
-  created_at: string;
-  published_at: string;
-};
+  id: number
+  title: string
+  body: string
+  cidade: string
+  cover_url: string
+  media_url: string | null
+  media_type: 'audio' | 'video' | null
+  destaque: boolean
+  user_id: string
+  created_at: string
+  published_at: string
+}
 
-const posts = ref<Post[]>([]);
-const loading = ref(true);
+const posts = ref<Post[]>([])
+const loading = ref(true)
 
 onMounted(async () => {
   const { data } = await supabase
-    .from("posts")
-    .select("*")
-    .order("published_at", { ascending: false });
+    .from('posts')
+    .select('*')
+    .order('published_at', { ascending: false })
 
-  if (data) posts.value = data as Post[];
-  loading.value = false;
-});
+  if (data) posts.value = data as Post[]
+  loading.value = false
+})
 
-const destaques = computed(() => posts.value.filter((p) => p.destaque));
-const normais = computed(() => posts.value.filter((p) => !p.destaque));
+const destaques = computed(() => posts.value.filter((p) => p.destaque))
+const normais = computed(() => posts.value.filter((p) => !p.destaque))
 
 const cidades = computed(() => {
-  const set = new Set(posts.value.map((p) => p.cidade).filter(Boolean));
-  return [...set] as string[];
-});
+  const set = new Set(posts.value.map((p) => p.cidade).filter(Boolean))
+  return [...set] as string[]
+})
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  })
 }
-
 </script>
 
 <template>
-  <div id="inicio" class="min-h-screen bg-zinc-950 text-white">
+  <div
+    id="inicio"
+    class="min-h-screen bg-zinc-950 text-white"
+  >
     <!-- Sticky header -->
-    <header
-      class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600"
-    >
-      <div
-        class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between"
-      >
+    <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600">
+      <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <span class="font-bold text-base tracking-tight">
           <span class="text-red-500">VPN</span>
         </span>
@@ -90,17 +88,28 @@ function formatDate(iso: string) {
       <USkeleton class="h-64 sm:h-96 w-full rounded-none" />
       <div class="max-w-5xl mx-auto px-4 py-6">
         <div class="flex gap-2 overflow-hidden mb-6">
-          <USkeleton v-for="i in 4" :key="i" class="h-8 w-24 rounded-full" />
+          <USkeleton
+            v-for="i in 4"
+            :key="i"
+            class="h-8 w-24 rounded-full"
+          />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <USkeleton v-for="i in 6" :key="i" class="h-56 rounded-xl" />
+          <USkeleton
+            v-for="i in 6"
+            :key="i"
+            class="h-56 rounded-xl"
+          />
         </div>
       </div>
     </template>
 
     <template v-else>
       <!-- Hero slider -->
-      <div v-if="destaques.length > 0" class="h-64 sm:h-96">
+      <div
+        v-if="destaques.length > 0"
+        class="h-64 sm:h-96"
+      >
         <PostSlider
           responsive
           :posts="destaques"
@@ -115,7 +124,13 @@ function formatDate(iso: string) {
           class="flex gap-2 overflow-x-auto pb-3 mb-6"
           style="scrollbar-width: none"
         >
-          <UButton to="/" color="neutral" variant="solid">Todas</UButton>
+          <UButton
+            to="/"
+            color="neutral"
+            variant="solid"
+          >
+            Todas
+          </UButton>
           <UButton
             v-for="cidade in cidades"
             :key="cidade"
@@ -154,7 +169,10 @@ function formatDate(iso: string) {
                 v-else
                 class="w-full h-full flex items-center justify-center text-zinc-700"
               >
-                <UIcon name="lucide:newspaper" class="w-8 h-8" />
+                <UIcon
+                  name="lucide:newspaper"
+                  class="w-8 h-8"
+                />
               </div>
             </div>
 
@@ -187,9 +205,7 @@ function formatDate(iso: string) {
                 {{ post.body }}
               </p>
 
-              <div
-                class="mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-500"
-              >
+              <div class="mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-500">
                 {{ formatDate(post.published_at) }}
               </div>
 

@@ -10,19 +10,22 @@ const pillars = [
   {
     eyebrow: '01 / CIDADE VIVA',
     title: 'Cada esquina tem uma história.',
-    description: 'Personagens, bairros e acontecimentos que continuam se movendo mesmo quando você fecha o jogo.',
+    description:
+      'Personagens, bairros e acontecimentos que continuam se movendo mesmo quando você fecha o jogo.',
     icon: 'i-lucide-map'
   },
   {
     eyebrow: '02 / LIVE FEED',
     title: 'O que acontece vira notícia.',
-    description: 'Acompanhe os fatos, as vozes e as versões que disputam espaço no noticiário da VPN.',
+    description:
+      'Acompanhe os fatos, as vozes e as versões que disputam espaço no noticiário da VPN.',
     icon: 'i-lucide-radio-tower'
   },
   {
     eyebrow: '03 / SEU PAPEL',
     title: 'Você não assiste à história.',
-    description: 'Escolha seu caminho, crie seus vínculos e deixe sua marca no universo compartilhado.',
+    description:
+      'Escolha seu caminho, crie seus vínculos e deixe sua marca no universo compartilhado.',
     icon: 'i-lucide-fingerprint'
   }
 ]
@@ -31,13 +34,17 @@ const pillars = [
 <template>
   <div class="min-h-screen overflow-hidden bg-[#05090c] text-white">
     <header class="relative z-20 border-b border-white/10 bg-[#05090c]/80 backdrop-blur-md">
-      <UContainer class="flex min-h-16 items-center justify-between gap-3 py-3 sm:h-20 sm:gap-8 sm:py-0">
+      <UContainer
+        class="flex min-h-16 items-center justify-between gap-3 py-3 sm:h-20 sm:gap-8 sm:py-0"
+      >
         <NuxtLink
           to="/"
           aria-label="VPN Roleplay — início"
           class="group flex min-w-0 items-center gap-2 sm:gap-3"
         >
-          <span class="grid size-10 place-items-center rounded-xl bg-[#ed1c24] shadow-[0_0_28px_rgba(237,28,36,0.26)] transition-transform group-hover:scale-105">
+          <span
+            class="grid size-10 place-items-center rounded-xl bg-[#ed1c24] shadow-[0_0_28px_rgba(237,28,36,0.26)] transition-transform group-hover:scale-105"
+          >
             <svg
               viewBox="0 0 512 512"
               aria-hidden="true"
@@ -71,7 +78,12 @@ const pillars = [
               />
             </svg>
           </span>
-          <span class="text-xs font-semibold tracking-[0.12em] text-white sm:text-sm sm:tracking-[0.22em]">VPN <span class="text-white/45">ROLEPLAY</span></span>
+          <span
+            class="text-xs font-semibold tracking-[0.12em] text-white sm:text-sm sm:tracking-[0.22em]"
+          >
+            VPN
+            <span class="text-white/45">ROLEPLAY</span>
+          </span>
         </NuxtLink>
 
         <nav
@@ -83,7 +95,9 @@ const pillars = [
             :key="item.label"
             :href="item.to"
             class="text-sm text-white/55 transition-colors hover:text-white"
-          >{{ item.label }}</a>
+          >
+            {{ item.label }}
+          </a>
         </nav>
 
         <UButton
@@ -118,7 +132,9 @@ const pillars = [
           :href="item.to"
           class="flex min-h-11 items-center text-white/80"
           @click="menuOpen = false"
-        >{{ item.label }}</a>
+        >
+          {{ item.label }}
+        </a>
       </nav>
     </header>
 
@@ -140,21 +156,29 @@ const pillars = [
         <UContainer class="relative w-full py-12 sm:py-24 lg:py-32">
           <div class="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr]">
             <div class="max-w-3xl">
-              <div class="mb-8 flex items-center gap-3 text-[11px] font-semibold tracking-[0.28em] text-[#ff6468]">
+              <div
+                class="mb-8 flex items-center gap-3 text-[11px] font-semibold tracking-[0.28em] text-[#ff6468]"
+              >
                 <span
                   class="vpn-pulse size-2 rounded-full bg-[#ed1c24] shadow-[0_0_18px_#ed1c24]"
                   aria-hidden="true"
                 />
                 UNIVERSO ONLINE
               </div>
-              <h1 class="max-w-4xl text-5xl font-semibold leading-[0.95] tracking-[-0.055em] text-white sm:text-7xl lg:text-8xl">
-                A cidade<br>
+              <h1
+                class="max-w-4xl text-5xl font-semibold leading-[0.95] tracking-[-0.055em] text-white sm:text-7xl lg:text-8xl"
+              >
+                A cidade
+                <br />
                 <span class="text-[#ed1c24]">nunca dorme.</span>
               </h1>
               <p class="mt-8 max-w-xl text-lg leading-8 text-white/55 sm:text-xl">
-                VPN Roleplay é um universo vivo de histórias, personagens e notícias. Entre na cidade e descubra o que está acontecendo agora.
+                VPN Roleplay é um universo vivo de histórias, personagens e notícias. Entre na
+                cidade e descubra o que está acontecendo agora.
               </p>
-              <div class="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+              <div
+                class="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
+              >
                 <UButton
                   size="xl"
                   to="https://vpn-news.labafero.com"
@@ -172,7 +196,9 @@ const pillars = [
                   class="text-white/70 hover:text-white"
                 />
               </div>
-              <div class="mt-14 flex flex-wrap gap-x-8 gap-y-3 text-[11px] font-medium tracking-[0.18em] text-white/35">
+              <div
+                class="mt-14 flex flex-wrap gap-x-8 gap-y-3 text-[11px] font-medium tracking-[0.18em] text-white/35"
+              >
                 <span>ROLEPLAY</span>
                 <span>LIVE NEWS</span>
                 <span>CONNECTED STORIES</span>
@@ -184,17 +210,29 @@ const pillars = [
               aria-hidden="true"
             >
               <div class="absolute inset-12 rounded-full bg-[#ed1c24]/20 blur-3xl" />
-              <div class="relative aspect-square rounded-[2rem] border border-white/10 bg-white/[0.025] p-8 shadow-2xl backdrop-blur-sm">
+              <div
+                class="relative aspect-square rounded-[2rem] border border-white/10 bg-white/[0.025] p-8 shadow-2xl backdrop-blur-sm"
+              >
                 <div class="absolute inset-6 rounded-[1.5rem] border border-[#ed1c24]/25" />
                 <div class="absolute inset-10 rounded-full border border-dashed border-white/15" />
-                <div class="absolute left-1/2 top-1/2 size-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#ed1c24]/50 bg-[#ed1c24]/10 shadow-[0_0_60px_rgba(237,28,36,0.24)]">
-                  <div class="grid h-full place-items-center text-3xl font-semibold tracking-[-0.08em] text-white">
+                <div
+                  class="absolute left-1/2 top-1/2 size-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#ed1c24]/50 bg-[#ed1c24]/10 shadow-[0_0_60px_rgba(237,28,36,0.24)]"
+                >
+                  <div
+                    class="grid h-full place-items-center text-3xl font-semibold tracking-[-0.08em] text-white"
+                  >
                     VPN
                   </div>
                 </div>
-                <span class="absolute left-[16%] top-[19%] size-3 rounded-full bg-[#ed1c24] shadow-[0_0_22px_#ed1c24]" />
-                <span class="absolute right-[16%] top-[19%] size-3 rounded-full bg-cyan-300 shadow-[0_0_22px_#67e8f9]" />
-                <span class="absolute bottom-[18%] left-1/2 size-3 -translate-x-1/2 rounded-full bg-white shadow-[0_0_22px_white]" />
+                <span
+                  class="absolute left-[16%] top-[19%] size-3 rounded-full bg-[#ed1c24] shadow-[0_0_22px_#ed1c24]"
+                />
+                <span
+                  class="absolute right-[16%] top-[19%] size-3 rounded-full bg-cyan-300 shadow-[0_0_22px_#67e8f9]"
+                />
+                <span
+                  class="absolute bottom-[18%] left-1/2 size-3 -translate-x-1/2 rounded-full bg-white shadow-[0_0_22px_white]"
+                />
                 <svg
                   viewBox="0 0 400 400"
                   class="absolute inset-0 size-full"
@@ -228,7 +266,9 @@ const pillars = [
                     </linearGradient>
                   </defs>
                 </svg>
-                <div class="absolute bottom-8 left-8 right-8 flex justify-between text-[10px] font-medium tracking-[0.18em] text-white/35">
+                <div
+                  class="absolute bottom-8 left-8 right-8 flex justify-between text-[10px] font-medium tracking-[0.18em] text-white/35"
+                >
                   <span>NODE 01</span>
                   <span>LINK ACTIVE</span>
                 </div>
@@ -244,25 +284,28 @@ const pillars = [
       >
         <UContainer class="grid gap-10 py-20 lg:grid-cols-[0.65fr_1.35fr] lg:py-28">
           <div>
-            <p class="text-[11px] font-semibold tracking-[0.28em] text-[#ff6468]">
-              O UNIVERSO VPN
-            </p>
-            <h2 class="mt-5 max-w-sm text-3xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-4xl">
+            <p class="text-[11px] font-semibold tracking-[0.28em] text-[#ff6468]">O UNIVERSO VPN</p>
+            <h2
+              class="mt-5 max-w-sm text-3xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-4xl"
+            >
               Uma cidade feita de escolhas.
             </h2>
           </div>
           <div class="max-w-2xl text-lg leading-8 text-white/55">
-            <p>A VPN é um espaço compartilhado para quem quer construir histórias — na rua, nos bastidores, no rádio ou no centro dos acontecimentos.</p>
-            <p class="mt-5">
-              Não existe roteiro único. Existe a próxima decisão.
+            <p>
+              A VPN é um espaço compartilhado para quem quer construir histórias — na rua, nos
+              bastidores, no rádio ou no centro dos acontecimentos.
             </p>
+            <p class="mt-5">Não existe roteiro único. Existe a próxima decisão.</p>
           </div>
         </UContainer>
       </section>
 
       <section id="como-funciona">
         <UContainer class="py-20 lg:py-28">
-          <div class="flex flex-col justify-between gap-6 border-b border-white/10 pb-10 sm:flex-row sm:items-end">
+          <div
+            class="flex flex-col justify-between gap-6 border-b border-white/10 pb-10 sm:flex-row sm:items-end"
+          >
             <div>
               <p class="text-[11px] font-semibold tracking-[0.28em] text-[#ff6468]">
                 COMO FUNCIONA
@@ -289,7 +332,9 @@ const pillars = [
               <p class="mt-8 text-[10px] font-semibold tracking-[0.2em] text-white/35">
                 {{ pillar.eyebrow }}
               </p>
-              <h3 class="mt-4 max-w-xs text-xl font-semibold leading-tight tracking-[-0.025em] text-white">
+              <h3
+                class="mt-4 max-w-xs text-xl font-semibold leading-tight tracking-[-0.025em] text-white"
+              >
                 {{ pillar.title }}
               </h3>
               <p class="mt-4 max-w-xs text-sm leading-6 text-white/45">
@@ -301,7 +346,9 @@ const pillars = [
       </section>
 
       <section class="px-4 pb-6 sm:px-6">
-        <div class="relative isolate overflow-hidden rounded-[2rem] border border-[#ed1c24]/35 bg-[#ed1c24] px-6 py-16 text-center sm:px-12 lg:py-24">
+        <div
+          class="relative isolate overflow-hidden rounded-[2rem] border border-[#ed1c24]/35 bg-[#ed1c24] px-6 py-16 text-center sm:px-12 lg:py-24"
+        >
           <div
             class="vpn-noise absolute inset-0 -z-10 opacity-20"
             aria-hidden="true"
@@ -309,7 +356,9 @@ const pillars = [
           <p class="text-[11px] font-semibold tracking-[0.28em] text-white/65">
             A PRÓXIMA HISTÓRIA É SUA
           </p>
-          <h2 class="mx-auto mt-5 max-w-2xl text-4xl font-semibold leading-none tracking-[-0.05em] text-white sm:text-6xl">
+          <h2
+            class="mx-auto mt-5 max-w-2xl text-4xl font-semibold leading-none tracking-[-0.05em] text-white sm:text-6xl"
+          >
             A cidade está esperando.
           </h2>
           <p class="mx-auto mt-6 max-w-lg text-base leading-7 text-white/75">
@@ -329,11 +378,11 @@ const pillars = [
     </main>
 
     <footer>
-      <UContainer class="flex flex-col gap-4 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between">
+      <UContainer
+        class="flex flex-col gap-4 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between"
+      >
         <p>© {{ new Date().getFullYear() }} VPN Roleplay</p>
-        <p class="tracking-[0.18em]">
-          A CIDADE NUNCA DORME
-        </p>
+        <p class="tracking-[0.18em]">A CIDADE NUNCA DORME</p>
       </UContainer>
     </footer>
   </div>

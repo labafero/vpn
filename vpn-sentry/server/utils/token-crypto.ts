@@ -16,7 +16,12 @@ export function encryptTokens(tokens: Tokens, key: string, keyVersion: string): 
   const cipher = createCipheriv('aes-256-gcm', parseKey(key), iv)
   cipher.setAAD(Buffer.from(keyVersion))
   const ciphertext = Buffer.concat([cipher.update(JSON.stringify(tokens), 'utf8'), cipher.final()])
-  return { ciphertext: ciphertext.toString('base64'), iv: iv.toString('base64'), tag: cipher.getAuthTag().toString('base64'), keyVersion }
+  return {
+    ciphertext: ciphertext.toString('base64'),
+    iv: iv.toString('base64'),
+    tag: cipher.getAuthTag().toString('base64'),
+    keyVersion
+  }
 }
 
 export function decryptTokens(value: EncryptedTokens, key: string, keyVersion: string): Tokens {
@@ -25,8 +30,16 @@ export function decryptTokens(value: EncryptedTokens, key: string, keyVersion: s
     const decipher = createDecipheriv('aes-256-gcm', parseKey(key), Buffer.from(value.iv, 'base64'))
     decipher.setAAD(Buffer.from(keyVersion))
     decipher.setAuthTag(Buffer.from(value.tag, 'base64'))
-    const tokens = JSON.parse(Buffer.concat([decipher.update(Buffer.from(value.ciphertext, 'base64')), decipher.final()]).toString('utf8')) as Tokens
-    if (typeof tokens.accessToken !== 'string' || typeof tokens.refreshToken !== 'string') throw new Error('tokens')
+    const tokens = JSON.parse(
+      Buffer.concat([
+        decipher.update(Buffer.from(value.ciphertext, 'base64')),
+        decipher.final()
+      ]).toString('utf8')
+    ) as Tokens
+    if (typeof tokens.accessToken !== 'string' || typeof tokens.refreshToken !== 'string')
+      throw new Error('tokens')
     return tokens
-  } catch { throw new FoundationError(503) }
+  } catch {
+    throw new FoundationError(503)
+  }
 }

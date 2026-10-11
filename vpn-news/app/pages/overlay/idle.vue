@@ -7,10 +7,10 @@
 </template>
 
 <script lang="ts" setup>
-definePageMeta({ layout: "overlay", colorMode: "dark" });
-useHead({ title: "Overlay Monitoramento" });
+definePageMeta({ layout: 'overlay', colorMode: 'dark' })
+useHead({ title: 'Overlay Monitoramento' })
 
-const { init, initialized } = useOverlayState();
+const { init, initialized } = useOverlayState()
 
-onMounted(() => init());
+onMounted(() => init())
 </script>

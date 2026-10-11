@@ -10,10 +10,13 @@ pnpm dev:monitor   # portal privado
 pnpm dev:sentry    # API Nitro em 0.0.0.0:3002
 pnpm build         # build de todos os workspaces
 pnpm lint          # ESLint de todos os workspaces
+pnpm lint:fix      # corrige problemas autofixáveis de ESLint
+pnpm format        # Prettier nos fontes e configurações do monorepo
+pnpm format:check  # verifica formatação sem alterar arquivos
 pnpm typecheck     # typecheck de todos os workspaces
 ```
 
-Pipeline de CI: `lint → typecheck → build`. Nenhum teste está configurado.
+Pipeline de CI: `lint → format:check → typecheck → contracts:check → test:foundation → build`, além do job de banco isolado.
 
 ## Arquitetura
 
@@ -73,7 +76,7 @@ Duas superfícies distintas:
 
 ### Convenções
 
-- **ESLint** é o formatador — sem vírgulas pendentes, estilo 1tbs (`eslint.config.mjs`).
+- **ESLint** analisa o código; **Prettier** formata fontes e configurações com a configuração da raiz (`.prettierrc.json`): dois espaços, aspas simples, sem ponto e vírgula ou vírgulas pendentes. Rodar `pnpm format` antes de entregar. `eslint-config-prettier` evita regras conflitantes nos quatro projetos Nuxt. Arquivos gerados ficam excluídos em `.prettierignore`; não formatá-los manualmente.
 - **Tailwind v4**: `@import "tailwindcss"` antes de `@import "@nuxt/ui"` no CSS. Variáveis de tema em `@theme static`. Classes de cor usadas em `corClasses` devem existir estaticamente (sem interpolação dinâmica de classes).
 - **Idioma**: strings de UI em português (pt-BR).
 - `packages/database/src/database.types.ts` é gerado automaticamente pelo Supabase — não editar manualmente.

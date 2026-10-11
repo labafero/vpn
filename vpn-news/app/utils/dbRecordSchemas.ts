@@ -18,5 +18,8 @@ export function validateRecord(input: unknown) {
   return result
 }
 export function validateNote(input: string) {
-  return v.parse(v.pipe(v.string(), v.trim(), v.minLength(1, 'Escreva uma nota'), v.maxLength(5000)), input)
+  return v.parse(
+    v.pipe(v.string(), v.trim(), v.minLength(1, 'Escreva uma nota'), v.maxLength(5000)),
+    input
+  )
 }

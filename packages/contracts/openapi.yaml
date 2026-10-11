@@ -301,7 +301,11 @@ paths:
       parameters:
         - { name: channelId, in: query, schema: { type: string, format: uuid } }
         - { name: cursor, in: query, schema: { type: string, maxLength: 256 } }
-        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+          }
       responses:
         '200':
           description: Sessões autorizadas
@@ -370,7 +374,13 @@ paths:
           description: Convite consumido
           content:
             application/json:
-              schema: { type: object, additionalProperties: false, required: [sessionId], properties: { sessionId: { type: string, format: uuid } } }
+              schema:
+                {
+                  type: object,
+                  additionalProperties: false,
+                  required: [sessionId],
+                  properties: { sessionId: { type: string, format: uuid } }
+                }
 components:
   securitySchemes:
     bearerAuth:
@@ -463,7 +473,16 @@ components:
     MonitoringChannel:
       type: object
       additionalProperties: false
-      required: [id, login, providerUserId, connectionStatus, monitoringEnabled, consentVersion, subscriptionStatus]
+      required:
+        [
+          id,
+          login,
+          providerUserId,
+          connectionStatus,
+          monitoringEnabled,
+          consentVersion,
+          subscriptionStatus
+        ]
       properties:
         id: { type: string, format: uuid }
         login: { type: string }

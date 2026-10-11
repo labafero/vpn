@@ -15,6 +15,12 @@ try {
       if (process.argv.includes('--once')) process.exitCode = 1
     }
     if (process.argv.includes('--once')) break
-    try { await setTimeout(50 * 60 * 1000, undefined, { signal: controller.signal }) } catch { break }
+    try {
+      await setTimeout(50 * 60 * 1000, undefined, { signal: controller.signal })
+    } catch {
+      break
+    }
   }
-} finally { await closePrivateDatabase() }
+} finally {
+  await closePrivateDatabase()
+}

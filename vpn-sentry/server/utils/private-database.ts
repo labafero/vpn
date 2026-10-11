@@ -3,12 +3,26 @@ import type { Me, TwitchConnection } from '@vpn/contracts'
 import type { EncryptedTokens } from './token-crypto'
 import { FoundationError } from './api-error'
 
-export type Credential = EncryptedTokens & { expiresAt: string; validatedAt: string; retryUntil: string | null }
+export type Credential = EncryptedTokens & {
+  expiresAt: string
+  validatedAt: string
+  retryUntil: string | null
+}
 export type StoredConnection = { connection: TwitchConnection; credential: Credential | null }
 export function canAuthorizeConnection(value: StoredConnection | null): boolean {
-  return !value || value.connection.status === 'revoked' || (value.connection.status === 'revocation_pending' && !value.credential)
+  return (
+    !value ||
+    value.connection.status === 'revoked' ||
+    (value.connection.status === 'revocation_pending' && !value.credential)
+  )
 }
-export type AuthorizationTransaction = { stateHash: string; userId: string; nonceHash: string; consentVersion: 'monitoring-v1'; expiresAt: string }
+export type AuthorizationTransaction = {
+  stateHash: string
+  userId: string
+  nonceHash: string
+  consentVersion: 'monitoring-v1'
+  expiresAt: string
+}
 export type LockedConnection = {
   setStatus: (status: TwitchConnection['status'], revokedAt: string | null) => Promise<void>
   saveCredential: (credential: Credential) => Promise<void>
@@ -20,9 +34,22 @@ export type FoundationRepository = {
   getRole: (userId: string) => Promise<Me['role']>
   getConnection: (userId: string) => Promise<StoredConnection | null>
   createAuthorization: (value: AuthorizationTransaction) => Promise<void>
-  consumeAuthorization: (stateHash: string, nonceHash: string, userId: string, now: string) => Promise<boolean>
-  saveConnection: (userId: string, identity: { userId: string; login: string }, credential: Credential, now: string) => Promise<void>
-  withConnection: <T>(userId: string, operation: (value: StoredConnection | null, locked: LockedConnection) => Promise<T>) => Promise<T>
+  consumeAuthorization: (
+    stateHash: string,
+    nonceHash: string,
+    userId: string,
+    now: string
+  ) => Promise<boolean>
+  saveConnection: (
+    userId: string,
+    identity: { userId: string; login: string },
+    credential: Credential,
+    now: string
+  ) => Promise<void>
+  withConnection: <T>(
+    userId: string,
+    operation: (value: StoredConnection | null, locked: LockedConnection) => Promise<T>
+  ) => Promise<T>
   listWorkUsers: () => Promise<string[]>
   recordWorkAttempt: (userId: string) => Promise<void>
   cleanAuthorizations: (now: string) => Promise<void>
@@ -30,14 +57,50 @@ export type FoundationRepository = {
 export type FoundationTransaction = LockedConnection
 
 type Row = {
-  id: string; user_id: string; provider_user_id: string; login: string; status: TwitchConnection['status']; consented_at: Date; connected_at: Date; revoked_at: Date | null
+  id: string
+  user_id: string
+  provider_user_id: string
+  login: string
+  status: TwitchConnection['status']
+  consented_at: Date
+  connected_at: Date
+  revoked_at: Date | null
   monitoring_enabled: boolean | null
-  ciphertext: string | null; iv: string; tag: string; key_version: string; expires_at: Date; validated_at: Date; retry_until: Date | null
+  ciphertext: string | null
+  iv: string
+  tag: string
+  key_version: string
+  expires_at: Date
+  validated_at: Date
+  retry_until: Date | null
 }
 function mapRow(row: Row): StoredConnection {
   return {
-    connection: { id: row.id, provider: 'twitch', providerUserId: row.provider_user_id, login: row.login, status: row.status, monitoringEnabled: row.monitoring_enabled ?? false, canReconnect: row.status === 'revoked' || (row.status === 'revocation_pending' && !row.ciphertext), consentVersion: 'monitoring-v1', consentedAt: row.consented_at.toISOString(), connectedAt: row.connected_at.toISOString(), revokedAt: row.revoked_at?.toISOString() ?? null },
-    credential: row.ciphertext ? { ciphertext: row.ciphertext, iv: row.iv, tag: row.tag, keyVersion: row.key_version, expiresAt: row.expires_at.toISOString(), validatedAt: row.validated_at.toISOString(), retryUntil: row.retry_until?.toISOString() ?? null } : null
+    connection: {
+      id: row.id,
+      provider: 'twitch',
+      providerUserId: row.provider_user_id,
+      login: row.login,
+      status: row.status,
+      monitoringEnabled: row.monitoring_enabled ?? false,
+      canReconnect:
+        row.status === 'revoked' || (row.status === 'revocation_pending' && !row.ciphertext),
+      consentVersion: 'monitoring-v1',
+      consentedAt: row.consented_at.toISOString(),
+      connectedAt: row.connected_at.toISOString(),
+      revokedAt: row.revoked_at?.toISOString() ?? null
+    },
+    credential: row.ciphertext
+      ? {
+          ciphertext: row.ciphertext,
+          iv: row.iv,
+          tag: row.tag,
+          keyVersion: row.key_version,
+          expiresAt: row.expires_at.toISOString(),
+          validatedAt: row.validated_at.toISOString(),
+          retryUntil: row.retry_until?.toISOString() ?? null
+        }
+      : null
   }
 }
 
@@ -47,14 +110,25 @@ export function getFoundationRepository(): FoundationRepository {
   if (repository) return repository
   const url = process.env.NUXT_PRIVATE_DATABASE_URL
   if (!url) throw new FoundationError(503)
-  database = postgres(url, { max: 5, idle_timeout: 20, connect_timeout: 10, prepare: false, connection: { statement_timeout: 10000, lock_timeout: 5000 }, onnotice: () => {} })
+  database = postgres(url, {
+    max: 5,
+    idle_timeout: 20,
+    connect_timeout: 10,
+    prepare: false,
+    connection: { statement_timeout: 10000, lock_timeout: 5000 },
+    onnotice: () => {}
+  })
   const sql = database
   async function requireDatabaseRole() {
     const rows = await sql<{ role: string }[]>`SELECT current_user AS role`
     if (rows[0]?.role !== 'vpn_sentry') throw new FoundationError(503)
   }
 
-  async function readConnection(tx: postgres.Sql | postgres.TransactionSql, userId: string, lock = false): Promise<StoredConnection | null> {
+  async function readConnection(
+    tx: postgres.Sql | postgres.TransactionSql,
+    userId: string,
+    lock = false
+  ): Promise<StoredConnection | null> {
     const rows = await tx<Row[]>`
       SELECT c.*, k.ciphertext, k.iv, k.tag, k.key_version, k.expires_at, k.validated_at, k.retry_until, ch.monitoring_enabled
       FROM public.provider_connections c LEFT JOIN private.provider_credentials k ON k.connection_id = c.id LEFT JOIN public.channels ch ON ch.connection_id=c.id
@@ -62,7 +136,11 @@ export function getFoundationRepository(): FoundationRepository {
     `
     return rows[0] ? mapRow(rows[0]) : null
   }
-  async function writeCredential(tx: postgres.Sql | postgres.TransactionSql, id: string, value: Credential) {
+  async function writeCredential(
+    tx: postgres.Sql | postgres.TransactionSql,
+    id: string,
+    value: Credential
+  ) {
     await tx`
       INSERT INTO private.provider_credentials(connection_id,ciphertext,iv,tag,key_version,expires_at,validated_at,retry_until)
       VALUES (${id},${value.ciphertext},${value.iv},${value.tag},${value.keyVersion},${value.expiresAt},${value.validatedAt},${value.retryUntil})
@@ -72,28 +150,36 @@ export function getFoundationRepository(): FoundationRepository {
   repository = {
     async sessionActive(userId, sessionId) {
       await requireDatabaseRole()
-      const rows = await sql<{ active: boolean }[]>`SELECT private.vpn_session_active(${userId}::uuid, ${sessionId}::uuid) AS active`
+      const rows = await sql<
+        { active: boolean }[]
+      >`SELECT private.vpn_session_active(${userId}::uuid, ${sessionId}::uuid) AS active`
       return rows[0]?.active === true
     },
     async getRole(userId) {
       await requireDatabaseRole()
-      const rows = await sql<{ role: Me['role'] }[]>`SELECT role FROM public.user_roles WHERE user_id=${userId}`
+      const rows = await sql<
+        { role: Me['role'] }[]
+      >`SELECT role FROM public.user_roles WHERE user_id=${userId}`
       return rows[0]?.role ?? 'member'
     },
-    async getConnection(userId) { await requireDatabaseRole(); return readConnection(sql, userId) },
+    async getConnection(userId) {
+      await requireDatabaseRole()
+      return readConnection(sql, userId)
+    },
     async createAuthorization(value) {
       await requireDatabaseRole()
       await sql`INSERT INTO private.oauth_transactions(state_hash,user_id,browser_nonce_hash,consent_version,expires_at) VALUES (${value.stateHash},${value.userId},${value.nonceHash},${value.consentVersion},${value.expiresAt})`
     },
     async consumeAuthorization(stateHash, nonceHash, userId, now) {
       await requireDatabaseRole()
-      const rows = await sql`UPDATE private.oauth_transactions SET consumed_at=${now} WHERE state_hash=${stateHash} AND browser_nonce_hash=${nonceHash} AND user_id=${userId} AND expires_at>${now} AND consumed_at IS NULL RETURNING state_hash`
+      const rows =
+        await sql`UPDATE private.oauth_transactions SET consumed_at=${now} WHERE state_hash=${stateHash} AND browser_nonce_hash=${nonceHash} AND user_id=${userId} AND expires_at>${now} AND consumed_at IS NULL RETURNING state_hash`
       return rows.length === 1
     },
     async saveConnection(userId, identity, credential, now) {
       await requireDatabaseRole()
       try {
-        await sql.begin(async tx => {
+        await sql.begin(async (tx) => {
           // Serializes first connections too, where there is no row to lock yet.
           await tx`SELECT pg_advisory_xact_lock(hashtextextended(${userId}, 0))`
           const current = await readConnection(tx, userId, true)
@@ -109,38 +195,56 @@ export function getFoundationRepository(): FoundationRepository {
         })
       } catch (error) {
         if (error instanceof FoundationError) throw error
-        if (error instanceof postgres.PostgresError && error.code === '23505') throw new FoundationError(409)
+        if (error instanceof postgres.PostgresError && error.code === '23505')
+          throw new FoundationError(409)
         throw new FoundationError(503)
       }
     },
-    async withConnection<T>(userId: string, operation: (value: StoredConnection | null, locked: LockedConnection) => Promise<T>): Promise<T> {
+    async withConnection<T>(
+      userId: string,
+      operation: (value: StoredConnection | null, locked: LockedConnection) => Promise<T>
+    ): Promise<T> {
       await requireDatabaseRole()
-      const result = await sql.begin(async tx => {
+      const result = await sql.begin(async (tx) => {
         await tx`SET LOCAL lock_timeout = '5s'`
         await tx`SET LOCAL statement_timeout = '10s'`
         await tx`SELECT pg_advisory_xact_lock(hashtextextended(${userId}, 0))`
         const value = await readConnection(tx, userId, true)
         const id = value?.connection.id
-        const requireId = () => { if (!id) throw new FoundationError(400); return id }
+        const requireId = () => {
+          if (!id) throw new FoundationError(400)
+          return id
+        }
         return operation(value, {
-          async setStatus(status, revokedAt) { await tx`UPDATE public.provider_connections SET status=${status},revoked_at=${revokedAt} WHERE id=${requireId()}` },
-          saveCredential: credential => writeCredential(tx, requireId(), credential),
-          async deleteCredential() { await tx`DELETE FROM private.provider_credentials WHERE connection_id=${requireId()}` },
-          async audit(code) { await tx`INSERT INTO private.foundation_audit(connection_id,code) VALUES (${requireId()},${code})` }
+          async setStatus(status, revokedAt) {
+            await tx`UPDATE public.provider_connections SET status=${status},revoked_at=${revokedAt} WHERE id=${requireId()}`
+          },
+          saveCredential: (credential) => writeCredential(tx, requireId(), credential),
+          async deleteCredential() {
+            await tx`DELETE FROM private.provider_credentials WHERE connection_id=${requireId()}`
+          },
+          async audit(code) {
+            await tx`INSERT INTO private.foundation_audit(connection_id,code) VALUES (${requireId()},${code})`
+          }
         })
       })
       return result as T
     },
     async listWorkUsers() {
       await requireDatabaseRole()
-      const rows = await sql<{ user_id: string }[]>`SELECT c.user_id FROM public.provider_connections c JOIN private.provider_credentials k ON k.connection_id=c.id WHERE c.status IN ('connected','revocation_pending') ORDER BY k.last_attempt_at ASC NULLS FIRST, c.user_id ASC`
-      return rows.map(row => row.user_id)
+      const rows = await sql<
+        { user_id: string }[]
+      >`SELECT c.user_id FROM public.provider_connections c JOIN private.provider_credentials k ON k.connection_id=c.id WHERE c.status IN ('connected','revocation_pending') ORDER BY k.last_attempt_at ASC NULLS FIRST, c.user_id ASC`
+      return rows.map((row) => row.user_id)
     },
     async recordWorkAttempt(userId) {
       await requireDatabaseRole()
       await sql`UPDATE private.provider_credentials k SET last_attempt_at=now() FROM public.provider_connections c WHERE k.connection_id=c.id AND c.user_id=${userId}`
     },
-    async cleanAuthorizations(now) { await requireDatabaseRole(); await sql`DELETE FROM private.oauth_transactions WHERE expires_at < ${now}::timestamptz - interval '24 hours'` }
+    async cleanAuthorizations(now) {
+      await requireDatabaseRole()
+      await sql`DELETE FROM private.oauth_transactions WHERE expires_at < ${now}::timestamptz - interval '24 hours'`
+    }
   }
   return repository
 }

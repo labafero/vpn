@@ -14,31 +14,31 @@
           />
           <span class="relative inline-flex size-2.5 rounded-full bg-red-500" />
         </span>
-        <span class="text-xs font-bold tracking-[0.2em] text-white uppercase">
-          Ao vivo
-        </span>
+        <span class="text-xs font-bold tracking-[0.2em] text-white uppercase">Ao vivo</span>
       </div>
 
-      <USeparator orientation="vertical" class="h-7" />
+      <USeparator
+        orientation="vertical"
+        class="h-7"
+      />
       <OverlayTinkerNews class="min-w-0 flex-1" />
     </div>
 
-    <div
-      class="relative flex shrink-0 items-center gap-4 border-l border-neutral-700 px-5 py-2"
-    >
+    <div class="relative flex shrink-0 items-center gap-4 border-l border-neutral-700 px-5 py-2">
       <div class="text-right leading-tight">
-        <div class="font-bold tracking-wide uppercase" :class="cor.text">
+        <div
+          class="font-bold tracking-wide uppercase"
+          :class="cor.text"
+        >
           {{ sigla }}
         </div>
         <div class="text-xs text-neutral-400">{{ nome }}</div>
       </div>
-      <div
-        class="h-8 w-1 rounded-full bg-linear-to-b from-cyan-400 via-fuchsia-500 to-amber-400"
-      />
+      <div class="h-8 w-1 rounded-full bg-linear-to-b from-cyan-400 via-fuchsia-500 to-amber-400" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-const { cor, sigla, nome } = useOverlayState();
+const { cor, sigla, nome } = useOverlayState()
 </script>

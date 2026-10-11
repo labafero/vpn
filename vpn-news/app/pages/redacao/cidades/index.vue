@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { corClasses, type CorBrand } from "~/utils/cidadeColors";
+import { corClasses, type CorBrand } from '~/utils/cidadeColors'
 
-definePageMeta({ middleware: "auth" });
+definePageMeta({ middleware: 'auth' })
 
-const { all, loading, fetchAll, remove } = useCidadeConfig();
-const toast = useToast();
+const { all, loading, fetchAll, remove } = useCidadeConfig()
+const toast = useToast()
 
 onMounted(async () => {
   try {
-    await fetchAll();
+    await fetchAll()
   } catch (error) {
-    console.error("Erro ao carregar cidades", error);
+    console.error('Erro ao carregar cidades', error)
     toast.add({
-      title: "Erro ao carregar cidades",
-      description: "Não foi possível consultar as configurações no Supabase.",
-      color: "error",
-    });
+      title: 'Erro ao carregar cidades',
+      description: 'Não foi possível consultar as configurações no Supabase.',
+      color: 'error'
+    })
   }
-});
+})
 
-const confirmDelete = ref<string | null>(null);
-const deleteModalOpen = ref(false);
+const confirmDelete = ref<string | null>(null)
+const deleteModalOpen = ref(false)
 
 async function handleDelete(slug: string) {
   try {
-    await remove(slug);
-    toast.add({ title: "Cidade removida", color: "success" });
+    await remove(slug)
+    toast.add({ title: 'Cidade removida', color: 'success' })
   } catch {
-    toast.add({ title: "Erro ao remover", color: "error" });
+    toast.add({ title: 'Erro ao remover', color: 'error' })
   } finally {
-    confirmDelete.value = null;
-    deleteModalOpen.value = false;
+    confirmDelete.value = null
+    deleteModalOpen.value = false
   }
 }
 </script>
@@ -40,7 +40,10 @@ async function handleDelete(slug: string) {
     <template #header>
       <UDashboardNavbar title="Cidades">
         <template #right>
-          <UButton icon="i-lucide-plus" to="/redacao/cidades/novo">
+          <UButton
+            icon="i-lucide-plus"
+            to="/redacao/cidades/novo"
+          >
             Nova Cidade
           </UButton>
         </template>
@@ -49,8 +52,15 @@ async function handleDelete(slug: string) {
 
     <template #body>
       <UCard>
-        <div v-if="loading" class="space-y-2">
-          <USkeleton v-for="i in 4" :key="i" class="h-14 rounded-lg" />
+        <div
+          v-if="loading"
+          class="space-y-2"
+        >
+          <USkeleton
+            v-for="i in 4"
+            :key="i"
+            class="h-14 rounded-lg"
+          />
         </div>
 
         <div
@@ -60,7 +70,10 @@ async function handleDelete(slug: string) {
           Nenhuma cidade configurada.
         </div>
 
-        <ul v-else class="divide-y divide-default">
+        <ul
+          v-else
+          class="divide-y divide-default"
+        >
           <li
             v-for="c in all"
             :key="c.slug"
@@ -68,9 +81,7 @@ async function handleDelete(slug: string) {
           >
             <span
               class="w-3 h-3 rounded-full shrink-0"
-              :class="
-                corClasses[c.cor_primaria as CorBrand]?.bg ?? 'bg-zinc-600'
-              "
+              :class="corClasses[c.cor_primaria as CorBrand]?.bg ?? 'bg-zinc-600'"
             />
             <div class="flex-1 min-w-0">
               <div class="font-semibold truncate">{{ c.cidade_nome }}</div>
@@ -92,8 +103,8 @@ async function handleDelete(slug: string) {
                 icon="i-lucide-trash-2"
                 @click="
                   () => {
-                    confirmDelete = c.slug;
-                    deleteModalOpen = true;
+                    confirmDelete = c.slug
+                    deleteModalOpen = true
                   }
                 "
               />
@@ -108,16 +119,17 @@ async function handleDelete(slug: string) {
     <template #content>
       <div class="p-6 space-y-4">
         <p class="text-sm">
-          Remover a cidade <strong>{{ confirmDelete }}</strong
-          >? Esta ação não pode ser desfeita.
+          Remover a cidade
+          <strong>{{ confirmDelete }}?</strong>
+          Esta ação não pode ser desfeita.
         </p>
         <div class="flex gap-2 justify-end">
           <UButton
             variant="ghost"
             @click="
               () => {
-                deleteModalOpen = false;
-                confirmDelete = null;
+                deleteModalOpen = false
+                confirmDelete = null
               }
             "
           >
@@ -127,7 +139,7 @@ async function handleDelete(slug: string) {
             color="error"
             @click="
               () => {
-                if (confirmDelete) handleDelete(confirmDelete);
+                if (confirmDelete) handleDelete(confirmDelete)
               }
             "
           >

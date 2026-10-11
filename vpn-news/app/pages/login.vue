@@ -1,60 +1,90 @@
 <script setup lang="ts">
-import * as v from "valibot";
-import type { FormSubmitEvent } from "@nuxt/ui";
+import * as v from 'valibot'
+import type { FormSubmitEvent } from '@nuxt/ui'
 
-definePageMeta({ layout: "auth" });
+definePageMeta({ layout: 'auth' })
 
 const schema = v.object({
-  email: v.pipe(v.string(), v.email("Invalid email")),
-  password: v.pipe(v.string(), v.minLength(8, "Must be at least 8 characters")),
-});
+  email: v.pipe(v.string(), v.email('Invalid email')),
+  password: v.pipe(v.string(), v.minLength(8, 'Must be at least 8 characters'))
+})
 
-type Schema = v.InferOutput<typeof schema>;
+type Schema = v.InferOutput<typeof schema>
 
 const state = reactive({
-  email: "",
-  password: "",
-});
+  email: '',
+  password: ''
+})
 
-const toast = useToast();
-const supabase = useSupabaseClient();
-const user = useSupabaseUser();
+const toast = useToast()
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   const { error } = await supabase.auth.signInWithPassword({
     email: event.data.email,
-    password: event.data.password,
-  });
+    password: event.data.password
+  })
 
   if (error) {
-    console.log(error?.message);
-    toast.add({ title: error.message, color: "error" });
-    return;
+    console.log(error?.message)
+    toast.add({ title: error.message, color: 'error' })
+    return
   }
 
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims()
   if (claimsError || !claimsData?.claims) {
-    toast.add({ title: "Não foi possível confirmar sua sessão. Tente novamente.", color: "error" });
-    return;
+    toast.add({ title: 'Não foi possível confirmar sua sessão. Tente novamente.', color: 'error' })
+    return
   }
-  user.value = claimsData.claims;
-  await navigateTo("/redacao");
+  user.value = claimsData.claims
+  await navigateTo('/redacao')
 }
 </script>
 
 <template>
   <div class="flex flex-col items-center justify-center gap-4 p-4">
-    <UPageCard class="w-full max-w-md" title="VPN Roleplay" description="Faça login para continuar">
-      <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-        <UFormField label="E-mail" name="email">
-          <UInput v-model="state.email" class="w-full" :ui="{ base: 'text-base sm:text-sm' }" />
+    <UPageCard
+      class="w-full max-w-md"
+      title="VPN Roleplay"
+      description="Faça login para continuar"
+    >
+      <UForm
+        :schema="schema"
+        :state="state"
+        class="space-y-4"
+        @submit="onSubmit"
+      >
+        <UFormField
+          label="E-mail"
+          name="email"
+        >
+          <UInput
+            v-model="state.email"
+            class="w-full"
+            :ui="{ base: 'text-base sm:text-sm' }"
+          />
         </UFormField>
 
-        <UFormField label="Senha" name="password">
-          <UInput v-model="state.password" type="password" class="w-full" :ui="{ base: 'text-base sm:text-sm' }" />
+        <UFormField
+          label="Senha"
+          name="password"
+        >
+          <UInput
+            v-model="state.password"
+            type="password"
+            class="w-full"
+            :ui="{ base: 'text-base sm:text-sm' }"
+          />
         </UFormField>
 
-        <UButton type="submit" block class="min-h-11"> Entrar </UButton>
+        <UButton
+          type="submit"
+          block
+          class="min-h-11"
+        >
+          Entrar
+        </UButton>
       </UForm>
     </UPageCard>
   </div>

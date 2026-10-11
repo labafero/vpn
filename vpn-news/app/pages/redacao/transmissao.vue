@@ -1,90 +1,80 @@
 <script setup lang="ts">
-definePageMeta({ middleware: "auth" });
+definePageMeta({ middleware: 'auth' })
 
-const { config, fetch, save: broadcastSave } = useBroadcastConfig();
-const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
-const user = useSupabaseUser();
-const toast = useToast();
+const { config, fetch, save: broadcastSave } = useBroadcastConfig()
+const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig()
+const user = useSupabaseUser()
+const toast = useToast()
 
-const title = ref("");
-const cidade = ref<string | null>(null);
-const saving = ref(false);
+const title = ref('')
+const cidade = ref<string | null>(null)
+const saving = ref(false)
 
 onMounted(async () => {
-  await Promise.all([fetch(), fetchCidades()]);
+  await Promise.all([fetch(), fetchCidades()])
   if (config.value) {
-    title.value = config.value.title;
-    cidade.value = config.value.cidade ?? null;
+    title.value = config.value.title
+    cidade.value = config.value.cidade ?? null
   }
-});
+})
 
 async function handleSave() {
-  saving.value = true;
+  saving.value = true
   try {
-    await broadcastSave({ title: title.value, cidade: cidade.value });
-    toast.add({ title: "Configuração salva", color: "success" });
+    await broadcastSave({ title: title.value, cidade: cidade.value })
+    toast.add({ title: 'Configuração salva', color: 'success' })
   } catch {
-    toast.add({ title: "Erro ao salvar", color: "error" });
+    toast.add({ title: 'Erro ao salvar', color: 'error' })
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
-const origin = computed(() => useRequestURL().origin);
+const origin = computed(() => useRequestURL().origin)
 
-const baseParams = computed(() =>
-  user.value?.sub ? `broadcaster=${user.value.sub}` : "",
-);
+const baseParams = computed(() => (user.value?.sub ? `broadcaster=${user.value.sub}` : ''))
 
 const overlayUrl = computed(() =>
-  user.value?.sub ? `${origin.value}/overlay?${baseParams.value}` : "",
-);
+  user.value?.sub ? `${origin.value}/overlay?${baseParams.value}` : ''
+)
 
 const idleUrl = computed(() =>
-  user.value?.sub ? `${origin.value}/overlay/idle?${baseParams.value}` : "",
-);
+  user.value?.sub ? `${origin.value}/overlay/idle?${baseParams.value}` : ''
+)
 
 const spectrumUrl = computed(() =>
-  user.value?.sub ? `${origin.value}/overlay/spectrum?${baseParams.value}` : "",
-);
+  user.value?.sub ? `${origin.value}/overlay/spectrum?${baseParams.value}` : ''
+)
 
 const noSignalUrl = computed(() =>
-  user.value?.sub
-    ? `${origin.value}/overlay/no-signal?${baseParams.value}`
-    : "",
-);
+  user.value?.sub ? `${origin.value}/overlay/no-signal?${baseParams.value}` : ''
+)
 
 const streamSignalUrl = computed(() =>
-  user.value?.sub
-    ? `${origin.value}/overlay/stream-signal?${baseParams.value}`
-    : "",
-);
+  user.value?.sub ? `${origin.value}/overlay/stream-signal?${baseParams.value}` : ''
+)
 
 const streamSignalDeckUrl = computed(() =>
-  user.value?.sub
-    ? `${origin.value}/overlay/stream-signal-deck?${baseParams.value}`
-    : "",
-);
+  user.value?.sub ? `${origin.value}/overlay/stream-signal-deck?${baseParams.value}` : ''
+)
 
 const streamSignalDeckRandomUrl = computed(() =>
-  user.value?.sub
-    ? `${origin.value}/overlay/stream-signal-deck-random?${baseParams.value}`
-    : "",
-);
+  user.value?.sub ? `${origin.value}/overlay/stream-signal-deck-random?${baseParams.value}` : ''
+)
 
 async function copyUrl(url: string) {
   try {
-    await navigator.clipboard.writeText(url);
-    toast.add({ title: "Link copiado", color: "success" });
+    await navigator.clipboard.writeText(url)
+    toast.add({ title: 'Link copiado', color: 'success' })
   } catch {
-    toast.add({ title: "Erro ao copiar", color: "error" });
+    toast.add({ title: 'Erro ao copiar', color: 'error' })
   }
 }
 
 const cidadeOptions = computed(() => [
-  { label: "Sem cidade", value: null },
-  ...cidades.value.map((c) => ({ label: c.cidade_nome, value: c.slug })),
-]);
+  { label: 'Sem cidade', value: null },
+  ...cidades.value.map((c) => ({ label: c.cidade_nome, value: c.slug }))
+])
 </script>
 
 <template>
@@ -92,7 +82,11 @@ const cidadeOptions = computed(() => [
     <template #header>
       <UDashboardNavbar title="Transmissão">
         <template #right>
-          <UButton :loading="saving" :disabled="saving" @click="handleSave">
+          <UButton
+            :loading="saving"
+            :disabled="saving"
+            @click="handleSave"
+          >
             Salvar
           </UButton>
         </template>
@@ -108,7 +102,10 @@ const cidadeOptions = computed(() => [
             class="space-y-4"
             @submit="handleSave"
           >
-            <UFormField label="Título da Transmissão" required>
+            <UFormField
+              label="Título da Transmissão"
+              required
+            >
               <UInput
                 v-model="title"
                 placeholder="Ex: Stand-by no Beach Bar"
@@ -138,7 +135,11 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Jornal</div>
               <div class="flex gap-2">
-                <UInput :model-value="overlayUrl" class="min-w-0 flex-1" readonly />
+                <UInput
+                  :model-value="overlayUrl"
+                  class="min-w-0 flex-1"
+                  readonly
+                />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -155,7 +156,11 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Monitoramento</div>
               <div class="flex gap-2">
-                <UInput :model-value="idleUrl" class="min-w-0 flex-1" readonly />
+                <UInput
+                  :model-value="idleUrl"
+                  class="min-w-0 flex-1"
+                  readonly
+                />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -172,7 +177,11 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Spectrum</div>
               <div class="flex gap-2">
-                <UInput :model-value="spectrumUrl" class="min-w-0 flex-1" readonly />
+                <UInput
+                  :model-value="spectrumUrl"
+                  class="min-w-0 flex-1"
+                  readonly
+                />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -189,7 +198,11 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Sem sinal</div>
               <div class="flex gap-2">
-                <UInput :model-value="noSignalUrl" class="min-w-0 flex-1" readonly />
+                <UInput
+                  :model-value="noSignalUrl"
+                  class="min-w-0 flex-1"
+                  readonly
+                />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -246,9 +259,7 @@ const cidadeOptions = computed(() => [
               </div>
             </div>
             <div>
-              <div class="text-sm font-medium mb-1">
-                Deck com manchete aleatória
-              </div>
+              <div class="text-sm font-medium mb-1">Deck com manchete aleatória</div>
               <div class="flex gap-2">
                 <UInput
                   :model-value="streamSignalDeckRandomUrl"

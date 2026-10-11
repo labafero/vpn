@@ -11,8 +11,8 @@ export default defineAppConfig({
     dashboardPanel: { slots: { body: 'min-w-0' } },
     pagination: { slots: { list: 'flex-wrap justify-center' } },
     colors: {
-      primary: "zinc",
-      neutral: "mist",
-    },
-  },
-});
+      primary: 'zinc',
+      neutral: 'mist'
+    }
+  }
+})
