@@ -91,6 +91,10 @@ async function main() {
           : path.includes('/sessions/') ? session : { login: 'canal_muito_longo_'.repeat(5), status: 'connected', canReconnect: false }
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(payload) })
   })
+  // A classic scrollbar leaves only 305px of content in a 320px viewport.
+  await page.setViewportSize({ width: 305, height: 900 })
+  await visit(page, 3011, '/')
+  await checkWidth(page, 'Site 305px available width with classic scrollbar')
   for (const width of [320, 375, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 })
     await visit(page, 3011, '/')
