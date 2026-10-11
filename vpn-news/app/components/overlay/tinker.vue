@@ -2,6 +2,7 @@
   <div class="flex items-center border-t py-2 px-5 border-neutral-700">
     <UBadge class="animate-pulse" :class="cor.bg" />
     <OverlayTinkerNews />
+    <OverlayStocks />
     <USeparator orientation="vertical" class="animate-pulse" size="md" />
     <div class="py-1 pl-4 whitespace-nowrap">
       <div>
