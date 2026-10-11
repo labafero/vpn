@@ -18,9 +18,9 @@ const points = computed(() => historyChartPoints(props.series).map(point => `${p
     </svg>
     <details v-if="series.length" class="mt-3">
       <summary class="cursor-pointer">Ver todos os dados do gráfico</summary>
-      <table class="w-full text-sm"><caption class="sr-only">Histórico completo da série selecionada</caption><thead><tr><th>Data</th><th>Valor</th></tr></thead>
+      <div class="max-w-full overflow-x-auto" role="region" aria-label="Dados do gráfico" tabindex="0"><table class="w-full text-sm"><caption class="sr-only">Histórico completo da série selecionada</caption><thead><tr><th>Data</th><th>Valor</th></tr></thead>
         <tbody><tr v-for="(point, index) in series" :key="index"><td>{{ new Date(point.at).toLocaleString('pt-BR') }}</td><td>{{ formatMarketAmount(point.cents / 100) }}</td></tr></tbody>
-      </table>
+      </table></div>
     </details>
   </div>
 </template>

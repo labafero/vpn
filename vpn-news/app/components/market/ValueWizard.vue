@@ -61,7 +61,7 @@ async function submit() {
 </script>
 
 <template>
-  <UCard class="max-w-2xl">
+  <UCard class="w-full min-w-0 max-w-2xl">
     <template #header><p aria-live="polite">Etapa {{ step + 1 }} de 4 — {{ titles[step] }}</p></template>
     <div class="space-y-5">
       <UAlert v-if="error" color="error" :description="error" />
@@ -81,7 +81,7 @@ async function submit() {
       <UFormField v-if="step === 2" label="Valor em reais" name="amount" description="Use o formato 1.234,56. Zero é permitido." required>
         <UInput v-model="state.amount" inputmode="decimal" placeholder="0,00" class="w-full" />
       </UFormField>
-      <dl v-if="step === 3" class="space-y-3">
+      <dl v-if="step === 3" class="space-y-3 wrap-anywhere">
         <div><dt class="text-muted">Cidade</dt><dd>{{ cities.find(c => c.slug === state.cidade)?.cidade_nome }}</dd></div>
         <div><dt class="text-muted">Item</dt><dd>{{ createNew ? state.newName : selectedItem?.name }}</dd></div>
         <div><dt class="text-muted">Valor</dt><dd class="text-2xl font-semibold">{{ previewAmount }}</dd></div>

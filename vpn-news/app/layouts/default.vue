@@ -14,7 +14,7 @@ defineShortcuts({
 });
 
 function closeSidebar() {
-  if (import.meta.client && window.innerWidth < 768) {
+  if (import.meta.client && window.innerWidth < 1024) {
     open.value = false;
   }
 }
@@ -88,7 +88,7 @@ const searchGroups = computed(() => [
 </script>
 
 <template>
-  <UDashboardGroup unit="rem">
+  <UDashboardGroup unit="rem" class="editorial-dashboard">
     <UDashboardSidebar id="dashboard" v-model:open="open" collapsible resizable>
       <template #header>
         <div class="flex items-center gap-2 px-2 py-1">

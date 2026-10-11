@@ -89,7 +89,7 @@ function formatDate(iso: string) {
     <template v-if="loading">
       <USkeleton class="h-64 sm:h-96 w-full rounded-none" />
       <div class="max-w-5xl mx-auto px-4 py-6">
-        <div class="flex gap-2 mb-6">
+        <div class="flex gap-2 overflow-hidden mb-6">
           <USkeleton v-for="i in 4" :key="i" class="h-8 w-24 rounded-full" />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -102,6 +102,7 @@ function formatDate(iso: string) {
       <!-- Hero slider -->
       <div v-if="destaques.length > 0" class="h-64 sm:h-96">
         <PostSlider
+          responsive
           :posts="destaques"
           label="Em Destaque"
           class="max-w-5xl mx-auto"

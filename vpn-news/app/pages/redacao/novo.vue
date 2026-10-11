@@ -80,7 +80,7 @@ async function handleSubmit(data: {
     </template>
 
     <template #body>
-      <div class="p-4">
+      <div class="min-w-0">
         <PostForm ref="postFormRef" @submit="handleSubmit" />
       </div>
     </template>

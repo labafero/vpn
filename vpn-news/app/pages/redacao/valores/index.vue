@@ -75,12 +75,12 @@ watch([city, itemId, period], refresh)
   <UDashboardPanel>
     <template #header><UDashboardNavbar title="Valores de mercado"><template #right><UButton icon="i-lucide-plus" to="/redacao/valores/novo">Registrar valor</UButton></template></UDashboardNavbar></template>
     <template #body>
-      <div class="p-4 space-y-5">
+      <div class="min-w-0 space-y-5">
         <UAlert v-if="error" color="error" :description="error"><template #actions><UButton @click="retry">Tentar novamente</UButton></template></UAlert>
-        <div class="flex flex-wrap gap-3">
-          <UFormField label="Cidade"><USelect v-model="city" :items="cityOptions" placeholder="Cidade" class="min-w-40" /></UFormField>
-          <UFormField label="Item"><USelectMenu v-model="itemId" aria-label="Item" :items="itemOptions" value-key="value" class="min-w-48" /></UFormField>
-          <UFormField label="Período"><USelect v-model="period" :items="[{ label: '7 dias', value: '7' }, { label: '30 dias', value: '30' }, { label: '90 dias', value: '90' }, { label: 'Todo o histórico', value: 'all' }]" /></UFormField>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <UFormField label="Cidade"><USelect v-model="city" :items="cityOptions" placeholder="Cidade" class="w-full" /></UFormField>
+          <UFormField label="Item"><USelectMenu v-model="itemId" aria-label="Item" :items="itemOptions" value-key="value" class="w-full" /></UFormField>
+          <UFormField label="Período"><USelect v-model="period" :items="[{ label: '7 dias', value: '7' }, { label: '30 dias', value: '30' }, { label: '90 dias', value: '90' }, { label: 'Todo o histórico', value: 'all' }]" class="w-full" /></UFormField>
         </div>
         <USkeleton v-if="loading" class="h-56" />
         <template v-else>
@@ -89,7 +89,7 @@ watch([city, itemId, period], refresh)
             <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"><div v-for="entry in latest" :key="entry.id!" class="rounded border border-default p-3"><p class="text-muted">{{ items.find(i => i.id === entry.item_id)?.name }}</p><p class="text-xl font-semibold">{{ formatMarketAmount(entry.amount!) }}</p></div></div>
           </UCard>
           <UCard><template #header><h2 class="font-semibold">Evolução do item selecionado</h2></template><MarketHistoryChart :series="chartSeries" /></UCard>
-          <UCard><UTable :data="rows" :columns="columns" /><UPagination v-model:page="page" :total="history.length" :items-per-page="25" class="mt-4" /></UCard>
+          <UCard class="min-w-0"><p class="mb-3 text-sm text-muted sm:hidden">Deslize a tabela para ver as outras colunas.</p><UTable :data="rows" :columns="columns" role="region" aria-label="Histórico de valores" tabindex="0" class="max-w-full" /><UPagination v-model:page="page" :total="history.length" :items-per-page="25" :sibling-count="0" :show-edges="false" class="mt-4" /></UCard>
         </template>
       </div>
     </template>
