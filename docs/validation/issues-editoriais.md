@@ -2,7 +2,7 @@
 
 ## Escopo e autorização
 
-Planos e specs aprovados em 10/10/2026. Base compartilhada entre usuários autorizados da redação. Implementação direta nesta sessão; autorização cobre código e integração local. Não houve push, PR, preview remoto, atribuição de membros reais, migration remota, merge ou produção. Issues remotas permanecem abertas.
+Planos e specs aprovados em 10/10/2026. Base compartilhada entre usuários autorizados da redação. Implementação direta nesta sessão; autorização cobre código e integração local. Em 10/10/2026, o usuário escolheu publicar a branch e criar a PR (opção 2). Esta autorização cobre push e criação da PR contra main, incluindo automações disparadas pela publicação; não autoriza atribuição de membros reais, migration remota, merge ou produção. Issues remotas permanecem abertas.
 
 Plano coordenador: `docs/superpowers/plans/2026-10-10-issues-editoriais.md`. Worktree `C:/Users/anils/.codex/worktrees/issues-editoriais/vpn`, branch `codex/issues-editoriais`, base `e797899`. Documentação de DNS no checkout original preservada fora deste lote.
 
