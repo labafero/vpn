@@ -84,7 +84,7 @@ Nenhum finding da revisão adiado; nenhuma pendência de segurança editorial ap
 
 ## Próxima entrega e reversão
 
-Corpo de PR preparado em `docs/validation/issues-editoriais-pr.md`, contra main. Publicar branch pode disparar previews automáticos: não associar produção nem apontar preview de escrita ao banco de produção sem autorização compatível.
+PR #8 criada contra main: https://github.com/labafero/vpn/pull/8. Branch publicada em origin/codex/issues-editoriais após autorização; PR anexada à tarefa. Corpo em `docs/validation/issues-editoriais-pr.md`. CI e previews devem ser verificados separadamente; banco remoto, merge e produção continuam pendentes. Publicar branch pode disparar previews automáticos: não associar produção nem apontar preview de escrita ao banco de produção sem autorização compatível.
 
 Antes de migrar remotamente: revalidar conta/projeto registrado em `docs/operations/environments.md`; obter migrations atuais/dry run; executar preflight somente leitura; obter lista explícita de UUIDs dos editores e revisar impacto sobre autores existentes. Quatro migrations novas neste lote, sem associação automática. Não aplicar restrição editorial sem preparar a lista aprovada e a janela de implantação.
 
