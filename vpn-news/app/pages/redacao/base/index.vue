@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { TYPE_LABELS, TYPE_COLORS, type DbRecordType } from "~/composables/useDbRecords";
 
-definePageMeta({ middleware: "auth" });
+definePageMeta({ middleware: ["auth", "editorial"] });
 
 const { records, loading, fetchAll, remove } = useDbRecords();
 const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();

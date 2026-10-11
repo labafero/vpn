@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { TYPE_LABELS, TYPE_COLORS, TYPE_FIELDS, type DbRecordType, type DbRecordNote } from "~/composables/useDbRecords";
 
-definePageMeta({ middleware: "auth" });
+definePageMeta({ middleware: ["auth", "editorial"] });
 
 const route = useRoute();
 const { fetchOne, update, fetchNotes, addNote, deleteNote } = useDbRecords();
