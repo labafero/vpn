@@ -1,0 +1,23 @@
+BEGIN;
+SELECT plan(8);
+INSERT INTO auth.users(id) VALUES ('00000000-0000-0000-0000-000000000041'),('00000000-0000-0000-0000-000000000042');
+INSERT INTO editorial_members(user_id) VALUES ('00000000-0000-0000-0000-000000000041');
+INSERT INTO db_records(id,type,nome,created_by) OVERRIDING SYSTEM VALUE VALUES
+(94001,'pessoa','Pessoa','00000000-0000-0000-0000-000000000041'),(94002,'empresa_legal','Empresa','00000000-0000-0000-0000-000000000041');
+SET LOCAL request.jwt.claim.sub='00000000-0000-0000-0000-000000000041';
+SET LOCAL ROLE authenticated;
+SELECT lives_ok($$INSERT INTO db_record_relations(source_id,target_id,kind) VALUES (94001,94002,'trabalha em')$$,'editor links records');
+SELECT throws_ok($$INSERT INTO db_record_relations(source_id,target_id,kind) VALUES (94001,94001,'possui')$$,'23514',NULL,'self relation denied');
+SELECT throws_ok($$INSERT INTO db_record_relations(source_id,target_id,kind) VALUES (94001,94002,'trabalha em')$$,'23505',NULL,'duplicate relation denied');
+SELECT throws_ok($$INSERT INTO db_record_relations(source_id,target_id,kind) VALUES (94001,99999,'possui')$$,'42501',NULL,'inaccessible or missing endpoint denied before FK');
+SELECT throws_ok($$INSERT INTO db_records(type,nome,created_by) VALUES ('pessoa',' ',auth.uid())$$,'23514',NULL,'empty name denied in database');
+RESET ROLE;
+SET LOCAL request.jwt.claim.sub='00000000-0000-0000-0000-000000000042';
+SET LOCAL ROLE authenticated;
+SELECT is((SELECT count(*)::integer FROM db_record_relations),0,'noneditor cannot read relation');
+RESET ROLE;
+DELETE FROM db_records WHERE id=94002;
+SELECT is((SELECT count(*)::integer FROM db_record_relations),0,'deleting endpoint removes links');
+SELECT is((SELECT count(*)::integer FROM db_records WHERE id=94001),1,'deleting endpoint preserves other record');
+SELECT * FROM finish();
+ROLLBACK;
