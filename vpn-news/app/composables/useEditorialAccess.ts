@@ -9,7 +9,11 @@ export function useEditorialAccess() {
     if (!user.value?.sub) return false
     loading.value = true
     try {
-      const { data, error } = await client.from('editorial_members').select('user_id').eq('user_id', user.value.sub).maybeSingle()
+      const { data, error } = await client
+        .from('editorial_members')
+        .select('user_id')
+        .eq('user_id', user.value.sub)
+        .maybeSingle()
       if (error) throw error
       authorized.value = Boolean(data)
       return authorized.value

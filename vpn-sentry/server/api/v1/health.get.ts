@@ -1,4 +1,4 @@
 export default defineEventHandler(() => ({
-  status: "ok",
-  service: "vpn-sentry",
+  status: 'ok',
+  service: 'vpn-sentry'
 }))

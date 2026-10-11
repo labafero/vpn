@@ -9,25 +9,25 @@
     <div>VPN CONECTADA</div>
     <ClientOnly>
       <div>{{ formatted }}</div>
-      <template #fallback> ##/##/####, ##:##:## </template>
+      <template #fallback>##/##/####, ##:##:##</template>
     </ClientOnly>
   </div>
 </template>
 
 <script lang="ts" setup>
-const now = ref(Date.now());
+const now = ref(Date.now())
 
 const formatted = computed(() => {
-  return new Date(now.value).toLocaleString("pt-BR");
-});
+  return new Date(now.value).toLocaleString('pt-BR')
+})
 
 onMounted(() => {
   if (import.meta.client) {
     setInterval(() => {
-      now.value = Date.now();
-    }, 1000);
+      now.value = Date.now()
+    }, 1000)
   }
-});
+})
 </script>
 
 <style></style>

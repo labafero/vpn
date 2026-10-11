@@ -1,1 +1,1 @@
-export type { Database } from "@vpn/database"
+export type { Database } from '@vpn/database'

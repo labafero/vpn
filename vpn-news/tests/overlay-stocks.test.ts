@@ -6,7 +6,16 @@ test('changing context discards late response and polling stops on disposal', as
   try {
     let resolveOld!: (value: string[]) => void
     const published: string[][] = []
-    const resource = createPollingResource(async context => context === 'old' ? new Promise<string[]>(resolve => { resolveOld = resolve }) : ['new'], rows => published.push(rows), () => {})
+    const resource = createPollingResource(
+      async (context) =>
+        context === 'old'
+          ? new Promise<string[]>((resolve) => {
+              resolveOld = resolve
+            })
+          : ['new'],
+      (rows) => published.push(rows),
+      () => {}
+    )
     resource.setContext('old')
     resource.setContext('new')
     await vi.advanceTimersByTimeAsync(1)
@@ -19,7 +28,9 @@ test('changing context discards late response and polling stops on disposal', as
     resource.dispose()
     await vi.advanceTimersByTimeAsync(120000)
     expect(published).toHaveLength(count)
-  } finally { vi.useRealTimers() }
+  } finally {
+    vi.useRealTimers()
+  }
 })
 
 test('periodic failure preserves last good data and initial failure reports error', async () => {
@@ -28,7 +39,14 @@ test('periodic failure preserves last good data and initial failure reports erro
     let failed = false
     const rows: string[][] = []
     const errors: string[] = []
-    const resource = createPollingResource(async () => { if (failed) throw new Error('network'); return ['valid'] }, data => rows.push(data), () => errors.push('error'))
+    const resource = createPollingResource(
+      async () => {
+        if (failed) throw new Error('network')
+        return ['valid']
+      },
+      (data) => rows.push(data),
+      () => errors.push('error')
+    )
     resource.setContext('city')
     await vi.advanceTimersByTimeAsync(1)
     failed = true
@@ -40,5 +58,7 @@ test('periodic failure preserves last good data and initial failure reports erro
     expect(rows.at(-1)).toEqual([])
     expect(errors).toHaveLength(2)
     resource.dispose()
-  } finally { vi.useRealTimers() }
+  } finally {
+    vi.useRealTimers()
+  }
 })

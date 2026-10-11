@@ -10,8 +10,13 @@ test('literal search escapes wildcards and page ranges do not overlap', () => {
 test('a late search cannot replace a newer filtered result', async () => {
   let resolveOld!: (rows: number[]) => void
   const published: number[][] = []
-  const load = createLatestLoader<number[]>(rows => published.push(rows))
-  const old = load(() => new Promise(resolve => { resolveOld = resolve }))
+  const load = createLatestLoader<number[]>((rows) => published.push(rows))
+  const old = load(
+    () =>
+      new Promise((resolve) => {
+        resolveOld = resolve
+      })
+  )
   await load(async () => [2])
   resolveOld([1])
   await old

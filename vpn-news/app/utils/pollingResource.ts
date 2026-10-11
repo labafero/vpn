@@ -1,4 +1,9 @@
-export function createPollingResource<T>(fetcher: (context: string) => Promise<T[]>, publish: (rows: T[]) => void, failure: (cause: unknown) => void, interval = 60000) {
+export function createPollingResource<T>(
+  fetcher: (context: string) => Promise<T[]>,
+  publish: (rows: T[]) => void,
+  failure: (cause: unknown) => void,
+  interval = 60000
+) {
   let context = ''
   let generation = 0
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -23,6 +28,10 @@ export function createPollingResource<T>(fetcher: (context: string) => Promise<T
     publish([])
     void refresh()
   }
-  function dispose() { disposed = true; generation++; clearTimeout(timer) }
+  function dispose() {
+    disposed = true
+    generation++
+    clearTimeout(timer)
+  }
   return { refresh, setContext, dispose }
 }

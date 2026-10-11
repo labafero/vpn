@@ -24,9 +24,14 @@ export function toApiError(error: unknown, requestId: string): ApiError {
   return { code, message, requestId }
 }
 
-export async function privateResponse<T>(event: H3Event, operation: () => Promise<T>): Promise<T | ApiError> {
+export async function privateResponse<T>(
+  event: H3Event,
+  operation: () => Promise<T>
+): Promise<T | ApiError> {
   setHeader(event, 'Cache-Control', 'no-store')
-  try { return await operation() } catch (error) {
+  try {
+    return await operation()
+  } catch (error) {
     setResponseStatus(event, error instanceof FoundationError ? error.statusCode : 503)
     return toApiError(error, randomUUID())
   }

@@ -1,13 +1,13 @@
 packages:
-  - "vpn-site"
-  - "vpn-news"
-  - "vpn-monitor"
-  - "vpn-sentry"
-  - "packages/*"
+  - 'vpn-site'
+  - 'vpn-news'
+  - 'vpn-monitor'
+  - 'vpn-sentry'
+  - 'packages/*'
 
 allowBuilds:
-  "@parcel/watcher": false
-  "@tailwindcss/oxide": false
+  '@parcel/watcher': false
+  '@tailwindcss/oxide': false
   better-sqlite3: true
   esbuild: false
   unrs-resolver: false

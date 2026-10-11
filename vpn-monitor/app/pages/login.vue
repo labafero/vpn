@@ -21,9 +21,15 @@ async function login() {
     else {
       const destination = sessionStorage.getItem('vpn-auth-return')
       sessionStorage.removeItem('vpn-auth-return')
-      await navigateTo(destination?.startsWith('/') && !destination.startsWith('//') ? destination : '/conexao')
+      await navigateTo(
+        destination?.startsWith('/') && !destination.startsWith('//') ? destination : '/conexao'
+      )
     }
-  } catch { message.value = 'Não foi possível entrar. Tente novamente.' } finally { busy.value = false }
+  } catch {
+    message.value = 'Não foi possível entrar. Tente novamente.'
+  } finally {
+    busy.value = false
+  }
 }
 </script>
 
@@ -31,12 +37,52 @@ async function login() {
   <main class="flex min-h-screen items-center justify-center bg-default p-4 sm:p-6 text-default">
     <UCard class="w-full max-w-md">
       <template #header><h1 class="text-2xl font-semibold">Entrar na VPN Monitor</h1></template>
-      <p class="mb-6 text-muted">Use sua conta VPN para gerenciar a conexão privada com a Twitch.</p>
-      <UForm :schema="schema" :state="state" class="space-y-4" @submit="login">
-        <UFormField name="email" label="E-mail" required><UInput v-model="state.email" type="email" autocomplete="email" class="w-full" /></UFormField>
-        <UFormField name="password" label="Senha" required><UInput v-model="state.password" type="password" autocomplete="current-password" class="w-full" /></UFormField>
-        <UAlert v-if="message" color="error" :description="message" role="alert" />
-        <UButton type="submit" :loading="busy" block>Entrar</UButton>
+      <p class="mb-6 text-muted">
+        Use sua conta VPN para gerenciar a conexão privada com a Twitch.
+      </p>
+      <UForm
+        :schema="schema"
+        :state="state"
+        class="space-y-4"
+        @submit="login"
+      >
+        <UFormField
+          name="email"
+          label="E-mail"
+          required
+        >
+          <UInput
+            v-model="state.email"
+            type="email"
+            autocomplete="email"
+            class="w-full"
+          />
+        </UFormField>
+        <UFormField
+          name="password"
+          label="Senha"
+          required
+        >
+          <UInput
+            v-model="state.password"
+            type="password"
+            autocomplete="current-password"
+            class="w-full"
+          />
+        </UFormField>
+        <UAlert
+          v-if="message"
+          color="error"
+          :description="message"
+          role="alert"
+        />
+        <UButton
+          type="submit"
+          :loading="busy"
+          block
+        >
+          Entrar
+        </UButton>
       </UForm>
     </UCard>
   </main>

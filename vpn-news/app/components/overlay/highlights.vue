@@ -1,6 +1,9 @@
 <template>
   <div class="border-t w-full border-neutral-700">
-    <div v-if="loading" class="h-full w-full p-6 flex flex-col justify-center">
+    <div
+      v-if="loading"
+      class="h-full w-full p-6 flex flex-col justify-center"
+    >
       <USkeleton class="h-3 w-20 mb-4" />
       <USkeleton class="h-8 w-3/4 mb-3" />
       <USkeleton class="h-4 w-full mb-2" />
@@ -16,37 +19,34 @@
 </template>
 
 <script lang="ts" setup>
-const { cidadeSlug } = useOverlayState();
+const { cidadeSlug } = useOverlayState()
 
-const supabase = useSupabaseClient();
+const supabase = useSupabaseClient()
 
 type Post = {
-  id: number;
-  title: string;
-  body: string;
-  cover_url: string;
-  destaque: boolean;
-  user_id: string;
-  created_at: string;
-  published_at: string;
-  cidade: string;
-};
+  id: number
+  title: string
+  body: string
+  cover_url: string
+  destaque: boolean
+  user_id: string
+  created_at: string
+  published_at: string
+  cidade: string
+}
 
-const posts = ref<Post[]>([]);
-const loading = ref(true);
+const posts = ref<Post[]>([])
+const loading = ref(true)
 
-const destaques = computed(() => posts.value.filter((p) => p.destaque));
+const destaques = computed(() => posts.value.filter((p) => p.destaque))
 
 onMounted(async () => {
-  let query = supabase
-    .from("posts")
-    .select("*")
-    .order("published_at", { ascending: false });
+  let query = supabase.from('posts').select('*').order('published_at', { ascending: false })
 
-  if (cidadeSlug.value) query = query.ilike("cidade", cidadeSlug.value);
+  if (cidadeSlug.value) query = query.ilike('cidade', cidadeSlug.value)
 
-  const { data } = await query;
-  if (data) posts.value = data as Post[];
-  loading.value = false;
-});
+  const { data } = await query
+  if (data) posts.value = data as Post[]
+  loading.value = false
+})
 </script>

@@ -10,9 +10,12 @@ test('credentials roundtrip without plaintext storage', () => {
 })
 test('tampering or wrong key version fails closed', () => {
   const output = crypto.encryptTokens({ accessToken: 'a', refreshToken: 'b' }, key, 'v1')
-  expect(() => crypto.decryptTokens({ ...output, tag: Buffer.alloc(16).toString('base64') }, key, 'v1')).toThrow()
+  expect(() =>
+    crypto.decryptTokens({ ...output, tag: Buffer.alloc(16).toString('base64') }, key, 'v1')
+  ).toThrow()
   expect(() => crypto.decryptTokens(output, key, 'v2')).toThrow()
 })
 test('missing or short key is rejected', () => {
-  for (const bad of ['', Buffer.alloc(16).toString('base64')]) expect(() => crypto.encryptTokens({ accessToken: 'a', refreshToken: 'b' }, bad, 'v1')).toThrow()
+  for (const bad of ['', Buffer.alloc(16).toString('base64')])
+    expect(() => crypto.encryptTokens({ accessToken: 'a', refreshToken: 'b' }, bad, 'v1')).toThrow()
 })

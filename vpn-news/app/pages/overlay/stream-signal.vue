@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts" setup>
-definePageMeta({ layout: "overlay", colorMode: "dark" });
+definePageMeta({ layout: 'overlay', colorMode: 'dark' })
 useHead({
-  title: "Sinal da transmissão",
-  htmlAttrs: { style: "background: transparent" },
-  bodyAttrs: { style: "background: transparent" },
-});
+  title: 'Sinal da transmissão',
+  htmlAttrs: { style: 'background: transparent' },
+  bodyAttrs: { style: 'background: transparent' }
+})
 </script>

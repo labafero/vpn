@@ -3,10 +3,14 @@ export function serializeCsv(headers: string[], rows: string[][]): string {
     const safe = /^[\s]*[=+\-@]|^[\t\r\n]/.test(value) ? `'${value}` : value
     return `"${safe.replaceAll('"', '""')}"`
   }
-  return '\uFEFF' + [headers, ...rows].map(row => row.map(cell).join(',')).join('\r\n')
+  return '\uFEFF' + [headers, ...rows].map((row) => row.map(cell).join(',')).join('\r\n')
 }
 
-export async function collectKeysetPages<T extends { id: number }>(fetchPage: (afterId: number, limit: number) => Promise<T[]>, signal?: AbortSignal, progress?: (count: number) => void): Promise<T[]> {
+export async function collectKeysetPages<T extends { id: number }>(
+  fetchPage: (afterId: number, limit: number) => Promise<T[]>,
+  signal?: AbortSignal,
+  progress?: (count: number) => void
+): Promise<T[]> {
   const result: T[] = []
   let cursor = 0
   while (true) {
@@ -23,4 +27,3 @@ export async function collectKeysetPages<T extends { id: number }>(fetchPage: (a
     if (rows.length < 500) return result
   }
 }
-

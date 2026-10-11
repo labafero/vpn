@@ -3,8 +3,10 @@ import { requireVpnUser } from '../../../../utils/auth'
 import { privateResponse } from '../../../../utils/api-error'
 import { getTwitchOAuthService } from '../../../../utils/twitch-oauth'
 
-export default defineEventHandler(event => privateResponse(event, async () => {
-  setHeader(event, 'Cache-Control', 'no-store')
-  const user = await requireVpnUser(event)
-  return getTwitchOAuthService().getTwitchConnection(user)
-}))
+export default defineEventHandler((event) =>
+  privateResponse(event, async () => {
+    setHeader(event, 'Cache-Control', 'no-store')
+    const user = await requireVpnUser(event)
+    return getTwitchOAuthService().getTwitchConnection(user)
+  })
+)

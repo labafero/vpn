@@ -1,46 +1,53 @@
 <script setup lang="ts">
-import { TYPE_LABELS, TYPE_FIELDS, type DbRecordType } from "~/composables/useDbRecords";
+import { TYPE_LABELS, TYPE_FIELDS, type DbRecordType } from '~/composables/useDbRecords'
 
-definePageMeta({ middleware: ["auth", "editorial"] });
+definePageMeta({ middleware: ['auth', 'editorial'] })
 
-const { insert } = useDbRecords();
-const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
-const toast = useToast();
-const router = useRouter();
+const { insert } = useDbRecords()
+const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig()
+const toast = useToast()
+const router = useRouter()
 
-const saving = ref(false);
-const type = ref<DbRecordType>("pessoa");
-const nome = ref("");
-const cidade = ref<string | null>(null);
-const dados = ref<Record<string, string>>({});
+const saving = ref(false)
+const type = ref<DbRecordType>('pessoa')
+const nome = ref('')
+const cidade = ref<string | null>(null)
+const dados = ref<Record<string, string>>({})
 
-onMounted(fetchCidades);
+onMounted(fetchCidades)
 
-const typeOptions = Object.entries(TYPE_LABELS).map(([value, label]) => ({ label, value }));
+const typeOptions = Object.entries(TYPE_LABELS).map(([value, label]) => ({ label, value }))
 
 const cidadeOptions = computed(() => [
-  { label: "Nenhuma", value: null },
+  { label: 'Nenhuma', value: null },
   ...cidades.value.map((c) => ({ label: c.cidade_nome, value: c.slug }))
-]);
+])
 
-const fields = computed(() => TYPE_FIELDS[type.value]);
+const fields = computed(() => TYPE_FIELDS[type.value])
 
-watch(type, () => { dados.value = {}; });
+watch(type, () => {
+  dados.value = {}
+})
 
 async function handleSave() {
   if (!nome.value.trim()) {
-    toast.add({ title: "Nome obrigatório", color: "error" });
-    return;
+    toast.add({ title: 'Nome obrigatório', color: 'error' })
+    return
   }
-  saving.value = true;
+  saving.value = true
   try {
-    const record = await insert({ type: type.value, nome: nome.value.trim(), dados: dados.value, cidade: cidade.value });
-    toast.add({ title: "Registro criado", color: "success" });
-    router.push(`/redacao/base/${record.id}`);
+    const record = await insert({
+      type: type.value,
+      nome: nome.value.trim(),
+      dados: dados.value,
+      cidade: cidade.value
+    })
+    toast.add({ title: 'Registro criado', color: 'success' })
+    router.push(`/redacao/base/${record.id}`)
   } catch {
-    toast.add({ title: "Erro ao criar registro", color: "error" });
+    toast.add({ title: 'Erro ao criar registro', color: 'error' })
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 </script>
@@ -50,10 +57,18 @@ async function handleSave() {
     <template #header>
       <UDashboardNavbar title="Novo Registro">
         <template #leading>
-          <UButton variant="ghost" icon="i-lucide-arrow-left" to="/redacao/base" />
+          <UButton
+            variant="ghost"
+            icon="i-lucide-arrow-left"
+            to="/redacao/base"
+          />
         </template>
         <template #right>
-          <UButton :loading="saving" :disabled="saving" @click="handleSave">
+          <UButton
+            :loading="saving"
+            :disabled="saving"
+            @click="handleSave"
+          >
             Salvar
           </UButton>
         </template>
@@ -74,8 +89,15 @@ async function handleSave() {
               />
             </UFormField>
 
-            <UFormField label="Nome" required>
-              <UInput v-model="nome" placeholder="Nome do registro" class="w-full" />
+            <UFormField
+              label="Nome"
+              required
+            >
+              <UInput
+                v-model="nome"
+                placeholder="Nome do registro"
+                class="w-full"
+              />
             </UFormField>
 
             <UFormField label="Cidade">

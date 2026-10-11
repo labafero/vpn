@@ -1,1 +1,3 @@
-export async function serverSupabaseClient() { throw new Error('test boundary must be mocked') }
+export async function serverSupabaseClient() {
+  throw new Error('test boundary must be mocked')
+}

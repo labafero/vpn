@@ -76,7 +76,7 @@ Duas superfícies distintas:
 
 ### Convenções
 
-- **ESLint** analisa o código; **Prettier** formata fontes e configurações com a configuração da raiz (`.prettierrc.json`): duas posições, aspas simples, sem ponto e vírgula ou vírgulas pendentes. Rodar `pnpm format` antes de entregar. `eslint-config-prettier` evita regras conflitantes nos quatro projetos Nuxt. Arquivos gerados ficam excluídos em `.prettierignore`; não formatá-los manualmente.
+- **ESLint** analisa o código; **Prettier** formata fontes e configurações com a configuração da raiz (`.prettierrc.json`): dois espaços, aspas simples, sem ponto e vírgula ou vírgulas pendentes. Rodar `pnpm format` antes de entregar. `eslint-config-prettier` evita regras conflitantes nos quatro projetos Nuxt. Arquivos gerados ficam excluídos em `.prettierignore`; não formatá-los manualmente.
 - **Tailwind v4**: `@import "tailwindcss"` antes de `@import "@nuxt/ui"` no CSS. Variáveis de tema em `@theme static`. Classes de cor usadas em `corClasses` devem existir estaticamente (sem interpolação dinâmica de classes).
 - **Idioma**: strings de UI em português (pt-BR).
 - `packages/database/src/database.types.ts` é gerado automaticamente pelo Supabase — não editar manualmente.

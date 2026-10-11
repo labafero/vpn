@@ -1,82 +1,65 @@
 <script setup lang="ts">
-import {
-  CORES_DISPONIVEIS,
-  corClasses,
-  type CorBrand,
-} from "~/utils/cidadeColors";
+import { CORES_DISPONIVEIS, corClasses, type CorBrand } from '~/utils/cidadeColors'
 
-definePageMeta({ middleware: "auth" });
+definePageMeta({ middleware: 'auth' })
 
-const route = useRoute();
-const slug = route.params.slug as string;
+const route = useRoute()
+const slug = route.params.slug as string
 
-const {
-  config,
-  seasons,
-  fetchBySlug,
-  fetchSeasons,
-  save,
-  setActiveSeason,
-} = useCidadeConfig();
-const {
-  config: characterConfig,
-  fetch: characterFetch,
-  save: characterSave,
-} = useCharacterConfig();
-const toast = useToast();
+const { config, seasons, fetchBySlug, fetchSeasons, save, setActiveSeason } = useCidadeConfig()
+const { config: characterConfig, fetch: characterFetch, save: characterSave } = useCharacterConfig()
+const toast = useToast()
 
-const saving = ref(false);
-const savingCharacter = ref(false);
+const saving = ref(false)
+const savingCharacter = ref(false)
 
 const form = reactive({
-  cidade_nome: "",
-  season: "",
-  jornal_nome: "",
-  jornal_sigla: "",
-  cor_primaria: "red" as CorBrand,
-  logo_url: "",
-});
+  cidade_nome: '',
+  season: '',
+  jornal_nome: '',
+  jornal_sigla: '',
+  cor_primaria: 'red' as CorBrand,
+  logo_url: ''
+})
 
 const characterForm = reactive({
-  character_name: "",
-  passport_id: "",
-  phone: "",
-});
+  character_name: '',
+  passport_id: '',
+  phone: ''
+})
 
 onMounted(async () => {
-  await Promise.all([fetchBySlug(slug), fetchSeasons(slug), characterFetch(slug)]);
+  await Promise.all([fetchBySlug(slug), fetchSeasons(slug), characterFetch(slug)])
 
   if (config.value) {
     Object.assign(form, {
       cidade_nome: config.value.cidade_nome,
-      season: seasons.value.find((item) => !item.ended_at)?.label ?? "",
+      season: seasons.value.find((item) => !item.ended_at)?.label ?? '',
       jornal_nome: config.value.jornal_nome,
       jornal_sigla: config.value.jornal_sigla,
       cor_primaria: config.value.cor_primaria as CorBrand,
-      logo_url: config.value.logo_url ?? "",
-    });
+      logo_url: config.value.logo_url ?? ''
+    })
   }
 
   Object.assign(characterForm, {
-    character_name: characterConfig.value?.character_name ?? "",
-    passport_id: characterConfig.value?.passport_id ?? "",
-    phone: characterConfig.value?.phone ?? "",
-  });
-});
+    character_name: characterConfig.value?.character_name ?? '',
+    passport_id: characterConfig.value?.passport_id ?? '',
+    phone: characterConfig.value?.phone ?? ''
+  })
+})
 
-const previewCor = computed(
-  () => corClasses[form.cor_primaria] ?? corClasses.red,
-);
+const previewCor = computed(() => corClasses[form.cor_primaria] ?? corClasses.red)
 
 async function handleSave() {
   if (!form.cidade_nome || !form.jornal_nome || !form.jornal_sigla) {
     toast.add({
-      title: "Preencha todos os campos obrigatórios",
-      color: "error",
-    });
-    return;
+      title: 'Preencha todos os campos obrigatórios',
+      color: 'error'
+    })
+    return
   }
-  saving.value = true;
+  saving.value = true
   try {
     await save({
       slug,
@@ -84,38 +67,38 @@ async function handleSave() {
       jornal_nome: form.jornal_nome,
       jornal_sigla: form.jornal_sigla,
       cor_primaria: form.cor_primaria,
-      logo_url: form.logo_url || null,
-    });
-    await setActiveSeason(slug, form.season);
-    toast.add({ title: "Cidade salva", color: "success" });
+      logo_url: form.logo_url || null
+    })
+    await setActiveSeason(slug, form.season)
+    toast.add({ title: 'Cidade salva', color: 'success' })
   } catch {
-    toast.add({ title: "Erro ao salvar", color: "error" });
+    toast.add({ title: 'Erro ao salvar', color: 'error' })
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
 async function handleSaveCharacter() {
-  savingCharacter.value = true;
+  savingCharacter.value = true
   try {
     await characterSave({
       cidade: slug,
       character_name: characterForm.character_name,
       passport_id: characterForm.passport_id,
-      phone: characterForm.phone,
-    });
-    toast.add({ title: "Personagem salvo", color: "success" });
+      phone: characterForm.phone
+    })
+    toast.add({ title: 'Personagem salvo', color: 'success' })
   } catch {
-    toast.add({ title: "Erro ao salvar personagem", color: "error" });
+    toast.add({ title: 'Erro ao salvar personagem', color: 'error' })
   } finally {
-    savingCharacter.value = false;
+    savingCharacter.value = false
   }
 }
 
 const tabs = [
-  { label: "Informações", slot: "informacoes" },
-  { label: "Personagem", slot: "personagem" },
-];
+  { label: 'Informações', slot: 'informacoes' },
+  { label: 'Personagem', slot: 'personagem' }
+]
 </script>
 
 <template>
@@ -138,7 +121,10 @@ const tabs = [
           <div class="space-y-4 pt-4">
             <UCard>
               <div class="space-y-4">
-                <UFormField label="Nome da Cidade" required>
+                <UFormField
+                  label="Nome da Cidade"
+                  required
+                >
                   <UInput
                     v-model="form.cidade_nome"
                     placeholder="Ex: Neon"
@@ -156,10 +142,17 @@ const tabs = [
                 </UFormField>
 
                 <UFormField label="Slug (URL)">
-                  <UInput :model-value="slug" readonly class="w-full" />
+                  <UInput
+                    :model-value="slug"
+                    readonly
+                    class="w-full"
+                  />
                 </UFormField>
 
-                <UFormField label="Nome do Jornal" required>
+                <UFormField
+                  label="Nome do Jornal"
+                  required
+                >
                   <UInput
                     v-model="form.jornal_nome"
                     placeholder="Ex: Neon TV"
@@ -167,7 +160,10 @@ const tabs = [
                   />
                 </UFormField>
 
-                <UFormField label="Sigla" required>
+                <UFormField
+                  label="Sigla"
+                  required
+                >
                   <UInput
                     v-model="form.jornal_sigla"
                     placeholder="Ex: NTV"
@@ -184,9 +180,7 @@ const tabs = [
                       class="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110"
                       :class="[
                         corClasses[cor].bg,
-                        form.cor_primaria === cor
-                          ? 'border-white scale-110'
-                          : 'border-transparent',
+                        form.cor_primaria === cor ? 'border-white scale-110' : 'border-transparent'
                       ]"
                       :title="cor"
                       @click="form.cor_primaria = cor"
@@ -204,7 +198,11 @@ const tabs = [
               </div>
 
               <template #footer>
-                <UButton :loading="saving" class="w-full" @click="handleSave">
+                <UButton
+                  :loading="saving"
+                  class="w-full"
+                  @click="handleSave"
+                >
                   Salvar
                 </UButton>
               </template>
@@ -222,7 +220,7 @@ const tabs = [
                 >
                   <span class="font-medium">{{ season.label }}</span>
                   <span class="text-xs text-muted">
-                    {{ season.ended_at ? "Encerrada" : "Atual" }}
+                    {{ season.ended_at ? 'Encerrada' : 'Atual' }}
                   </span>
                 </li>
               </ul>
@@ -230,9 +228,7 @@ const tabs = [
 
             <UCard>
               <template #header>
-                <span class="font-semibold text-sm text-muted"
-                  >Preview do header</span
-                >
+                <span class="font-semibold text-sm text-muted">Preview do header</span>
               </template>
               <div
                 class="rounded-lg overflow-hidden border"
@@ -243,12 +239,13 @@ const tabs = [
                   :class="previewCor.border"
                 >
                   <span class="font-bold text-sm tracking-tight text-white">
-                    <span :class="previewCor.text">{{
-                      form.jornal_sigla || "TV"
-                    }}</span>
-                    {{ form.jornal_nome || "Roleplay" }}
+                    <span :class="previewCor.text">{{ form.jornal_sigla || 'TV' }}</span>
+                    {{ form.jornal_nome || 'Roleplay' }}
                   </span>
-                  <UIcon name="lucide:pen-line" class="w-4 h-4 text-zinc-500" />
+                  <UIcon
+                    name="lucide:pen-line"
+                    class="w-4 h-4 text-zinc-500"
+                  />
                 </div>
               </div>
             </UCard>

@@ -4,9 +4,14 @@ import { requireVpnUser } from '../../../utils/auth'
 import { getMonitoringService } from '../../../utils/monitoring-runtime'
 import { requireMonitoringUuid } from '../../../utils/monitoring-validation'
 
-export default defineEventHandler(event => privateResponse(event, async () => {
-  const user = await requireVpnUser(event)
-  if (user.role === 'vpn_admin') throw new FoundationError(403)
-  await getMonitoringService().revokeInvite(requireMonitoringUuid(getRouterParam(event, 'id')), user.userId)
-  setResponseStatus(event, 204)
-}))
+export default defineEventHandler((event) =>
+  privateResponse(event, async () => {
+    const user = await requireVpnUser(event)
+    if (user.role === 'vpn_admin') throw new FoundationError(403)
+    await getMonitoringService().revokeInvite(
+      requireMonitoringUuid(getRouterParam(event, 'id')),
+      user.userId
+    )
+    setResponseStatus(event, 204)
+  })
+)

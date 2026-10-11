@@ -6,7 +6,7 @@ import { afterEach, expect, test } from 'vitest'
 
 const document = readFileSync(resolve('packages/contracts/openapi.yaml'), 'utf8')
 const directories: string[] = []
-afterEach(() => directories.splice(0).forEach(path => rmSync(path, { recursive: true })))
+afterEach(() => directories.splice(0).forEach((path) => rmSync(path, { recursive: true })))
 
 function check(source: string, generated?: string) {
   const directory = mkdtempSync(join(tmpdir(), 'vpn-contract-'))
@@ -23,7 +23,9 @@ function check(source: string, generated?: string) {
 }
 
 test('rejectsUnresolvedRef', () => {
-  expect(check(document.replace("#/components/schemas/Post", "#/components/schemas/Missing")).status).not.toBe(0)
+  expect(
+    check(document.replace('#/components/schemas/Post', '#/components/schemas/Missing')).status
+  ).not.toBe(0)
 })
 test('rejectsInvalidSchema', () => {
   expect(check(document.replace('type: integer', 'type: impossible')).status).not.toBe(0)
@@ -41,7 +43,16 @@ test('rejectsSecretsInConnectionSchema', () => {
 })
 test('defines the private monitoring and invitation contract', () => {
   expect(check(document).status).toBe(0)
-  for (const operation of ['/channels:', '/channels/{id}/monitoring:', '/sessions:', '/sessions/{id}:', '/sessions/{id}/invites:', '/invites/{id}:', '/invites/accept:']) expect(document).toContain(operation)
+  for (const operation of [
+    '/channels:',
+    '/channels/{id}/monitoring:',
+    '/sessions:',
+    '/sessions/{id}:',
+    '/sessions/{id}/invites:',
+    '/invites/{id}:',
+    '/invites/accept:'
+  ])
+    expect(document).toContain(operation)
   expect(document).toContain('additionalProperties: false')
   expect(document).not.toContain('token_hash')
 })
