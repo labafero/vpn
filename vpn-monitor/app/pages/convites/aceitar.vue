@@ -23,4 +23,4 @@ onMounted(async () => {
 })
 </script>
 
-<template><main class="flex min-h-screen items-center justify-center bg-default p-6 text-default"><UCard class="max-w-lg"><h1 class="mb-3 text-2xl font-semibold">Convite para uma sessão privada</h1><p role="status">{{ message }}</p><UButton v-if="inviteToken" class="mt-4" :loading="busy" @click="accept">Tentar novamente</UButton></UCard></main></template>
+<template><main class="flex min-h-screen items-center justify-center bg-default p-4 sm:p-6 text-default"><UCard class="max-w-lg"><h1 class="mb-3 text-2xl font-semibold">Convite para uma sessão privada</h1><p role="status">{{ message }}</p><UButton v-if="inviteToken" class="mt-4" :loading="busy" @click="accept">Tentar novamente</UButton></UCard></main></template>

@@ -61,7 +61,7 @@ async function handleSave() {
     </template>
 
     <template #body>
-      <div class="p-4 max-w-xl space-y-4">
+      <div class="min-w-0 max-w-xl space-y-4">
         <UCard>
           <div class="space-y-4">
             <UFormField label="Tipo">

@@ -131,10 +131,10 @@ async function saveNote() {
         <USkeleton v-for="i in 4" :key="i" class="h-12 rounded-lg" />
       </div>
 
-      <div v-else class="p-4 space-y-4 max-w-xl">
+      <div v-else class="w-full min-w-0 space-y-4 max-w-xl">
         <UCard>
           <template #header>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <UBadge
                 :label="TYPE_LABELS[record.type as DbRecordType]"
                 :color="TYPE_COLORS[record.type as DbRecordType]"
@@ -149,7 +149,7 @@ async function saveNote() {
           <div class="space-y-4">
             <UFormField label="Nome">
               <UInput v-if="editing" v-model="editNome" class="w-full" />
-              <p v-else class="text-sm py-1">{{ record.nome }}</p>
+              <p v-else class="text-sm py-1 wrap-anywhere">{{ record.nome }}</p>
             </UFormField>
 
             <UFormField label="Cidade">
@@ -161,7 +161,7 @@ async function saveNote() {
                 label-key="label"
                 class="w-full"
               />
-              <p v-else class="text-sm py-1">{{ record.cidade ?? "—" }}</p>
+              <p v-else class="text-sm py-1 wrap-anywhere">{{ record.cidade ?? "—" }}</p>
             </UFormField>
 
             <USeparator />
@@ -185,7 +185,7 @@ async function saveNote() {
                 :placeholder="field.label"
                 class="w-full"
               />
-              <p v-else class="text-sm py-1">{{ record.dados[field.key] ?? "—" }}</p>
+              <p v-else class="text-sm py-1 wrap-anywhere">{{ record.dados[field.key] ?? "—" }}</p>
             </UFormField>
           </div>
         </UCard>
@@ -193,7 +193,7 @@ async function saveNote() {
         <BaseRecordRelations :key="record.id" :record-id="record.id" />
         <UCard>
           <template #header>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <UIcon name="i-lucide-message-square" />
               <span class="font-semibold">Notas</span>
               <UBadge :label="String(notes.length)" variant="subtle" />
@@ -209,7 +209,7 @@ async function saveNote() {
               :key="note.id"
               class="flex gap-2 items-start group"
             >
-              <div v-if="noteId === note.id" class="flex-1 space-y-2"><UTextarea v-model="noteText" :maxlength="5000" class="w-full" /><UButton :loading="addingNote" @click="saveNote">Salvar nota</UButton><UButton variant="outline" @click="noteId = null">Cancelar</UButton></div><p v-else class="flex-1 text-sm whitespace-pre-wrap">{{ note.body }}</p><UButton v-if="note.created_by === currentUser?.sub" variant="ghost" icon="i-lucide-pencil" aria-label="Editar nota" @click="noteId = note.id; noteText = note.body" />
+              <div v-if="noteId === note.id" class="min-w-0 flex-1 space-y-2"><UTextarea v-model="noteText" :maxlength="5000" class="w-full" /><UButton :loading="addingNote" @click="saveNote">Salvar nota</UButton><UButton variant="outline" @click="noteId = null">Cancelar</UButton></div><p v-else class="min-w-0 flex-1 text-sm whitespace-pre-wrap wrap-anywhere">{{ note.body }}</p><UButton v-if="note.created_by === currentUser?.sub" variant="ghost" icon="i-lucide-pencil" aria-label="Editar nota" @click="noteId = note.id; noteText = note.body" />
               <div class="flex items-center gap-1 shrink-0">
                 <span class="text-xs text-muted hidden group-hover:block">
                   {{ new Date(note.created_at).toLocaleDateString("pt-BR") }}
@@ -234,7 +234,7 @@ async function saveNote() {
                 v-model="newNote"
                 placeholder="Adicionar nota..."
                 :rows="2"
-                class="flex-1"
+                class="min-w-0 flex-1"
               />
               <UButton
                 :loading="addingNote"

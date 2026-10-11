@@ -57,10 +57,10 @@ onMounted(refresh)
 </script>
 
 <template>
-  <main class="min-h-screen bg-default p-6 text-default">
-    <div class="mx-auto max-w-2xl space-y-6 py-10">
-      <header class="flex items-center justify-between gap-4">
-        <h1 class="text-3xl font-semibold">Conexão Twitch</h1>
+  <main class="min-h-screen bg-default p-4 sm:p-6 text-default">
+    <div class="mx-auto max-w-2xl min-w-0 space-y-6 py-4 sm:py-10">
+      <header class="flex flex-wrap items-start justify-between gap-3">
+        <h1 class="text-2xl font-semibold wrap-anywhere sm:text-3xl">Conexão Twitch</h1>
         <UButton color="neutral" variant="outline" @click="logout">Sair</UButton>
       </header>
       <UCard>
@@ -68,7 +68,7 @@ onMounted(refresh)
         <div v-if="loading" role="status">Consultando conexão…</div>
         <template v-else>
           <div v-if="connection" class="mb-6 space-y-2">
-            <p>Canal: <strong>{{ connection.login }}</strong></p>
+            <p class="wrap-anywhere">Canal: <strong>{{ connection.login }}</strong></p>
             <UBadge color="neutral">{{ statuses[connection.status] }}</UBadge>
             <p v-if="connection.status === 'revocation_pending'" class="text-muted">O uso local está bloqueado. A VPN tentará revogar na Twitch por até 24 horas. Você também pode remover a integração nas configurações da Twitch.</p>
             <section v-if="connection.status === 'connected' && channels[0]" class="mt-6 space-y-3 border-t border-default pt-5">

@@ -68,7 +68,7 @@ async function handleSave() {
     </template>
 
     <template #body>
-      <div class="p-4 max-w-2xl space-y-4">
+      <div class="min-w-0 max-w-2xl space-y-4">
         <UCard>
           <div class="space-y-4">
             <UFormField label="Nome da Cidade" required>

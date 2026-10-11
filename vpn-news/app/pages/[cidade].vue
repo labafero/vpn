@@ -132,7 +132,7 @@ function formatDate(iso: string) {
               <span class="size-2 rounded-full" :class="cor.bg" />
               Cobertura local · {{ nomeCidade }}
             </div>
-            <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-highlighted">{{ nomeJornal }}</h1>
+            <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-highlighted wrap-anywhere">{{ nomeJornal }}</h1>
             <p class="text-lg sm:text-xl text-muted max-w-2xl">A cidade em movimento, contada por quem está na rua. Notícias, bastidores e os fatos que mudam o ritmo de {{ nomeCidade }}.</p>
             <div class="flex flex-wrap gap-3 pt-2">
               <UButton to="#ultimas" size="lg" :class="cor.bg" trailing-icon="i-lucide-arrow-down">Ler últimas notícias</UButton>
@@ -165,13 +165,13 @@ function formatDate(iso: string) {
               <h2 id="destaques-title" class="text-2xl sm:text-3xl font-bold text-highlighted">O que está movimentando {{ nomeCidade }}</h2>
             </div>
           </div>
-          <div class="h-72 sm:h-[26rem] overflow-hidden rounded-2xl border border-muted bg-elevated">
+          <div class="overflow-hidden rounded-2xl border border-muted bg-elevated">
             <CityHighlights :posts="destaques" />
           </div>
         </section>
 
         <section id="ultimas" aria-labelledby="ultimas-title" class="space-y-5">
-          <div class="flex items-end justify-between gap-4">
+          <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.2em]" :class="cor.muted">Arquivo vivo</p>
               <h2 id="ultimas-title" class="text-2xl sm:text-3xl font-bold text-highlighted">Últimas notícias</h2>

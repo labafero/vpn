@@ -198,7 +198,7 @@ async function remove(id: number) {
     </template>
 
     <template #body>
-      <div class="p-4">
+      <div class="min-w-0">
         <p v-if="loading" class="text-gray-500">Carregando...</p>
 
         <PostForm

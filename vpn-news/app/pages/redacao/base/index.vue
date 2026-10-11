@@ -65,26 +65,27 @@ async function exportData(kind: 'records' | 'notes' | 'relations') {
         <UButton variant="outline" icon="i-lucide-download" :disabled="exporting">Exportar</UButton>
       </UDropdownMenu><UButton to="/redacao/base/novo" icon="i-lucide-plus">Novo registro</UButton>
     </template></UDashboardNavbar></template>
-    <template #body><div class="p-4 space-y-4">
-      <div class="flex flex-wrap items-end gap-3">
-        <UFormField label="Buscar nome"><UInput v-model="search" placeholder="Buscar por nome" icon="i-lucide-search" /></UFormField>
-        <UFormField label="Tipo"><USelect v-model="filterType" :items="typeOptions" /></UFormField>
-        <UFormField label="Cidade"><USelect v-model="filterCidade" :items="cityOptions" /></UFormField>
-        <UFormField label="Ordenar por"><USelect v-model="sort" :items="[{ label: 'Atualização', value: 'updated_at' }, { label: 'Nome', value: 'nome' }]" /></UFormField>
+    <template #body><div class="min-w-0 space-y-4">
+      <div class="grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <UFormField label="Buscar nome"><UInput v-model="search" placeholder="Buscar por nome" icon="i-lucide-search" class="w-full" /></UFormField>
+        <UFormField label="Tipo"><USelect v-model="filterType" :items="typeOptions" class="w-full" /></UFormField>
+        <UFormField label="Cidade"><USelect v-model="filterCidade" :items="cityOptions" class="w-full" /></UFormField>
+        <UFormField label="Ordenar por"><USelect v-model="sort" :items="[{ label: 'Atualização', value: 'updated_at' }, { label: 'Nome', value: 'nome' }]" class="w-full" /></UFormField>
         <UCheckbox v-model="ascending" label="Ordem crescente" />
       </div>
       <UAlert v-if="error" color="error" :description="error"><template #actions><UButton @click="refresh">Tentar novamente</UButton></template></UAlert>
-      <div v-if="exporting" role="status" class="flex items-center gap-3"><span>Preparando exportação: {{ progress }} registros</span><UButton variant="outline" @click="cancel">Cancelar</UButton></div>
-      <UCard>
-        <UTable :data="records" :columns="columns" :loading="loading">
-          <template #nome-cell="{ row }"><NuxtLink :to="`/redacao/base/${row.original.id}`" class="font-medium text-primary underline">{{ row.original.nome }}</NuxtLink></template>
+      <div v-if="exporting" role="status" class="flex flex-wrap items-center gap-3"><span>Preparando exportação: {{ progress }} registros</span><UButton variant="outline" @click="cancel">Cancelar</UButton></div>
+      <UCard class="min-w-0">
+        <p class="mb-3 text-sm text-muted sm:hidden">Deslize a tabela para ver as outras colunas.</p>
+        <UTable :data="records" :columns="columns" :loading="loading" role="region" aria-label="Registros da Base de Dados" tabindex="0" class="max-w-full">
+          <template #nome-cell="{ row }"><NuxtLink :to="`/redacao/base/${row.original.id}`" class="line-clamp-2 w-56 whitespace-normal wrap-anywhere font-medium text-primary underline">{{ row.original.nome }}</NuxtLink></template>
           <template #type-cell="{ row }"><UBadge :color="TYPE_COLORS[row.original.type]">{{ TYPE_LABELS[row.original.type] }}</UBadge></template>
           <template #cidade-cell="{ row }">{{ cidades.find(c => c.slug === row.original.cidade)?.cidade_nome ?? '—' }}</template>
           <template #updated_at-cell="{ row }">{{ new Date(row.original.updated_at).toLocaleString('pt-BR') }}</template>
           <template #actions-cell="{ row }"><div class="flex gap-2"><UButton :to="`/redacao/base/${row.original.id}`" variant="ghost" icon="i-lucide-pencil" aria-label="Editar registro" /><UButton variant="ghost" color="error" icon="i-lucide-trash-2" aria-label="Remover registro" @click="deleteId = row.original.id; deleteOpen = true" /></div></template>
           <template #empty>Nenhum registro encontrado.</template>
         </UTable>
-        <UPagination v-model:page="page" :items-per-page="25" :total="total" class="mt-4" />
+        <UPagination v-model:page="page" :items-per-page="25" :total="total" :sibling-count="0" :show-edges="false" class="mt-4" />
       </UCard>
     </div></template>
   </UDashboardPanel>

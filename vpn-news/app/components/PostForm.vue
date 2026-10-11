@@ -135,7 +135,7 @@ defineExpose({ setSubmitting });
 </script>
 
 <template>
-  <UForm :state="formState" class="space-y-4 max-w-2xl" @submit="handleSubmit">
+  <UForm :state="formState" class="w-full min-w-0 space-y-4 max-w-2xl" @submit="handleSubmit">
     <UAlert
       v-if="error"
       color="error"
@@ -225,7 +225,7 @@ defineExpose({ setSubmitting });
       </div>
     </UFormField>
 
-    <div class="flex gap-2">
+    <div class="flex flex-wrap gap-2">
       <UButton type="submit" :loading="submitting">
         {{ submitLabel }}
       </UButton>

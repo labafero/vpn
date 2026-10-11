@@ -56,15 +56,15 @@ async function remove() {
     <div class="space-y-4">
       <UAlert v-if="error" color="error" :description="error" />
       <p v-if="!links.length" class="text-muted">Nenhum relacionamento cadastrado.</p>
-      <div v-for="link in links" :key="link.id" class="flex items-center gap-2">
-        <NuxtLink :to="`/redacao/base/${link.source_id}`" class="text-primary underline">{{ names[link.source_id] ?? link.source_id }}</NuxtLink>
+      <div v-for="link in links" :key="link.id" class="flex flex-wrap items-center gap-2 wrap-anywhere">
+        <NuxtLink :to="`/redacao/base/${link.source_id}`" class="min-w-0 text-primary underline">{{ names[link.source_id] ?? link.source_id }}</NuxtLink>
         <span>{{ link.kind }} →</span>
-        <NuxtLink :to="`/redacao/base/${link.target_id}`" class="text-primary underline">{{ names[link.target_id] ?? link.target_id }}</NuxtLink>
+        <NuxtLink :to="`/redacao/base/${link.target_id}`" class="min-w-0 text-primary underline">{{ names[link.target_id] ?? link.target_id }}</NuxtLink>
         <UButton variant="ghost" color="error" icon="i-lucide-unlink" aria-label="Remover relacionamento" @click="removeId = link.id; removeOpen = true" />
       </div>
       <UFormField label="Registro relacionado"><USelectMenu v-model="target" v-model:search-term="search" aria-label="Registro relacionado" :items="options" value-key="value" :ignore-filter="true" placeholder="Buscar por nome" class="w-full" /></UFormField>
       <UFormField label="Relação"><UInput v-model="kind" :maxlength="50" placeholder="Ex.: trabalha em" class="w-full" /></UFormField>
-      <UButton :disabled="!target || !kind.trim() || busy" :loading="busy" @click="add">Adicionar relacionamento</UButton>
+      <UButton class="w-full justify-center sm:w-auto" :disabled="!target || !kind.trim() || busy" :loading="busy" @click="add">Adicionar relacionamento</UButton>
     </div>
   </UCard>
   <UModal v-model:open="removeOpen" title="Remover relacionamento" description="Apenas o vínculo será removido; os registros serão preservados."><template #footer><UButton variant="outline" @click="removeOpen = false">Cancelar</UButton><UButton color="error" :loading="busy" @click="remove">Remover vínculo</UButton></template></UModal>

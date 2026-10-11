@@ -138,7 +138,7 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Jornal</div>
               <div class="flex gap-2">
-                <UInput :model-value="overlayUrl" class="flex-1" readonly />
+                <UInput :model-value="overlayUrl" class="min-w-0 flex-1" readonly />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -155,7 +155,7 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Monitoramento</div>
               <div class="flex gap-2">
-                <UInput :model-value="idleUrl" class="flex-1" readonly />
+                <UInput :model-value="idleUrl" class="min-w-0 flex-1" readonly />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -172,7 +172,7 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Spectrum</div>
               <div class="flex gap-2">
-                <UInput :model-value="spectrumUrl" class="flex-1" readonly />
+                <UInput :model-value="spectrumUrl" class="min-w-0 flex-1" readonly />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -189,7 +189,7 @@ const cidadeOptions = computed(() => [
             <div>
               <div class="text-sm font-medium mb-1">Sem sinal</div>
               <div class="flex gap-2">
-                <UInput :model-value="noSignalUrl" class="flex-1" readonly />
+                <UInput :model-value="noSignalUrl" class="min-w-0 flex-1" readonly />
                 <UButton
                   icon="i-lucide-copy"
                   variant="outline"
@@ -208,7 +208,7 @@ const cidadeOptions = computed(() => [
               <div class="flex gap-2">
                 <UInput
                   :model-value="streamSignalUrl"
-                  class="flex-1"
+                  class="min-w-0 flex-1"
                   readonly
                 />
                 <UButton
@@ -229,7 +229,7 @@ const cidadeOptions = computed(() => [
               <div class="flex gap-2">
                 <UInput
                   :model-value="streamSignalDeckUrl"
-                  class="flex-1"
+                  class="min-w-0 flex-1"
                   readonly
                 />
                 <UButton
@@ -252,7 +252,7 @@ const cidadeOptions = computed(() => [
               <div class="flex gap-2">
                 <UInput
                   :model-value="streamSignalDeckRandomUrl"
-                  class="flex-1"
+                  class="min-w-0 flex-1"
                   readonly
                 />
                 <UButton

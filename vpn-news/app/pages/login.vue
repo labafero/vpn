@@ -47,14 +47,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <UPageCard class="w-full max-w-md" title="VPN Roleplay" description="Faça login para continuar">
       <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField label="E-mail" name="email">
-          <UInput v-model="state.email" class="w-full" />
+          <UInput v-model="state.email" class="w-full" :ui="{ base: 'text-base sm:text-sm' }" />
         </UFormField>
 
         <UFormField label="Senha" name="password">
-          <UInput v-model="state.password" type="password" class="w-full" />
+          <UInput v-model="state.password" type="password" class="w-full" :ui="{ base: 'text-base sm:text-sm' }" />
         </UFormField>
 
-        <UButton type="submit"> Entrar </UButton>
+        <UButton type="submit" block class="min-h-11"> Entrar </UButton>
       </UForm>
     </UPageCard>
   </div>

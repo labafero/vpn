@@ -28,7 +28,7 @@ async function login() {
 </script>
 
 <template>
-  <main class="flex min-h-screen items-center justify-center bg-default p-6 text-default">
+  <main class="flex min-h-screen items-center justify-center bg-default p-4 sm:p-6 text-default">
     <UCard class="w-full max-w-md">
       <template #header><h1 class="text-2xl font-semibold">Entrar na VPN Monitor</h1></template>
       <p class="mb-6 text-muted">Use sua conta VPN para gerenciar a conexão privada com a Twitch.</p>

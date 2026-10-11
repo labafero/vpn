@@ -11,7 +11,7 @@ function saved(selection: { cidade: string; itemId: number }) {
 <template>
   <UDashboardPanel>
     <template #header><UDashboardNavbar title="Registrar valor" /></template>
-    <template #body><div class="p-4"><MarketValueWizard @saved="saved" /></div></template>
+    <template #body><div class="min-w-0"><MarketValueWizard @saved="saved" /></div></template>
   </UDashboardPanel>
 </template>
 

@@ -119,11 +119,11 @@ const stats = computed(() => {
             :items="cidadeOptions"
             value-key="value"
             label-key="label"
-            class="w-52"
+            class="w-full sm:w-52"
           />
         </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <UCard v-for="stat in stats" :key="stat.label">
             <div class="flex items-center gap-3">
               <UIcon :name="stat.icon" class="text-2xl" />
@@ -141,7 +141,7 @@ const stats = computed(() => {
           Nenhuma publicação encontrada.
         </p>
 
-        <div v-else class="grid grid-cols-2 gap-3">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <UBlogPost
             v-for="post in posts"
             :key="post.id"

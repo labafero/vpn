@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const menuOpen = ref(false)
 const navigation = [
   { label: 'O universo', to: '#universo' },
   { label: 'Como funciona', to: '#como-funciona' },
@@ -30,11 +31,11 @@ const pillars = [
 <template>
   <div class="min-h-screen overflow-hidden bg-[#05090c] text-white">
     <header class="relative z-20 border-b border-white/10 bg-[#05090c]/80 backdrop-blur-md">
-      <UContainer class="flex h-20 items-center justify-between gap-8">
+      <UContainer class="flex min-h-16 items-center justify-between gap-3 py-3 sm:h-20 sm:gap-8 sm:py-0">
         <NuxtLink
           to="/"
           aria-label="VPN Roleplay — início"
-          class="group flex items-center gap-3"
+          class="group flex min-w-0 items-center gap-2 sm:gap-3"
         >
           <span class="grid size-10 place-items-center rounded-xl bg-[#ed1c24] shadow-[0_0_28px_rgba(237,28,36,0.26)] transition-transform group-hover:scale-105">
             <svg
@@ -70,7 +71,7 @@ const pillars = [
               />
             </svg>
           </span>
-          <span class="text-sm font-semibold tracking-[0.22em] text-white">VPN <span class="text-white/45">ROLEPLAY</span></span>
+          <span class="text-xs font-semibold tracking-[0.12em] text-white sm:text-sm sm:tracking-[0.22em]">VPN <span class="text-white/45">ROLEPLAY</span></span>
         </NuxtLink>
 
         <nav
@@ -86,6 +87,7 @@ const pillars = [
         </nav>
 
         <UButton
+          class="hidden md:inline-flex"
           to="https://vpn-news.labafero.com"
           target="_blank"
           color="neutral"
@@ -93,7 +95,31 @@ const pillars = [
           trailing-icon="i-lucide-arrow-up-right"
           label="Abrir portal"
         />
+        <UButton
+          class="min-h-11 min-w-11 md:hidden"
+          color="neutral"
+          variant="ghost"
+          :icon="menuOpen ? 'i-lucide-x' : 'i-lucide-menu'"
+          :aria-label="menuOpen ? 'Fechar navegação' : 'Abrir navegação'"
+          :aria-expanded="menuOpen"
+          aria-controls="mobile-navigation"
+          @click="menuOpen = !menuOpen"
+        />
       </UContainer>
+      <nav
+        v-if="menuOpen"
+        id="mobile-navigation"
+        aria-label="Navegação mobile"
+        class="border-t border-white/10 px-4 py-2 md:hidden"
+      >
+        <a
+          v-for="item in navigation"
+          :key="item.label"
+          :href="item.to"
+          class="flex min-h-11 items-center text-white/80"
+          @click="menuOpen = false"
+        >{{ item.label }}</a>
+      </nav>
     </header>
 
     <main>
@@ -111,7 +137,7 @@ const pillars = [
           aria-hidden="true"
         />
 
-        <UContainer class="relative w-full py-24 lg:py-32">
+        <UContainer class="relative w-full py-12 sm:py-24 lg:py-32">
           <div class="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr]">
             <div class="max-w-3xl">
               <div class="mb-8 flex items-center gap-3 text-[11px] font-semibold tracking-[0.28em] text-[#ff6468]">
@@ -128,7 +154,7 @@ const pillars = [
               <p class="mt-8 max-w-xl text-lg leading-8 text-white/55 sm:text-xl">
                 VPN Roleplay é um universo vivo de histórias, personagens e notícias. Entre na cidade e descubra o que está acontecendo agora.
               </p>
-              <div class="mt-10 flex flex-wrap items-center gap-4">
+              <div class="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
                 <UButton
                   size="xl"
                   to="https://vpn-news.labafero.com"

@@ -5,3 +5,18 @@
   --font-sans: "Inter", sans-serif;
   --font-breaking: "Oswald", sans-serif;
 }
+
+/* Keep the OBS layouts independent of the newsroom's touch controls. */
+@media (width < 640px) {
+  .editorial-dashboard input,
+  .editorial-dashboard textarea,
+  .editorial-dashboard [role="combobox"] {
+    font-size: 1rem;
+  }
+
+  .editorial-dashboard button,
+  .editorial-dashboard a[data-slot="base"] {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
