@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui"
 
-const open = ref(true);
+const open = ref(false);
 const router = useRouter();
 
 defineShortcuts({
@@ -10,6 +10,7 @@ defineShortcuts({
   "g-t": () => router.push("/redacao/transmissao"),
   "g-c": () => router.push("/redacao/cidades"),
   "g-b": () => router.push("/redacao/base"),
+  "g-v": () => router.push("/redacao/valores"),
 });
 
 function closeSidebar() {
@@ -19,6 +20,7 @@ function closeSidebar() {
 }
 
 const links = computed<NavigationMenuItem[]>(() => [
+  { label: "Valores", icon: "i-lucide-chart-line", to: "/redacao/valores", onSelect: closeSidebar },
   {
     label: "Redação",
     icon: "i-lucide-pen-line",

@@ -32,5 +32,12 @@ export function useMarketValues() {
     if (error) throw error
     return { rows: data ?? [], total: count ?? 0 }
   }
-  return { save, fetchLatest, fetchHistory }
+  async function fetchPreceding(row: MarketValue) {
+    const { data, error } = await client.from('market_values').select('*').eq('user_id', owner()).eq('cidade', row.cidade).eq('item_id', row.item_id)
+      .or(`created_at.lt.${row.created_at},and(created_at.eq.${row.created_at},id.lt.${row.id})`)
+      .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(1).maybeSingle()
+    if (error) throw error
+    return data
+  }
+  return { save, fetchLatest, fetchHistory, fetchPreceding }
 }
