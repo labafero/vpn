@@ -9,6 +9,9 @@
     "dev:monitor": "pnpm --filter @vpn/monitor dev",
     "dev:sentry": "pnpm --filter @vpn/sentry dev",
     "lint": "pnpm --recursive --if-present lint",
+    "lint:fix": "pnpm --recursive --if-present lint --fix",
+    "format": "prettier --write \"**/*.{vue,ts,js,mjs,cjs,json,css,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{vue,ts,js,mjs,cjs,json,css,yml,yaml}\"",
     "typecheck": "pnpm --recursive --if-present typecheck",
     "build": "pnpm --workspace-concurrency=1 --recursive --if-present build",
     "contracts:check": "node packages/contracts/scripts/check-openapi.mjs",
@@ -19,7 +22,9 @@
     "@apidevtools/swagger-parser": "13.1.0",
     "@electric-sql/pglite": "0.5.8",
     "@redocly/cli": "2.58.1",
+    "eslint-config-prettier": "10.1.8",
     "openapi-typescript": "7.13.0",
+    "prettier": "3.8.3",
     "vitest": "5.0.3"
   }
 }
