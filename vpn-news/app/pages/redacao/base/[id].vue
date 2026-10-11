@@ -4,9 +4,13 @@ import { TYPE_LABELS, TYPE_COLORS, TYPE_FIELDS, type DbRecordType, type DbRecord
 definePageMeta({ middleware: ["auth", "editorial"] });
 
 const route = useRoute();
-const { fetchOne, update, fetchNotes, addNote, deleteNote } = useDbRecords();
+const { fetchOne, update, fetchNotes, addNote, deleteNote, updateNote } = useDbRecords();
 const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig();
 const toast = useToast();
+const currentUser = useSupabaseUser();
+const noteId = ref<number | null>(null);
+const noteText = ref('');
+const loadError = ref('');
 
 const record = ref<Awaited<ReturnType<typeof fetchOne>> | null>(null);
 const notes = ref<DbRecordNote[]>([]);
@@ -25,8 +29,11 @@ onMounted(async () => {
 
 async function loadRecord() {
   const id = Number(route.params.id);
+  if (!Number.isSafeInteger(id) || id < 1) { loadError.value = 'Registro não encontrado'; return }
+  try {
   record.value = await fetchOne(id);
   notes.value = await fetchNotes(id);
+  } catch { loadError.value = 'Registro não encontrado ou acesso indisponível' }
 }
 
 const cidadeOptions = computed(() => [
@@ -88,6 +95,16 @@ async function handleDeleteNote(noteId: number) {
     toast.add({ title: "Erro ao remover nota", color: "error" });
   }
 }
+async function saveNote() {
+  if (!noteId.value || addingNote.value) return
+  addingNote.value = true
+  try {
+    const updated = await updateNote(noteId.value, noteText.value)
+    notes.value = notes.value.map(n => n.id === updated.id ? updated : n)
+    noteId.value = null
+  } catch { toast.add({ title: 'Não foi possível editar a nota', color: 'error' }) }
+  finally { addingNote.value = false }
+}
 </script>
 
 <template>
@@ -110,7 +127,7 @@ async function handleDeleteNote(noteId: number) {
     </template>
 
     <template #body>
-      <div v-if="!record" class="p-4 space-y-2">
+      <UAlert v-if="loadError" color="error" :description="loadError" class="m-4" /><div v-else-if="!record" class="p-4 space-y-2">
         <USkeleton v-for="i in 4" :key="i" class="h-12 rounded-lg" />
       </div>
 
@@ -173,6 +190,7 @@ async function handleDeleteNote(noteId: number) {
           </div>
         </UCard>
 
+        <BaseRecordRelations :key="record.id" :record-id="record.id" />
         <UCard>
           <template #header>
             <div class="flex items-center gap-2">
@@ -191,17 +209,19 @@ async function handleDeleteNote(noteId: number) {
               :key="note.id"
               class="flex gap-2 items-start group"
             >
-              <p class="flex-1 text-sm whitespace-pre-wrap">{{ note.body }}</p>
+              <div v-if="noteId === note.id" class="flex-1 space-y-2"><UTextarea v-model="noteText" :maxlength="5000" class="w-full" /><UButton :loading="addingNote" @click="saveNote">Salvar nota</UButton><UButton variant="outline" @click="noteId = null">Cancelar</UButton></div><p v-else class="flex-1 text-sm whitespace-pre-wrap">{{ note.body }}</p><UButton v-if="note.created_by === currentUser?.sub" variant="ghost" icon="i-lucide-pencil" aria-label="Editar nota" @click="noteId = note.id; noteText = note.body" />
               <div class="flex items-center gap-1 shrink-0">
                 <span class="text-xs text-muted hidden group-hover:block">
                   {{ new Date(note.created_at).toLocaleDateString("pt-BR") }}
                 </span>
                 <UButton
+                  v-if="note.created_by === currentUser?.sub"
                   size="xs"
                   variant="ghost"
                   color="error"
                   icon="i-lucide-trash-2"
-                  class="opacity-0 group-hover:opacity-100"
+                  class="opacity-100"
+                  aria-label="Remover nota"
                   @click="handleDeleteNote(note.id)"
                 />
               </div>
@@ -218,6 +238,7 @@ async function handleDeleteNote(noteId: number) {
               />
               <UButton
                 :loading="addingNote"
+                aria-label="Adicionar nota"
                 :disabled="!newNote.trim()"
                 icon="i-lucide-send"
                 @click="handleAddNote"
