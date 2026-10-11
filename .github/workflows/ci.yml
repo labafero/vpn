@@ -1,84 +1,109 @@
 name: ci
 
-on: push
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
-  ci:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node: [22]
-
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.scope.outputs.code }}
+      apps: ${{ steps.scope.outputs.apps }}
+      database: ${{ steps.scope.outputs.database }}
+      sql: ${{ steps.scope.outputs.sql }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Install node
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v6
         with:
-          node-version: ${{ matrix.node }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Formatting
-        run: pnpm format:check
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: API contracts
-        run: pnpm contracts:check
-
-      - name: Foundation tests
-        run: pnpm test:foundation
-
-      - name: Install Supabase CLI for build
-        uses: supabase/setup-cli@v1
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
         with:
-          version: 2.119.0
+          node-version: 22
+      - name: Select affected workspaces
+        id: scope
+        run: node scripts/ci/affected.mjs
 
-      - name: Start isolated Supabase for build
-        id: build-supabase
-        run: supabase start
-
-      - name: Configure local public API for prerender
-        run: |
-          supabase status -o json | jq -r '"NUXT_PUBLIC_SUPABASE_URL=\(.API_URL)\nNUXT_PUBLIC_SUPABASE_KEY=\(.ANON_KEY)"' >> "$GITHUB_ENV"
-
-      - name: Build
-        run: pnpm build
-
-      - name: Stop build database
-        if: always() && steps.build-supabase.outcome == 'success'
-        run: supabase stop --no-backup
-
-  foundation-db:
+  checks:
+    needs: scope
+    if: needs.scope.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: supabase/setup-cli@v1
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Test CI selection
+        run: node --test scripts/ci/*.test.mjs
+      - name: Lint
+        run: pnpm lint
+      - name: Formatting
+        run: pnpm format:check
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: API contracts
+        run: pnpm contracts:check
+      - name: Foundation tests
+        run: pnpm test:foundation
+      - name: Install Supabase CLI
+        if: needs.scope.outputs.database == 'true'
+        uses: supabase/setup-cli@v1
         with:
           version: 2.119.0
       - name: Start isolated Supabase
+        if: needs.scope.outputs.database == 'true'
+        id: database
         run: supabase start
       - name: Database policies
+        if: needs.scope.outputs.sql == 'true'
         run: supabase test db
-      - name: Generate schema types for review
-        run: supabase gen types typescript --local --schema public,private,graphql_public > foundation-database.types.ts
-      - uses: actions/upload-artifact@v4
-        with:
-          name: foundation-database-types
-          path: foundation-database.types.ts
-      - name: Stop Supabase
-        if: always()
+      - name: Configure local public API for News prerender
+        if: contains(fromJSON(needs.scope.outputs.apps), '@vpn/news')
+        run: |
+          supabase status -o json | jq -r '"NUXT_PUBLIC_SUPABASE_URL=\(.API_URL)\nNUXT_PUBLIC_SUPABASE_KEY=\(.ANON_KEY)"' >> "$GITHUB_ENV"
+      - name: Build affected applications
+        if: needs.scope.outputs.apps != '[]'
+        env:
+          AFFECTED_APPS: ${{ needs.scope.outputs.apps }}
+        shell: bash
+        run: |
+          mapfile -t apps < <(jq -r '.[]' <<< "$AFFECTED_APPS")
+          filters=()
+          for app in "${apps[@]}"; do filters+=(--filter "$app"); done
+          pnpm --workspace-concurrency=1 "${filters[@]}" --recursive --if-present build
+      - name: Stop isolated Supabase
+        if: always() && steps.database.outcome != 'skipped' && needs.scope.outputs.database == 'true'
         run: supabase stop --no-backup
+
+  ci:
+    needs: [scope, checks]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify selected checks succeeded
+        env:
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          CODE: ${{ needs.scope.outputs.code }}
+          APPS: ${{ needs.scope.outputs.apps }}
+          SQL: ${{ needs.scope.outputs.sql }}
+        run: |
+          [[ "$SCOPE_RESULT" == success ]] || exit 1
+          if [[ "$CODE" == true ]]; then
+            [[ "$CHECKS_RESULT" == success ]] || exit 1
+          else
+            [[ "$CHECKS_RESULT" == skipped ]] || exit 1
+          fi
+          echo "Applications: $APPS; SQL checks: $SQL" >> "$GITHUB_STEP_SUMMARY"
