@@ -80,7 +80,6 @@ test.each(['provider timeout', 'connection lock timeout'])(
       vi.stubEnv('NUXT_PRIVATE_DATABASE_URL', 'postgres://scheduler-test')
       vi.spyOn(Date, 'now').mockImplementation(() => elapsed)
       const repository = getFoundationRepository()
-      repository.cleanAuthorizations = async () => {}
       repository.withConnection = async (id, operation) => {
         if (failure === 'connection lock timeout' && id !== healthyId) {
           elapsed += 5000

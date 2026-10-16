@@ -270,7 +270,6 @@ export function createTwitchOAuthService(
           result.failed++
         }
       }
-      await repository.cleanAuthorizations(time.toISOString())
       return result
     }
   }

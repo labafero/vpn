@@ -25,16 +25,27 @@ BEGIN
 END $check$;
 
 SELECT cron.schedule('vpn-twitch-validation', '*/30 * * * *', $job$
-  SELECT net.http_post(
-    url := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'vpn_sentry_validation_url'),
-    headers := jsonb_strip_nulls(jsonb_build_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'vpn_twitch_cron_secret'),
-      'x-vercel-protection-bypass', (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'vpn_vercel_cron_bypass')
-    )),
-    body := '{}'::jsonb,
-    timeout_milliseconds := 240000
-  );
+  DO $request$
+  BEGIN
+    IF EXISTS (
+      SELECT 1
+      FROM public.provider_connections c
+      JOIN private.provider_credentials k ON k.connection_id = c.id
+      WHERE c.status IN ('connected', 'revocation_pending')
+    ) THEN
+      PERFORM net.http_post(
+        url := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'vpn_sentry_validation_url'),
+        headers := jsonb_strip_nulls(jsonb_build_object(
+          'Content-Type', 'application/json',
+          'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'vpn_twitch_cron_secret'),
+          'x-vercel-protection-bypass', (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'vpn_vercel_cron_bypass')
+        )),
+        body := '{}'::jsonb,
+        timeout_milliseconds := 240000
+      );
+    END IF;
+  END;
+  $request$;
 $job$);
 SELECT cron.alter_job((SELECT jobid FROM cron.job WHERE jobname = 'vpn-twitch-validation'), active := true);
 COMMIT;
