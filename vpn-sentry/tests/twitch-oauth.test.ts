@@ -113,8 +113,7 @@ beforeEach(() => {
       return next
     },
     listWorkUsers: async () => (current ? [owner.userId] : []),
-    recordWorkAttempt: async () => {},
-    cleanAuthorizations: async () => {}
+    recordWorkAttempt: async () => {}
   }
   service = createTwitchOAuthService(
     config,

@@ -52,7 +52,6 @@ export type FoundationRepository = {
   ) => Promise<T>
   listWorkUsers: () => Promise<string[]>
   recordWorkAttempt: (userId: string) => Promise<void>
-  cleanAuthorizations: (now: string) => Promise<void>
 }
 export type FoundationTransaction = LockedConnection
 
@@ -240,10 +239,6 @@ export function getFoundationRepository(): FoundationRepository {
     async recordWorkAttempt(userId) {
       await requireDatabaseRole()
       await sql`UPDATE private.provider_credentials k SET last_attempt_at=now() FROM public.provider_connections c WHERE k.connection_id=c.id AND c.user_id=${userId}`
-    },
-    async cleanAuthorizations(now) {
-      await requireDatabaseRole()
-      await sql`DELETE FROM private.oauth_transactions WHERE expires_at < ${now}::timestamptz - interval '24 hours'`
     }
   }
   return repository
