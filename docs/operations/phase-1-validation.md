@@ -27,3 +27,9 @@ Testes automatizados cobrem assinatura, replay/ordem EventSub, consentimento, de
 | Evento Twitch real | Canal `quilamcz`, webhook do Sentry de produção | Twitch entregou `stream.online` às 21:59:23 UTC e `stream.offline` às 21:59:50 UTC em 2026-10-10; ambos registrados como mensagens de webhook, não como eventos sintéticos de reconciliação. As duas subscriptions permaneceram habilitadas. | Desativar monitoramento e remover a subscription | Recebido e validado |
 
 A Fase 1 foi concluída em produção em 2026-10-10: migration remota, Cron com resposta observável, subscriptions EventSub habilitadas e eventos Twitch reais de início e encerramento foram verificados. O fluxo de interface com duas contas reais continua fora desta validação operacional.
+
+## Revalidação de status — 16 de outubro de 2026
+
+- PR #6 está merged em `main` desde 10/10/2026, merge commit `8c455a937a3827d946b6c4d34473f0d72914ac00`. CI, `foundation-db` e os checks dos quatro projetos Vercel estão aprovados no head `9450369d2ca7dc0e572b6ec579c20b0122bd04da`.
+- A exposição da API e a integração com a central foram exercitadas no preview Vercel de `codex/twitch-cron-skip-empty` (`vpn-monitor-1izq6g32u-anilson-lopes-projects.vercel.app` → `vpn-sentry-qq32fygrq-anilson-lopes-projects.vercel.app`). `GET /api/v1/health` do Sentry respondeu `200`; com uma sessão temporária de membro, o proxy do Monitor retornou `200` em `GET /api/sentry/me` (`role: member`) e `GET /api/sentry/channels` (`[]`). A conta de teste foi removida ao final (Auth Admin `DELETE` respondeu `200`). Nenhuma implantação foi disparada nesta validação.
+- Status: **validação da API privada pela central concluída no preview; Fase 1 operacionalmente concluída**. O fluxo de interface com duas contas reais continua fora da validação, conforme escopo anterior. A próxima fase prevista no PRD é a Fase 2 — evidências e alertas.

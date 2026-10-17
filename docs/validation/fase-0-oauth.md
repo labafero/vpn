@@ -185,3 +185,9 @@ Verificação final de produção: Monitor /login HTTP 200, UI autenticada mostr
 PR #5 revisada sem achados Critical/Important e merged com autorização do usuário, squash c973abda476935b82c745c45025ddce32f8e12da. Origin/main integrado na branch da fundação. Workflow combinado preserva Supabase local isolado no Build, removendo override das variáveis do repositório introduzido pela correção do Site. Revisão da fundação sem novo blocker de código; CI combinada deve ser verificada.
 
 Gate de logs confirmado como NÃO ATENDIDO: painel Vercel Runtime Logs, detalhe da chamada canário 84grq-1791656818743-4100a4c5aa24, exibe Search Params com code e state contendo F0_LOG_CANARY_20261010. A representação da CLI omitia queries, mas não significa ausência de armazenamento na plataforma. Não abrir o detalhe do callback real para evitar exibir credenciais. PR #4 permanece draft e não merged. Essa evidência impede declarar todos os critérios da fundação atendidos; sanitização dos logs da aplicação não remove os metadados de ingresso da Vercel.
+
+## Revalidação de status — 16 de outubro de 2026
+
+- PR #4 está merged em `main` desde 10/10/2026, merge commit `17ae0d023980fbc61508f475e3ba3010ce9cfc58`. A cabeça da PR (`90abc18f042db216e76cba2a3bfadf90f70819ea`) tem CI, `foundation-db` e os checks dos quatro projetos Vercel aprovados.
+- O registro atualizado da PR documenta a decisão explícita do usuário de aceitar a retenção de `code` e `state` nos logs de ingresso da Vercel. Esse comportamento não foi corrigido; o trade-off foi aceito e deixou de bloquear a Fase 0. Continua proibido registrar tokens, segredos ou credenciais nos logs da aplicação.
+- Status: **Fase 0 concluída**. O bloqueio descrito no registro histórico acima foi substituído pela decisão e entrega registradas na PR merged.
