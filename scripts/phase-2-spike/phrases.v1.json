@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "locale": "pt-BR",
+  "normalization": {
+    "caseInsensitive": true,
+    "removeDiacritics": true,
+    "ignorePunctuation": true,
+    "maximumInterSegmentGapMs": 1200,
+    "negativePrefixes": ["não", "nunca", "nem"]
+  },
+  "phrases": [
+    { "id": "phrase-v1-01", "text": "você é um inútil" },
+    { "id": "phrase-v1-02", "text": "cala a boca" },
+    { "id": "phrase-v1-03", "text": "vai se ferrar" }
+  ]
+}

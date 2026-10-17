@@ -12,6 +12,7 @@ export default defineConfig({
   test: {
     include: [
       'packages/contracts/tests/**/*.test.ts',
+      'scripts/phase-2-spike/tests/**/*.test.mjs',
       'vpn-sentry/tests/**/*.test.ts',
       'vpn-monitor/tests/**/*.test.ts',
       'vpn-news/tests/**/*.test.ts'
