@@ -42,6 +42,22 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
       INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
       VALUES ('20000000-0000-0000-0000-000000000001','PgliteClip123','https://clips.twitch.tv/PgliteClip123','manual','pending_metadata');
     `)
+    await expect(
+      db.exec(`INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at)
+        VALUES ('20000000-0000-0000-0000-000000000001','monitoring-v2',now())`)
+    ).rejects.toThrow(/check constraint/)
+    await expect(
+      db.exec(`INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
+        VALUES ('20000000-0000-0000-0000-000000000001','PgliteClip123','https://clips.twitch.tv/PgliteClip123','manual','pending_metadata')`)
+    ).rejects.toThrow(/unique constraint/)
+    await expect(
+      db.exec(`INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
+        VALUES ('20000000-0000-0000-0000-000000000001','PgliteInvalidState','https://clips.twitch.tv/PgliteInvalidState','manual','queued')`)
+    ).rejects.toThrow(/check constraint/)
+    await expect(
+      db.exec(`INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
+        VALUES ('20000000-0000-0000-0000-000000000001','PgliteInvalidMode','https://clips.twitch.tv/PgliteInvalidMode','scheduled_auto','pending_metadata')`)
+    ).rejects.toThrow(/check constraint/)
     async function asUser(id: number) {
       await db.exec(
         `RESET ROLE; SET request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000${id}'; SET ROLE authenticated;`
@@ -140,13 +156,25 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     )
     expect(purged.rows[0]?.purged).toBe(1)
     expect(
-      (await db.query("SELECT id FROM private.clip_submissions WHERE twitch_clip_id='OldTerminal123'")).rows
+      (
+        await db.query(
+          "SELECT id FROM private.clip_submissions WHERE twitch_clip_id='OldTerminal123'"
+        )
+      ).rows
     ).toHaveLength(0)
     expect(
-      (await db.query("SELECT id FROM private.clip_submissions WHERE twitch_clip_id='RecentTerminal123'")).rows
+      (
+        await db.query(
+          "SELECT id FROM private.clip_submissions WHERE twitch_clip_id='RecentTerminal123'"
+        )
+      ).rows
     ).toHaveLength(1)
     expect(
-      (await db.query("SELECT id FROM private.clip_submissions WHERE twitch_clip_id='OldPending123'")).rows
+      (
+        await db.query(
+          "SELECT id FROM private.clip_submissions WHERE twitch_clip_id='OldPending123'"
+        )
+      ).rows
     ).toHaveLength(1)
   } finally {
     await db.close()
