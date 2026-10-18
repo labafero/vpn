@@ -81,6 +81,13 @@ export default defineEventHandler(async (event) => {
     if (response.status === 303) {
       if (!callback || response.headers.get('location') !== `${origin}/conexao`)
         return fail(503, 'SERVICE_UNAVAILABLE', 'Resposta de conexão inválida.')
+      if (response.headers.get('x-oauth-result') === 'declined')
+        setCookie(event, 'vpn-oauth-result', 'declined', {
+          sameSite: 'lax',
+          secure: origin.startsWith('https:'),
+          maxAge: 60,
+          path: '/conexao'
+        })
       return sendRedirect(event, `${origin}/conexao`, 303)
     }
     if (response.status === 204) {
@@ -88,6 +95,15 @@ export default defineEventHandler(async (event) => {
       return
     }
     if (!response.ok) {
+      if (callback) {
+        setCookie(event, 'vpn-oauth-result', 'failed', {
+          sameSite: 'lax',
+          secure: origin.startsWith('https:'),
+          maxAge: 60,
+          path: '/conexao'
+        })
+        return sendRedirect(event, `${origin}/conexao`, 303)
+      }
       const status = [400, 401, 403, 404, 409, 410, 503].includes(response.status)
         ? response.status
         : 503

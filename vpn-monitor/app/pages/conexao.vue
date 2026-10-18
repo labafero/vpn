@@ -10,6 +10,9 @@ const loading = ref(true)
 const busy = ref(false)
 const message = ref('')
 const client = useSupabaseClient()
+const oauthResult = useCookie('vpn-oauth-result', { path: '/conexao' })
+const declined = ref(false)
+const failedUpgrade = ref(false)
 const statuses = {
   connected: 'Conectado',
   expired: 'Autorização expirada',
@@ -100,7 +103,12 @@ async function logout() {
   await client.auth.signOut()
   await navigateTo('/login')
 }
-onMounted(refresh)
+onMounted(async () => {
+  declined.value = oauthResult.value === 'declined'
+  failedUpgrade.value = oauthResult.value === 'failed'
+  oauthResult.value = null
+  await refresh()
+})
 </script>
 
 <template>
@@ -116,6 +124,18 @@ onMounted(refresh)
           Sair
         </UButton>
       </header>
+      <UAlert
+        v-if="declined"
+        color="warning"
+        description="A nova permissão Twitch foi recusada. Seu vínculo anterior foi preservado."
+        role="status"
+      />
+      <UAlert
+        v-if="failedUpgrade"
+        color="warning"
+        description="Não foi possível concluir a autorização Twitch. Seu vínculo anterior foi preservado. Atualize o estado e tente autorizar novamente na seção de clips."
+        role="alert"
+      />
       <UCard>
         <p class="mb-4 text-muted">
           Vincule seu canal à sua conta VPN. O aceite deste vínculo não ativa o monitoramento;
@@ -182,6 +202,10 @@ onMounted(refresh)
                 Desativar monitoramento
               </UButton>
             </section>
+            <ClipIntake
+              v-if="connection.status === 'connected' && channels[0]"
+              :channel-id="channels[0].id"
+            />
           </div>
           <p
             v-else

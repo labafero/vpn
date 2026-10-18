@@ -16,3 +16,6 @@ export type ContractsApi = {
   '/cities': { GET: { response: CityConfig[] } }
   '/posts': { GET: { query: { cidade?: string; limit?: number }; response: Post[] } }
 }
+
+export type ClipConsent = components['schemas']['ClipConsent']
+export type ClipSubmission = components['schemas']['ClipSubmission']

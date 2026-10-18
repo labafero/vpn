@@ -131,6 +131,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/channels/{id}/clip-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getClipConsent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["setClipConsent"];
+        trace?: never;
+    };
+    "/channels/{id}/clips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitClip"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/channels/{id}/monitoring": {
         parameters: {
             query?: never;
@@ -231,6 +263,43 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description clip_create é reservado à captura agendada, ainda indisponível.
+         * @enum {string}
+         */
+        ClipCapability: "clip_download" | "clip_create";
+        ClipConsent: {
+            manualEnabled: boolean;
+            /** @enum {string|null} */
+            consentVersion: "clip-processing-v1" | null;
+            /** Format: date-time */
+            consentedAt: string | null;
+            /** Format: date-time */
+            revokedAt: string | null;
+            canDownload: boolean;
+        };
+        ClipConsentRequest: {
+            /** @constant */
+            manualEnabled: true;
+            /** @constant */
+            consentVersion: "clip-processing-v1";
+            /** @constant */
+            consentAccepted: true;
+        } | {
+            /** @constant */
+            manualEnabled: false;
+        };
+        ClipSubmissionRequest: {
+            /** Format: uri */
+            url: string;
+        };
+        ClipSubmission: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            state: "pending_metadata" | "pending_captions" | "needs_transcription_request" | "pending_asr" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
+            duplicate: boolean;
+        };
         ApiError: {
             code: string;
             message: string;
@@ -464,6 +533,12 @@ export interface operations {
                     consentVersion: "monitoring-v1";
                     /** @constant */
                     consentAccepted: true;
+                } | {
+                    /** @constant */
+                    consentVersion: "clip-processing-v1";
+                    /** @constant */
+                    consentAccepted: true;
+                    capabilities: components["schemas"]["ClipCapability"][];
                 };
             };
         };
@@ -681,6 +756,215 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MonitoringChannel"][];
+                };
+            };
+        };
+    };
+    getClipConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Operação privada concluída */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipConsent"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    setClipConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClipConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description Operação privada concluída */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipConsent"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    submitClip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClipSubmissionRequest"];
+            };
+        };
+        responses: {
+            /** @description Operação privada concluída */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipSubmission"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

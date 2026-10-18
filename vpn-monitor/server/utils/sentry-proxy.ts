@@ -13,6 +13,8 @@ export function allowSentryRequest(
   }
   const dynamic: Record<string, string[]> = {
     'channels/[uuid]/monitoring': ['PATCH'],
+    'channels/[uuid]/clip-consent': ['GET', 'PATCH'],
+    'channels/[uuid]/clips': ['POST'],
     'sessions/[uuid]': ['GET'],
     'sessions/[uuid]/invites': ['GET', 'POST'],
     'invites/[uuid]': ['DELETE']

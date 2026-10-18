@@ -132,3 +132,36 @@ test('browser cannot inject a deployment bypass when server has none', async () 
   await nativeFetch(`${address}/me`, { headers: { 'x-vercel-protection-bypass': 'attacker' } })
   expect(upstream.mock.calls[0]![1]!.headers).not.toHaveProperty('x-vercel-protection-bypass')
 })
+
+test('OAuth refusal result is a short cookie with no provider query reflected', async () => {
+  fixture.signedIn = true
+  upstream.mockResolvedValue(
+    new Response(null, {
+      status: 303,
+      headers: { location: 'https://monitor.test/conexao', 'x-oauth-result': 'declined' }
+    })
+  )
+  const response = await nativeFetch(
+    `${address}/provider-connections/twitch/callback?state=valid&error=access_denied&error_description=private`,
+    { redirect: 'manual' }
+  )
+  expect(response.status).toBe(303)
+  expect(response.headers.get('location')).toBe('https://monitor.test/conexao')
+  expect(response.headers.get('set-cookie')).toContain('vpn-oauth-result=declined')
+  expect(response.headers.get('set-cookie')).not.toMatch(/private|access_denied|state=valid/)
+})
+
+test('failed OAuth upgrade returns to connection UI without exposing the callback code', async () => {
+  fixture.signedIn = true
+  upstream.mockResolvedValue(
+    Response.json({ message: 'Desconecte o vínculo existente', private: 'secret' }, { status: 409 })
+  )
+  const response = await nativeFetch(
+    `${address}/provider-connections/twitch/callback?code=private-code&state=valid`,
+    { redirect: 'manual' }
+  )
+  expect(response.status).toBe(303)
+  expect(response.headers.get('location')).toBe('https://monitor.test/conexao')
+  expect(response.headers.get('set-cookie')).toContain('vpn-oauth-result=failed')
+  expect(await response.text()).not.toMatch(/private-code|secret|Desconecte/)
+})
