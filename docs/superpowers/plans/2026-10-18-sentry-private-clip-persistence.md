@@ -22,9 +22,9 @@
 
 ## Review Focus
 
-- A user must not read or modify another channel’s consent or submissions; pin in pgTAP and PGlite tests.
+- An authenticated or anonymous browser role must not read or modify any private consent/submission; pin in pgTAP and PGlite role tests.
 - Repeated/concurrent submission of one clip for one channel must not create duplicates; pin the unique key and conflict behavior in database tests.
-- Revoked consent must preserve the audit state while preventing pending work from remaining eligible; pin the state transition and cleanup behavior in database tests.
+- Revoked consent must remain distinguishable from never-granted consent through its timestamp; pin that constraint in database tests. Issue #15 owns cancellation of pending work.
 - The cleanup routine must retain pending and capacity-waiting submissions while removing terminal submissions older than 90 days; pin both sides with a controlled timestamp.
 - Invalid state, consent version, or capture mode must be rejected by database constraints; pin each check in pgTAP.
 
@@ -87,7 +87,7 @@
 - The validation record lists local migration/test evidence and explicitly marks remote Supabase migration/Cron as not applied.
 
 - [ ] **Step 1: Reset the local Supabase database** to apply the full migration chain, including the new issue #14 migration.
-- [ ] **Step 2: Regenerate database types** with `supabase gen types typescript --local > packages/database/src/database.types.ts`.
+- [ ] **Step 2: Regenerate database types** with `supabase gen types typescript --local --schema public,private,graphql_public > packages/database/src/database.types.ts`.
 - [ ] **Step 3: Update the architecture and validation records** with exact consent/retention decisions and local verification results, without personal clip data or credentials.
 - [ ] **Step 4: Run `pnpm test:foundation`, `supabase test db --local`, `pnpm --filter @vpn/sentry typecheck`, `pnpm contracts:check`, and `pnpm format:check`**; record pass/fail evidence.
 - [ ] **Step 5: Review the final diff** to confirm no generated file was hand-edited, no raw media/storage bucket was added, and no remote operation was performed.
