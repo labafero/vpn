@@ -33,6 +33,7 @@ const pillars = [
 
 <template>
   <div class="min-h-screen overflow-hidden bg-[#05090c] text-white">
+    <VpnSplash />
     <header class="relative z-20 border-b border-white/10 bg-[#05090c]/80 backdrop-blur-md">
       <UContainer
         class="flex min-h-16 items-center justify-between gap-3 py-3 sm:h-20 sm:gap-8 sm:py-0"
@@ -166,6 +167,7 @@ const pillars = [
                 UNIVERSO ONLINE
               </div>
               <h1
+                tabindex="-1"
                 class="max-w-4xl text-5xl font-semibold leading-[0.95] tracking-[-0.055em] text-white sm:text-7xl lg:text-8xl"
               >
                 A cidade
