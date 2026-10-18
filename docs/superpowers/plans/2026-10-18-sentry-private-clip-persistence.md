@@ -87,12 +87,13 @@
 - Generated types reflect the two private tables and cleanup function; no hand edits.
 - The foundation document records clip consent as separate from `monitoring-v2`, the 90-day terminal metadata period, pending retention, and the absence of durable media storage in issue #14.
 - The validation record lists local migration/test evidence and explicitly marks remote Supabase migration/Cron as not applied.
+- Runtime dependency: Docker Desktop is installed on Windows but its WSL integration is not enabled for distro `labafero`. Until enabled, local reset, pgTAP, and Supabase type generation remain pending; do not substitute hand-edited generated types or remote database changes.
 
 - [ ] **Step 1: Reset the local Supabase database** to apply the full migration chain, including the new issue #14 migration.
 - [ ] **Step 2: Regenerate database types** with `supabase gen types typescript --local --schema public,private,graphql_public > packages/database/src/database.types.ts`.
-- [ ] **Step 3: Update the architecture and validation records** with exact consent/retention decisions and local verification results, without personal clip data or credentials.
+- [x] **Step 3: Update the architecture and validation records** with exact consent/retention decisions and local verification results, without personal clip data or credentials.
 - [ ] **Step 4: Run `pnpm test:foundation`, `supabase test db --local`, `pnpm --filter @vpn/sentry typecheck`, `pnpm contracts:check`, and `pnpm format:check`**; record pass/fail evidence.
-- [ ] **Step 5: Review the final diff** to confirm no generated file was hand-edited, no raw media/storage bucket was added, and no remote operation was performed.
+- [x] **Step 5: Review the final diff** to confirm no generated file was hand-edited, no raw media/storage bucket was added, and no remote operation was performed.
 - [ ] **Step 6: Commit generated types and documentation** with `git add -- packages/database/src/database.types.ts docs/architecture/foundation.md docs/validation/phase-2-persistence.md && git commit -m 'docs: document private clip persistence'`.
 
 ## Roadmap for the Existing Phase 2 Issues
