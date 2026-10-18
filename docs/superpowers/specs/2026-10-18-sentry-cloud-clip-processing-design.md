@@ -13,9 +13,11 @@ O Sentry continua sendo o responsável pela detecção final. Um aplicativo auxi
 - A mídia de entrada é um clip da Twitch identificado por URL/ID, submetido pelo streamer ou criado pela integração Twitch quando a captura agendada for habilitada. O Sentry valida a referência e busca a mídia; clientes não enviam MP4 arbitrário.
 - O processamento de áudio acontece no worker do Sentry, em runtime Node.js da Vercel. Supabase guarda configuração, metadados, estado e fila, sem executar Whisper em Edge Functions.
 - Há dois modos de solicitação: envio manual de clip pelo streamer e amostragem agendada durante uma live autorizada. A cadência inicial considerada é no máximo um clip a cada 15 minutos e três horas monitoradas por canal por dia. São limites iniciais sujeitos à validação de carga, não compromissos de disponibilidade.
-- Um teto global mensal de CPU/áudio processado, limites por canal, deduplicação, concorrência limitada e fila com tamanho máximo impedem que um pico esgote a cota sem controle. Ao atingir o teto, novas amostras agendadas são ignoradas e solicitações manuais ficam com estado explícito de limite atingido/adiado; nenhuma tentativa de upgrade pago é automática.
-- A fila contém referências opacas ao clip e à sessão, nunca áudio, URL assinada ou transcrição. Mensagens são idempotentes; reentrega após timeout não duplica mídia nem eventos.
-- O arquivo é baixado para área temporária do worker e removido ao concluir ou falhar. A persistência do MP4 original, sua duração de retenção e eventual armazenamento durável permanecem sob decisão da issue #14; o worker não deve introduzir retenção de mídia por conta própria.
+- Todo clip Twitch válido enviado pelo streamer é registrado imediatamente, inclusive quando o orçamento mensal de processamento estiver esgotado. A cota controla a etapa cara de ASR/Whisper, não a aceitação nem a persistência da submissão.
+- A submissão persistida inclui URL Twitch canônica/ID, metadados permitidos retornados pela Twitch, canal/dono, data de recebimento e estado. O original de áudio/vídeo só é baixado quando houver capacidade de processamento.
+- Um teto global mensal de CPU/áudio processado, limites por canal, deduplicação e concorrência limitada protegem a cota. Ao atingir o teto, novas submissões manuais e agendadas permanecem salvas como pendentes; nenhuma tentativa de upgrade pago é automática.
+- A tabela privada de submissões é a fonte de verdade para a fila e mantém itens pendentes pelo tempo necessário, inclusive dias ou meses. Mensagens `pgmq` contêm apenas IDs internos para acordar o worker; podem ser refeitas a partir das submissões se expirarem ou falharem. A ordem mais antiga é processada primeiro quando o orçamento voltar a permitir.
+- A retenção de dados pendentes não expira antes do processamento, exceto por remoção/revogação solicitada pelo dono. Após o processamento, os metadados e resultados seguem a política da issue #14. O produto monitora idade da submissão mais antiga e uso do banco; se a capacidade gratuita se aproximar do limite, interrompe novas capturas agendadas, mas não apaga submissões pendentes silenciosamente.
 - Transcrições completas são temporárias. Persistir somente os dados mínimos para revisar uma detecção (referência à evidência, timestamp, regra/versionamento e trecho de texto estritamente necessário), sujeitos à política da issue #14.
 
 ## Alternativas avaliadas
@@ -26,13 +28,14 @@ O Sentry continua sendo o responsável pela detecção final. Um aplicativo auxi
 
 ## Fluxo
 
-1. O Monitor apresenta estado de consentimento para processamento de clips e limites atuais. O streamer pode colar um link Twitch válido ou habilitar amostragem agendada.
-2. O Sentry autentica o streamer, verifica consentimento e associação entre clip e canal, extrai somente um identificador Twitch e consulta a API oficial. Requisições de URL de mídia arbitrária são recusadas para impedir SSRF e acesso a hosts não autorizados.
-3. Para a amostragem agendada, o Sentry só solicita a criação de clips durante sessão consentida e dentro da janela diária/cadência. A integração precisa obter o escopo Twitch apropriado por consentimento explícito. Cada clip criado é tratado como assíncrono e pode ainda não estar disponível para download.
-4. O Sentry deduplica o ID Twitch, aplica os limites diário, mensal e global e grava uma mensagem privada na fila. O clip não é baixado se não houver capacidade de processamento.
-5. Um worker Node.js no Sentry recebe um item por chamada limitada, busca a mídia Twitch por um caminho oficialmente suportado, verifica tipo, duração e tamanho e processa em espaço temporário.
-6. O worker extrai áudio, executa o modelo escolhido, aplica detector versionado, grava o resultado mínimo e remove arquivos temporários em bloco de limpeza que roda tanto em sucesso quanto em erro.
-7. O Monitor exibe andamento, detecções e estado terminal da solicitação. Erros são sanitizados; tentativas são limitadas, com backoff e fila de falhas observável.
+1. O Monitor apresenta consentimento para guardar e processar clips, modo de captura, limites atuais e estado da fila. O streamer pode colar um link Twitch válido ou habilitar amostragem agendada.
+2. O Sentry autentica o streamer, valida formato/host Twitch, verifica consentimento e associação entre clip e canal e extrai o identificador. URL arbitrária é recusada para impedir SSRF e acesso a hosts não autorizados.
+3. Depois da validação do host Twitch, o Sentry persiste imediatamente a submissão privada com URL/ID canônico, canal/dono conhecido, horário de recebimento e estado `pending_metadata`. A consulta de enriquecimento da Twitch acontece em seguida; quando bem-sucedida, atualiza uma allowlist de metadados (ID, canal, criador, título, data, duração, idioma e contagem de visualizações) e move para `pending_asr`. Falha temporária mantém a referência persistida e agenda nova tentativa de metadados.
+4. Para a amostragem agendada, o Sentry só solicita a criação de clips durante sessão consentida e dentro da janela diária/cadência. A integração precisa obter o escopo Twitch apropriado por consentimento explícito. Cada clip criado é tratado como assíncrono e sua submissão/metadados são persistidos mesmo que o orçamento de Whisper esteja esgotado.
+5. Um dispatcher compara o consumo medido com o orçamento, seleciona a submissão pendente mais antiga quando houver capacidade e envia seu ID interno à fila privada. Sem capacidade, a submissão continua no banco, visível como pendente/aguardando cota.
+6. Um worker Node.js no Sentry recebe um item por chamada limitada, revalida consentimento, busca a mídia Twitch por um caminho oficialmente suportado, verifica tipo, duração e tamanho e processa em espaço temporário.
+7. O worker extrai áudio, executa o modelo escolhido, carrega as frases configuradas vigentes no momento do processamento, aplica o detector e grava a versão exata das frases e o resultado mínimo. Arquivos temporários são removidos tanto em sucesso quanto em erro.
+8. O Monitor exibe andamento, detecções e estado terminal da solicitação. Erros são sanitizados; tentativas são limitadas, com backoff e estado recuperável observável. Submissões aguardando cota ficam visíveis e não são tratadas como falha.
 
 ## Limites e capacidade
 
@@ -45,9 +48,15 @@ Referência do benchmark local do spike: cerca de 11,1 vezes tempo real em uma e
 
 A Vercel Hobby informa 4 horas de CPU ativa mensais. O cenário de 30 segundos caberia na estimativa bruta com apenas cerca de 1,3 hora de folga para download, conversão, detector e variação de hardware. O cenário de 60 segundos excede a cota estimada. A cota gratuita do Supabase não torna sua Edge Function adequada para ASR, que tem limite de dois segundos de CPU ativa por requisição.
 
-Portanto, a cadência de 15 minutos é um teto de produto para o piloto, condicionada a um teste real em Preview e a um orçamento mensal de CPU. O sistema precisa medir consumo real por job, reservar margem para o restante do Sentry e ajustar ou suspender automaticamente a amostragem antes do limite Hobby. O orçamento inicial definitivo será definido com a medição hospedada, sem supor equivalência entre CPU local e CPU da Vercel.
+Portanto, a cadência de 15 minutos é um teto de produto para o piloto, condicionada a um teste real em Preview e a um orçamento mensal de CPU. O sistema precisa medir consumo real por job, reservar margem para o restante do Sentry e suspender o processamento Whisper antes do limite Hobby. O orçamento inicial definitivo será definido com a medição hospedada, sem supor equivalência entre CPU local e CPU da Vercel. Suspender Whisper não interrompe a ingestão de referências e metadados: elas permanecem pendentes para processamento posterior.
 
 A amostragem não é análise contínua: um clip de 30 segundos a cada 15 minutos cobre 3,3% do áudio; 60 segundos cobrem 6,7%. O produto deve descrever esse modo como amostragem e não prometer detectar todas as frases. O envio manual é adequado para clips selecionados pelo streamer.
+
+A fila de processamento pode crescer durante dias ou meses, mas a tabela também consome a cota de banco. No plano Supabase Free, o banco entra em modo somente leitura acima de 500 MB por projeto. Monitorar volume de metadados e idade da fila e suspender criação automática com antecedência quando o armazenamento se aproximar do limite. O sistema não deve prometer retenção indefinida nem perda zero além da capacidade gratuita; nesse cenário, deve avisar que novas submissões não podem ser salvas e permitir retomada após limpeza ou aumento de capacidade autorizado.
+
+Guardar URL e metadados não preserva o arquivo original: a Twitch ou o dono do canal podem tornar um clip indisponível antes que a cota permita processá-lo. O worker precisa verificar disponibilidade ao retirar o item da fila; se a fonte não existir mais, marcar `source_unavailable` e conservar os metadados para a lista do usuário, sem alegar que o vídeo será transcrito. Preservar a mídia por meses exigiria download antecipado e armazenamento privado, com impacto próprio de armazenamento e retenção a decidir na issue #14.
+
+As frases configuradas são lidas no momento em que o ASR é executado, e a versão aplicada fica registrada no resultado. Assim, alterações enquanto um clip espera na fila melhoram a detecção desse clip. Na Fase 2, a issue #16 ainda usa uma lista fixa/versionada; configuração pessoal permanece prevista para a Fase 3, mas o modelo de submissão deve permitir associar a versão que será aplicada quando essa configuração existir. Frases mais específicas podem reduzir falsos alertas, mas não reduzem a CPU gasta para transcrever; o áudio ainda precisa passar pelo Whisper para então comparar as frases.
 
 ## Integração Twitch a provar
 
@@ -59,11 +68,12 @@ Antes de aprovar ingestão ampla, provar: submissão de um link Twitch, obtenç�
 
 Recomendação: Supabase Queues (`pgmq`) como fila privada e durável, com mensagens pequenas contendo IDs internos. A fila é pull-based e FIFO; o consumidor Node.js fica em `vpn-sentry` e é acionado por uma chamada interna agendada seguindo o padrão de Cron já existente. Cada execução processa um número pequeno e limitado de mensagens; Edge Functions do Supabase não executam o modelo.
 
-Como mensagens podem reaparecer após seu período de visibilidade, os efeitos no banco, armazenamento e geração de eventos precisam ser idempotentes. Usar retries limitados, backoff, dead-letter/arquivamento com metadados sanitizados e limite de jobs em execução. Não criar worker permanentemente ligado nem processamento ilimitado em uma única Function.
+Como mensagens podem reaparecer após seu período de visibilidade, os efeitos no banco, armazenamento e geração de eventos precisam ser idempotentes. Usar retries limitados, backoff, dead-letter/arquivamento com metadados sanitizados e limite de jobs em execução. Uma falha do dispatcher ou esgotamento da cota não remove o registro pendente; ele pode ser reenfileirado. Não criar worker permanentemente ligado nem processamento ilimitado em uma única Function.
 
 ## Dados, privacidade e segurança
 
 - Consentimento para monitorar eventos Twitch da Fase 1 não autoriza por si só criação de clips, processamento de áudio ou retenção de transcrições. Apresentar consentimento específico, finalidade, modo manual/agendado, duração, retenção e revogação.
+- O consentimento de captura inclui persistir URL/ID e metadados Twitch durante a espera pelo processamento. A UI informa que a transcrição pode atrasar dias ou meses quando a capacidade gratuita está ocupada.
 - A revogação bloqueia novas solicitações e novos downloads imediatamente. Jobs já enfileirados devem verificar consentimento novamente antes de baixar e antes de persistir resultados.
 - Aceitar apenas IDs/URLs Twitch suportados. Validar host, protocolo, redirect, ID do canal e tipo/tamanho obtidos por API; não seguir redirects arbitrários. Remover query strings e tokens de logs.
 - Buckets de mídia, se aprovados na issue #14, são privados e recebem somente objetos com limite e expiração. A URL Twitch nunca é exposta como acesso permanente ao Monitor.
@@ -72,7 +82,7 @@ Como mensagens podem reaparecer após seu período de visibilidade, os efeitos n
 
 ## Estados e erros observáveis
 
-Solicitação: `queued`, `processing`, `completed`, `no_match`, `deferred_quota`, `failed_retryable`, `failed_terminal`, `cancelled_consent`. Exibir ao streamer uma mensagem simples para cota, clip indisponível, duração/tamanho excedidos e erro temporário. Guardar razão operacional sanitizada, tentativas, timestamps e duração de CPU sem conteúdo de áudio.
+Solicitação: `pending_metadata`, `pending_asr`, `processing`, `completed`, `no_match`, `source_unavailable`, `failed_retryable`, `failed_terminal`, `cancelled_consent`. A UI apresenta `pending_asr` como “aguardando capacidade” quando Whisper está pausado pela cota. Exibir mensagens simples para limite de armazenamento que impede novas submissões, clip indisponível, duração/tamanho excedidos e erro temporário. Guardar razão operacional sanitizada, tentativas, timestamps e duração de CPU sem conteúdo de áudio.
 
 Uma falha de ASR não cria um evento negativo. Clip sem áudio, idioma sem suporte, timeout ou resposta inválida termina com estado de erro apropriado, preserva apenas a referência de origem permitida e libera recursos temporários.
 
@@ -81,16 +91,19 @@ Uma falha de ASR não cria um evento negativo. Clip sem áudio, idioma sem supor
 - O caminho Twitch URL → validação de canal → download de mídia pelo método suportado funciona com OAuth e consentimento explícitos, sem aceitar destino arbitrário.
 - O worker Node.js processa um job sob limites de pacote, memória, duração e orçamento real da Vercel; Supabase Edge não roda inferência.
 - Dez streamers de teste simulados, com a política de amostragem escolhida, permanecem abaixo do orçamento mensal conservador, considerando a CPU total do projeto e não apenas o ASR.
-- Limite diário por canal, orçamento global, fila máxima, concorrência, retries e comportamento ao atingir a cota têm testes automatizados.
+- Limite diário por canal, orçamento global de ASR, concorrência, retries e comportamento de pausa/retomada têm testes automatizados.
+- Toda referência Twitch válida aceita fica registrada antes de verificar disponibilidade de CPU; esgotamento do orçamento deixa itens pendentes e não os descarta.
+- O dispatcher reconstrói mensagens da fila a partir da tabela de submissões sem duplicar trabalho ou apagar metadados.
 - Deduplicação Twitch e idempotência impedem evento ou mídia duplicados sob reentrega e concorrência.
 - Revogação antes e durante a fila impede novos downloads e persistência; limpeza ocorre também em erro e timeout.
 - RLS, permissões da fila privada, Storage privado, contratos e tipos gerados passam nos checks do monorepo.
 - A UI comunica que a captura de 15 minutos é amostragem parcial e apresenta cota/estado sem alegar cobertura contínua.
-- Limites de retenção são aprovados na issue #14 e testados com fixtures; não ficam implícitos no worker.
+- Pendências não expiram por idade antes do ASR, salvo exclusão/revogação pelo dono; depois do processamento, metadados/resultados seguem retenção aprovada na issue #14.
+- Monitoramento de espaço do banco alerta e suspende captura agendada antes da cota Free; a UI explica quando não for possível aceitar novas referências até liberar espaço.
 
 ## Entrega em etapas
 
-- **Issue #14 — Persistência privada, consentimento e retenção:** decidir dados mínimos, consentimento específico, retenção e acesso. Não assumir 30/90 dias sem aprovação explícita.
+- **Issue #14 — Persistência privada, consentimento e retenção:** persistir a fila de submissões e metadados Twitch; decidir retenção após processamento, consentimento específico e acesso. Pendências permanecem até processamento ou exclusão solicitada, com o limite físico gratuito monitorado.
 - **Issue #15 — Ingestão de clips:** provar resolução e download de clip Twitch, então implementar entrada manual e, se escopos/capacidade forem aceitos, criar clips amostrados pela API. Fazer teste curto de capacidade do runtime já no Preview.
 - **Issue #16 — Worker:** fila Supabase privada, consumidor Node.js limitado, transcrição, detecção, orçamento e limpeza.
 - **Issues #17–#19 e #20:** API privada de eventos, revisão no Monitor, validação ponta a ponta e alertas, preservando limites e consentimentos aprovados.
@@ -101,4 +114,5 @@ Uma falha de ASR não cria um evento negativo. Clip sem áudio, idioma sem supor
 - [Vercel Functions: duração, memória, tamanho de pacote e payload](https://vercel.com/docs/functions/limitations)
 - [Supabase Edge Functions: limites de CPU e memória](https://supabase.com/docs/guides/functions/limits)
 - [Supabase Queues e PGMQ](https://supabase.com/docs/guides/queues) e [API de PGMQ](https://supabase.com/docs/guides/queues/pgmq)
+- [Cotas de banco Supabase](https://supabase.com/docs/guides/platform/billing-on-supabase) e [modo somente leitura acima de 500 MB no Free](https://supabase.com/docs/guides/platform/database-size)
 - [Twitch Clips](https://dev.twitch.tv/docs/api/clips/) e [referência da API, Create Clip From VOD](https://dev.twitch.tv/docs/api/reference)
