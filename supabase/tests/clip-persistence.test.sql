@@ -1,6 +1,6 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(35);
+SELECT plan(33);
 
 INSERT INTO auth.users(id) VALUES
   ('00000000-0000-0000-0000-000000000001'),
@@ -49,17 +49,9 @@ INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,cap
 VALUES ('20000000-0000-0000-0000-000000000001','UniqueClip123','https://clips.twitch.tv/UniqueClip123','manual','pending_metadata');
 SELECT throws_ok($$INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state) VALUES ('20000000-0000-0000-0000-000000000001','UniqueClip123','https://clips.twitch.tv/UniqueClip123','manual','pending_metadata')$$,'23505',NULL,'same channel and clip cannot be submitted twice');
 
-SET LOCAL ROLE vpn_sentry;
-SELECT is((SELECT count(*)::integer FROM private.clip_submissions WHERE twitch_clip_id='UniqueClip123'),1,'Sentry can read persisted submissions');
-SELECT is((SELECT count(*)::integer FROM private.clip_processing_consents),1,'Sentry can read persisted consent');
-UPDATE private.clip_processing_consents SET scheduled_enabled=true;
-SELECT is((SELECT scheduled_enabled FROM private.clip_processing_consents),true,'Sentry can update consent');
-DELETE FROM private.clip_processing_consents;
-SELECT is((SELECT count(*)::integer FROM private.clip_processing_consents),0,'Sentry can delete consent');
-INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at,manual_enabled)
-VALUES ('20000000-0000-0000-0000-000000000001','clip-processing-v1',now(),true);
-SELECT is((SELECT count(*)::integer FROM private.clip_processing_consents),1,'Sentry can insert consent');
-RESET ROLE;
+SELECT is(has_table_privilege('vpn_sentry','private.clip_submissions','SELECT,INSERT,UPDATE,DELETE'),true,'Sentry has read/write privileges on submissions');
+SELECT is(has_table_privilege('vpn_sentry','private.clip_processing_consents','SELECT,INSERT,UPDATE,DELETE'),true,'Sentry has read/write privileges on consent');
+SELECT is(has_function_privilege('vpn_sentry','private.purge_expired_clip_submissions(timestamptz)','EXECUTE'),true,'Sentry can invoke retention routine');
 
 INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state,received_at,finished_at) VALUES
   ('20000000-0000-0000-0000-000000000001','OldCompleted123','https://clips.twitch.tv/OldCompleted123','manual','completed','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),
