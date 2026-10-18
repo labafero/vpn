@@ -64,6 +64,18 @@ Uma URL é um identificador de recurso, não necessariamente um URL de arquivo a
 
 Antes de aprovar ingestão ampla, provar: submissão de um link Twitch, obtenção do ID, validação de `broadcaster_id`, espera pela disponibilidade, download autenticado pelo fluxo suportado, limites de duração/tamanho, expiração do link e sanitização de logs. Se não houver fluxo de mídia estável que respeite consentimento e escopos, bloquear ingestão por URL até encontrar uma opção suportada; não recorrer a extração de página ou URL de CDN não documentado.
 
+## Reutilizar legendas da Twitch antes do Whisper
+
+A API Helix `Get Clips` retorna URL, IDs, offset, duração e outros metadados, mas não documenta campos de legenda ou transcrição. Portanto, o Sentry não pode pedir à API uma transcrição pronta do clip. A ausência de texto na resposta Helix também não prova que o clip não tenha legendas no player.
+
+A Twitch documenta o evento JavaScript `Twitch.Player.CAPTIONS`, que emite texto sincronizado quando legendas existem no conteúdo reproduzido por um player interativo de live/VOD. A documentação dos clips descreve um player separado, não interativo e sem essa API JavaScript. O teste de menor custo é usar o `video_id` e `vod_offset` do clip para abrir o VOD no player interativo, começar no offset e observar se o evento entrega as legendas daquele trecho. O `Get Clips` pode retornar `video_id` vazio e `vod_offset` nulo quando o VOD não existe ou ainda não foi criado.
+
+Hipótese para a implementação, sujeita ao teste de compatibilidade: usar texto e timestamps da Twitch quando o player VOD os disponibilizar; só então comparar as frases no Sentry. Se o VOD/offset não existir, o player não emitir legendas ou a fonte não for tecnicamente acessível no fluxo de processamento, marcar a submissão `needs_asr` e deixar o Whisper na fila com o orçamento de CPU já definido. Não depender de legendas queimadas na imagem nem de endpoints privados/não documentados.
+
+O evento de captions é uma interface de playback no browser, não uma API de transcrição em lote para o worker Node.js. O probe deve medir o atrito de reproduzir o trecho e encaminhar o texto ao Sentry; só adotar esta via para processamento em background se houver forma suportada e sem exigir que o streamer mantenha uma página aberta. Caso contrário, ela pode atender apenas revisão assistida no Monitor, com Whisper como caminho automatizado.
+
+As legendas de clips Twitch são variáveis: a Twitch informa que clips feitos pela ação rápida ou por Auto Clips incluem captions por padrão; outros clips dependem de a opção ter sido habilitada. A Auto Clips permanece descrita como alfa por convite e restrita a canais com idioma de transmissão inglês e VOD público. Isso não garante legendas para todo clip nem disponibilidade para canais em português. Cada submissão deve registrar a origem de transcrição usada (`twitch_captions` ou `whisper`) e a versão/regra aplicada.
+
 ## Fila e execução
 
 Recomendação: Supabase Queues (`pgmq`) como fila privada e durável, com mensagens pequenas contendo IDs internos. A fila é pull-based e FIFO; o consumidor Node.js fica em `vpn-sentry` e é acionado por uma chamada interna agendada seguindo o padrão de Cron já existente. Cada execução processa um número pequeno e limitado de mensagens; Edge Functions do Supabase não executam o modelo.
@@ -105,7 +117,7 @@ Uma falha de ASR não cria um evento negativo. Clip sem áudio, idioma sem supor
 
 - **Issue #14 — Persistência privada, consentimento e retenção:** persistir a fila de submissões e metadados Twitch; decidir retenção após processamento, consentimento específico e acesso. Pendências permanecem até processamento ou exclusão solicitada, com o limite físico gratuito monitorado.
 - **Issue #15 — Ingestão de clips:** provar resolução e download de clip Twitch, então implementar entrada manual e, se escopos/capacidade forem aceitos, criar clips amostrados pela API. Fazer teste curto de capacidade do runtime já no Preview.
-- **Issue #16 — Worker:** fila Supabase privada, consumidor Node.js limitado, transcrição, detecção, orçamento e limpeza.
+- **Issue #16 — Worker:** fila Supabase privada e consumidor Node.js limitado; primeiro provar a disponibilidade de captions por uma interface oficial. Se essa fonte servir ao processamento em background, usá-la e enviar clips sem captions ao Whisper; caso contrário, manter Whisper como caminho automatizado.
 - **Issues #17–#19 e #20:** API privada de eventos, revisão no Monitor, validação ponta a ponta e alertas, preservando limites e consentimentos aprovados.
 
 ## Fontes oficiais verificadas em 18/10/2026
@@ -116,3 +128,5 @@ Uma falha de ASR não cria um evento negativo. Clip sem áudio, idioma sem supor
 - [Supabase Queues e PGMQ](https://supabase.com/docs/guides/queues) e [API de PGMQ](https://supabase.com/docs/guides/queues/pgmq)
 - [Cotas de banco Supabase](https://supabase.com/docs/guides/platform/billing-on-supabase) e [modo somente leitura acima de 500 MB no Free](https://supabase.com/docs/guides/platform/database-size)
 - [Twitch Clips](https://dev.twitch.tv/docs/api/clips/) e [referência da API, Create Clip From VOD](https://dev.twitch.tv/docs/api/reference)
+- [Player JavaScript Twitch: evento `CAPTIONS` e playback interativo de VOD](https://dev.twitch.tv/docs/embed/video-and-clips/)
+- [Auto Clips e condições das captions](https://help.twitch.tv/s/article/auto-clips?language=en_US) e [legendas em clips](https://help.twitch.tv/s/article/how-to-use-clips?language=en_US)
