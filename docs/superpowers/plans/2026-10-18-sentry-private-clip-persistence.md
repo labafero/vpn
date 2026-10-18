@@ -49,8 +49,9 @@
 - [ ] **Step 1: Add failing pgTAP cases** for `authenticated`/`anon` `42501` denial, `vpn_sentry` read/write success, missing channel FK `23503`, invalid consent version/state `23514`, and duplicate `(channel_id, twitch_clip_id)` `23505`.
 - [ ] **Step 2: Run the focused database test** with `supabase test db --local` and confirm the new assertions fail for the missing schema/constraints.
 - [ ] **Step 3: Implement the migration** with the consent and submission tables, foreign keys, unique/index constraints, private grants, and no public Data API exposure.
-- [ ] **Step 4: Add PGlite migration coverage** in `foundation-db.test.ts` proving unauthenticated and cross-owner reads fail after all migrations are applied.
+- [ ] **Step 4: Add PGlite migration coverage** in `foundation-db.test.ts` proving browser roles cannot read private rows and submissions cannot reference missing channels after all migrations are applied. Cross-owner API isolation is verified in issue #15.
 - [ ] **Step 5: Run the focused database tests** and confirm the constraints and role boundaries pass.
+- [ ] **Step 6: Commit the schema task** with `git add -- supabase/migrations/20261018000000_phase2_clip_persistence.sql supabase/tests/clip-persistence.test.sql vpn-sentry/tests/foundation-db.test.ts && git commit -m 'feat: add private clip submission schema'`.
 
 ### Task 2: Pending/terminal retention routine
 
@@ -71,6 +72,7 @@
 - [ ] **Step 2: Implement the cleanup function** with an injectable `p_now`, a terminal-state allowlist, and a deterministic delete count.
 - [ ] **Step 3: Add the reviewed Cron operation script** with a stable job name and a matching unschedule statement; do not add or execute a remote job.
 - [ ] **Step 4: Run pgTAP and PGlite tests** and confirm old terminal rows are removed while pending rows remain.
+- [ ] **Step 5: Commit the retention task** with `git add -- supabase/migrations/20261018000000_phase2_clip_persistence.sql supabase/operations/schedule-clip-retention.sql supabase/tests/clip-persistence.test.sql && git commit -m 'feat: add clip metadata retention'`.
 
 ### Task 3: Generated types and data-policy documentation
 
@@ -91,6 +93,7 @@
 - [ ] **Step 3: Update the architecture and validation records** with exact consent/retention decisions and local verification results, without personal clip data or credentials.
 - [ ] **Step 4: Run `pnpm test:foundation`, `supabase test db --local`, `pnpm --filter @vpn/sentry typecheck`, `pnpm contracts:check`, and `pnpm format:check`**; record pass/fail evidence.
 - [ ] **Step 5: Review the final diff** to confirm no generated file was hand-edited, no raw media/storage bucket was added, and no remote operation was performed.
+- [ ] **Step 6: Commit generated types and documentation** with `git add -- packages/database/src/database.types.ts docs/architecture/foundation.md docs/validation/phase-2-persistence.md && git commit -m 'docs: document private clip persistence'`.
 
 ## Roadmap for the Existing Phase 2 Issues
 
