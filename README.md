@@ -24,6 +24,9 @@ pnpm build
 
 As migrações e a configuração do Supabase permanecem em `supabase/` na raiz.
 
+Para preparar uma máquina com Node, pnpm e CLIs de publicação, consulte
+[preparação do ambiente](docs/operations/development-setup.md).
+
 ## Fundação privada
 
 Consulte [fundação](docs/architecture/foundation.md) para acesso, consentimento e retenção. O workspace vpn-site mantém o site institucional.

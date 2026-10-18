@@ -1,16 +1,55 @@
 <script setup lang="ts">
 const visible = ref(true)
+const enhanced = ref(false)
+const leaving = ref(false)
+const revealing = ref(false)
 const skipButton = useTemplateRef<HTMLButtonElement>('skip')
-let timeout: ReturnType<typeof setTimeout> | undefined
+let minimumElapsed = false
+let pageLoaded = false
+let minimumTimer: ReturnType<typeof setTimeout> | undefined
+let revealTimer: ReturnType<typeof setTimeout> | undefined
+let exitTimer: ReturnType<typeof setTimeout> | undefined
 
-function dismiss() {
+function dismiss(skipIntro = false) {
+  if (revealing.value || (leaving.value && !skipIntro)) return
+
+  clearTimeout(revealTimer)
+  clearTimeout(exitTimer)
+
   const restoreFocus = skipButton.value === document.activeElement
-  visible.value = false
-  clearTimeout(timeout)
-
-  if (restoreFocus) {
-    nextTick(() => document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }))
+  leaving.value = true
+  clearTimeout(minimumTimer)
+  window.removeEventListener('load', onPageLoad)
+  if (skipIntro) {
+    revealing.value = true
+  } else {
+    revealTimer = setTimeout(() => {
+      revealing.value = true
+    }, 2000)
   }
+  exitTimer = setTimeout(
+    () => {
+      visible.value = false
+      window.removeEventListener('keydown', onKeyDown)
+      if (restoreFocus) {
+        nextTick(() => document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }))
+      }
+    },
+    skipIntro ? 900 : 2900
+  )
+}
+
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && visible.value) dismiss(true)
+}
+
+function finishWhenReady() {
+  if (minimumElapsed && pageLoaded) dismiss()
+}
+
+function onPageLoad() {
+  pageLoaded = true
+  finishWhenReady()
 }
 
 onMounted(() => {
@@ -19,82 +58,67 @@ onMounted(() => {
     return
   }
 
-  timeout = setTimeout(dismiss, 1500)
+  window.addEventListener('keydown', onKeyDown)
+  enhanced.value = true
+  pageLoaded = document.readyState === 'complete'
+  if (!pageLoaded) window.addEventListener('load', onPageLoad, { once: true })
+  minimumTimer = setTimeout(() => {
+    minimumElapsed = true
+    finishWhenReady()
+  }, 2500)
 })
 
-onBeforeUnmount(() => clearTimeout(timeout))
+onBeforeUnmount(() => {
+  clearTimeout(minimumTimer)
+  clearTimeout(exitTimer)
+  clearTimeout(revealTimer)
+  window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('load', onPageLoad)
+})
 </script>
 
 <template>
   <section
     v-if="visible"
     class="vpn-splash"
+    :class="{
+      'vpn-splash--enhanced': enhanced,
+      'vpn-splash--leaving': leaving,
+      'vpn-splash--revealing': revealing
+    }"
     aria-label="Abertura VPN Roleplay"
-    @keydown.esc="dismiss"
   >
-    <div
-      class="vpn-splash__glow"
-      aria-hidden="true"
-    />
-    <div
-      class="vpn-splash__grain vpn-noise"
-      aria-hidden="true"
-    />
+    <div class="vpn-splash__visuals">
+      <div
+        class="vpn-splash__glow"
+        aria-hidden="true"
+      />
+      <div
+        class="vpn-splash__grain vpn-noise"
+        aria-hidden="true"
+      />
 
-    <div
-      class="vpn-splash__brand"
-      aria-hidden="true"
-    >
-      <svg
-        class="vpn-splash__symbol"
-        viewBox="0 0 400 400"
-        fill="none"
+      <VpnBrand
+        class="vpn-splash__brand"
+        aria-hidden="true"
+      />
+
+      <p
+        class="vpn-splash__tagline"
+        aria-hidden="true"
       >
-        <path
-          d="M80 92 200 300 320 92"
-          stroke="currentColor"
-          stroke-width="24"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <circle
-          cx="80"
-          cy="92"
-          r="17"
-          fill="currentColor"
-        />
-        <circle
-          cx="200"
-          cy="300"
-          r="17"
-          fill="currentColor"
-        />
-        <circle
-          cx="320"
-          cy="92"
-          r="17"
-          fill="currentColor"
-        />
-      </svg>
-      <span class="vpn-splash__wordmark">VPN</span>
-      <span class="vpn-splash__subtitle">ROLEPLAY</span>
+        A cidade nunca dorme.
+      </p>
+      <button
+        ref="skip"
+        type="button"
+        class="vpn-splash__skip"
+        @click="dismiss(true)"
+      >
+        Pular abertura
+        <span aria-hidden="true">↗</span>
+      </button>
     </div>
-
-    <p
-      class="vpn-splash__tagline"
-      aria-hidden="true"
-    >
-      A cidade nunca dorme.
-    </p>
-    <button
-      ref="skip"
-      type="button"
-      class="vpn-splash__skip"
-      @click="dismiss"
-    >
-      Pular abertura
-      <span aria-hidden="true">↗</span>
-    </button>
   </section>
 </template>
 
@@ -107,16 +131,49 @@ onBeforeUnmount(() => clearTimeout(timeout))
   place-items: center;
   overflow: hidden;
   color: #fff;
-  background: #05090c;
-  /* The CSS exit also releases the page when hydration fails. */
-  animation: splash-exit 1.5s both;
+  background: #000;
+  opacity: 1;
+  transition:
+    opacity 900ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 900ms;
+  /* CSS releases the page even when JavaScript is unavailable. */
+  animation: splash-fallback-exit 900ms ease-in-out 4.5s forwards;
+}
+
+.vpn-splash--enhanced {
+  animation: none;
+}
+
+.vpn-splash--revealing {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.vpn-splash__visuals {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  transition: opacity 1500ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation: splash-content-exit 1500ms ease-in-out 2.5s forwards;
+}
+
+.vpn-splash--enhanced .vpn-splash__visuals {
+  animation: none;
+}
+
+.vpn-splash--leaving .vpn-splash__visuals {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .vpn-splash__glow {
   position: absolute;
   inset: -40%;
-  background: radial-gradient(ellipse at center, #ed1c243b, #ed1c2408 35%, transparent 60%);
-  animation: splash-glow 1.5s ease-out both;
+  background: radial-gradient(ellipse at center, #ed1c2426, #ed1c2406 35%, transparent 60%);
+  animation: splash-glow 2.4s ease-out both;
 }
 
 .vpn-splash__grain {
@@ -127,36 +184,20 @@ onBeforeUnmount(() => clearTimeout(timeout))
 }
 
 .vpn-splash__brand {
+  --brand-mark-size: clamp(3rem, 8vw, 5.5rem);
+  --brand-radius: clamp(0.9rem, 2vw, 1.6rem);
+  --brand-font-size: clamp(0.85rem, 3.2vw, 2rem);
+  --brand-tracking: 0.18em;
+  --brand-gap: clamp(1rem, 3vw, 2rem);
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform-origin: center;
-  animation: splash-reveal 1.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.vpn-splash__symbol {
-  width: clamp(7rem, 20vw, 12rem);
-  margin-bottom: -0.7rem;
-  color: var(--vpn-red);
-  filter: drop-shadow(0 0 30px #ed1c2450);
+.vpn-splash__brand :deep(.vpn-brand__mark) {
+  animation: splash-mark-in 1.4s ease-out both;
 }
 
-.vpn-splash__wordmark {
-  font-size: clamp(6rem, 23vw, 12rem);
-  font-weight: 900;
-  line-height: 0.85;
-  letter-spacing: -0.085em;
-  padding-right: 0.085em;
-}
-
-.vpn-splash__subtitle {
-  margin-top: 1.4rem;
-  padding-left: 0.65em;
-  font-size: clamp(0.6rem, 1.7vw, 0.8rem);
-  font-weight: 600;
-  letter-spacing: 0.65em;
-  color: #ffffff80;
+.vpn-splash__brand :deep(.vpn-brand__text) {
+  animation: splash-text-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) 500ms both;
 }
 
 .vpn-splash__tagline {
@@ -166,6 +207,7 @@ onBeforeUnmount(() => clearTimeout(timeout))
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: #ffffff70;
+  animation: splash-mark-in 1.4s ease-out 1.4s both;
 }
 
 .vpn-splash__skip {
@@ -194,46 +236,43 @@ onBeforeUnmount(() => clearTimeout(timeout))
   outline-offset: 4px;
 }
 
-@keyframes splash-reveal {
-  0% {
+@keyframes splash-mark-in {
+  from {
     opacity: 0;
-    transform: scale(0.85);
-    filter: blur(8px);
   }
-  30%,
-  65% {
+  to {
     opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
   }
-  100% {
+}
+
+@keyframes splash-text-in {
+  from {
     opacity: 0;
-    transform: scale(1.7);
-    filter: blur(4px);
+    transform: translateX(-1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
 @keyframes splash-glow {
   from {
     opacity: 0;
-    transform: scale(0.6);
-  }
-  60% {
-    opacity: 1;
   }
   to {
-    opacity: 0;
-    transform: scale(1.3);
+    opacity: 1;
   }
 }
 
-@keyframes splash-exit {
-  0%,
-  70% {
-    opacity: 1;
-    visibility: visible;
+@keyframes splash-content-exit {
+  to {
+    opacity: 0;
   }
-  100% {
+}
+
+@keyframes splash-fallback-exit {
+  to {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -244,8 +283,15 @@ onBeforeUnmount(() => clearTimeout(timeout))
   .vpn-splash {
     display: none;
     animation: none;
+    transition: none;
   }
-  .vpn-splash__brand,
+  .vpn-splash__visuals {
+    animation: none;
+    transition: none;
+  }
+  .vpn-splash__brand :deep(.vpn-brand__mark),
+  .vpn-splash__brand :deep(.vpn-brand__text),
+  .vpn-splash__tagline,
   .vpn-splash__glow {
     animation: none;
   }
