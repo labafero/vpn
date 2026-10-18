@@ -73,6 +73,7 @@ export type Database = {
           consent_version: string;
           consented_at: string;
           manual_enabled: boolean;
+          revision: string;
           revoked_at: string | null;
           scheduled_enabled: boolean;
         };
@@ -81,6 +82,7 @@ export type Database = {
           consent_version: string;
           consented_at: string;
           manual_enabled?: boolean;
+          revision?: string;
           revoked_at?: string | null;
           scheduled_enabled?: boolean;
         };
@@ -89,6 +91,7 @@ export type Database = {
           consent_version?: string;
           consented_at?: string;
           manual_enabled?: boolean;
+          revision?: string;
           revoked_at?: string | null;
           scheduled_enabled?: boolean;
         };
@@ -217,25 +220,37 @@ export type Database = {
       oauth_transactions: {
         Row: {
           browser_nonce_hash: string;
+          connection_id: string | null;
           consent_version: string;
           consumed_at: string | null;
+          credential_fingerprint: string | null;
           expires_at: string;
+          provider_user_id: string | null;
+          required_scopes: string[];
           state_hash: string;
           user_id: string;
         };
         Insert: {
           browser_nonce_hash: string;
+          connection_id?: string | null;
           consent_version: string;
           consumed_at?: string | null;
+          credential_fingerprint?: string | null;
           expires_at: string;
+          provider_user_id?: string | null;
+          required_scopes?: string[];
           state_hash: string;
           user_id: string;
         };
         Update: {
           browser_nonce_hash?: string;
+          connection_id?: string | null;
           consent_version?: string;
           consumed_at?: string | null;
+          credential_fingerprint?: string | null;
           expires_at?: string;
+          provider_user_id?: string | null;
+          required_scopes?: string[];
           state_hash?: string;
           user_id?: string;
         };
@@ -250,6 +265,7 @@ export type Database = {
           key_version: string;
           last_attempt_at: string | null;
           retry_until: string | null;
+          scopes: string[];
           tag: string;
           validated_at: string;
         };
@@ -261,6 +277,7 @@ export type Database = {
           key_version: string;
           last_attempt_at?: string | null;
           retry_until?: string | null;
+          scopes?: string[];
           tag: string;
           validated_at: string;
         };
@@ -272,6 +289,7 @@ export type Database = {
           key_version?: string;
           last_attempt_at?: string | null;
           retry_until?: string | null;
+          scopes?: string[];
           tag?: string;
           validated_at?: string;
         };

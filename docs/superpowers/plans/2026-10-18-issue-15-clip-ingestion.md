@@ -33,7 +33,7 @@
 **Interfaces:** Estender POST `/provider-connections/twitch/authorize` com variante de upgrade contendo `consentVersion: clip-processing-v1`, `consentAccepted: true` e `capabilities: [clip_download]` (enum também reconhece clip_create). A variante monitoring-v1 mantém compatibilidade. A transação privada guarda propósito, conexão/identidade esperadas e escopos requeridos; consume retorna esses dados de forma atômica. Credencial privada guarda escopos validados, default vazio para vínculos existentes; não expor tokens em contratos públicos.
 
 - [x] Escrever e executar testes de upgrade conectado, scopes arbitrários, identidade/client_id divergentes, escopo ausente, recusa, nonce/state incorretos, replay, callback após desconexão e callbacks concorrentes.
-- [ ] Criar migration com Supabase CLI para transações de upgrade e escopos privados; preservar grants e dados anteriores. Cobrir constraints e negação anon/authenticated com pgTAP e PGlite.
+- [x] Criar migration com Supabase CLI para transações de upgrade e escopos privados; preservar grants e dados anteriores. Cobrir constraints e negação anon/authenticated com pgTAP e PGlite.
 - [x] Implementar variante de autorização e callback usando state/nonce existentes; não alterar conexão/credencial antiga antes de validar o novo token e revalidar a conexão sob lock. Não revogar o token antigo na falha nem revogar um token retornado idêntico ao que ainda está em uso.
 - [x] Ajustar validação periódica/refresh para comparar escopos concedidos e capacidades em vez de exigir scopes.length === 0; manter criptografia e rotação de refresh token.
 - [x] Em cancelamento OAuth, consumir transação válida e voltar a `/conexao` com resultado sanitizado por cookie curto, sem refletir query do provedor na UI. Adaptar proxy para manter validação estrita do redirect e limpar nonce.
@@ -51,7 +51,7 @@
 - [x] Revalidar conexão, escopo e consentimento em transação com lock compartilhado antes do INSERT; inserir com deduplicação concorrente e retornar o registro existente sem reiniciá-lo. Estado inicial após metadados válidos: pending_captions. Falha de Helix anterior à confirmação do broadcaster não aceita submissão nem cria registro.
 - [x] Consentimento desativado grava revoked_at, desabilita modos e cancela pendências atomicamente como cancelled_consent com finished_at; preservar terminais. Reativação exige novo aceite e não reabre automaticamente submissões canceladas.
 - [x] Usar erros estáveis e sanitizados: 400 URL inválida, 403 canal/consentimento/escopo recusado, 404 clip ausente e 503 dependência indisponível. Nunca retornar erro bruto Helix.
-- [ ] Executar testes de serviço e banco, inclusive concorrência, e commitar.
+- [x] Executar testes de serviço e banco, inclusive concorrência, e commitar.
 
 ## Task 3: Contratos, proxy e interface do Monitor
 
@@ -61,12 +61,12 @@
 - [x] Adicionar rotas ao allowlist do proxy, preservando autenticação, origin/CSRF e respostas no-store; manter segredo de bypass exclusivamente no servidor.
 - [x] Exibir consentimento separado, finalidade das permissões, orientação GTA RP +18, captions e retenção limitada de VOD/clip. Informar que a mídia pode desaparecer e Whisper exige solicitação futura explícita.
 - [x] Adicionar autorização para clip_download, ativação/revogação do consentimento manual e formulário de URL; exibir sucesso/duplicata/erro sem prometer processamento ou download já realizados. Não mostrar captura agendada como funcional.
-- [ ] Cobrir proxy, schemas, payloads estritos e sanitização; validar UI responsiva e estados de loading/erro. Executar lint/typecheck/contracts e commitar.
+- [x] Cobrir proxy, schemas, payloads estritos e sanitização; validar UI responsiva e estados de loading/erro. Executar lint/typecheck/contracts e commitar.
 
 ## Task 4: Prova de integração e entrega
 
-- [ ] Executar pipeline necessário: pnpm lint, pnpm format, pnpm format:check, pnpm typecheck, pnpm contracts:check, pnpm test:foundation e build com configuração local apropriada.
-- [ ] Aplicar migrations somente no Supabase local e executar pgTAP; regenerar tipos Supabase por CLI. Não editar database.types.ts manualmente.
+- [x] Executar pipeline necessário: pnpm lint, pnpm format, pnpm format:check, pnpm typecheck, pnpm contracts:check, pnpm test:foundation e build com configuração local apropriada.
+- [x] Aplicar migrations somente no Supabase local e executar pgTAP; regenerar tipos Supabase por CLI. Não editar database.types.ts manualmente.
 - [ ] Com conta de teste do próprio broadcaster e consentimento real, validar OAuth incremental, envio do próprio clip, duplicata e recusa de upgrade preservando vínculo. Se depender de interação humana, registrar bloqueio e ponto de retomada sem afirmar conclusão end-to-end.
 - [ ] Provar Get Clips Download pelo endpoint oficial em ensaio explícito, limitado e temporário; não adicionar download automático à submissão, guardar URL temporária ou expor mídia no Monitor. Registrar limites observados e limpeza; não anunciar capacidade de mídia sem essa prova.
 - [ ] Registrar evidências, autorizações e pendências em `docs/validation/phase-2-ingestion.md`; revisar requisitos, publicar branch/PR vinculada à #15 para revisão. Não encerrar a issue sem evidência dos critérios de aceite.
@@ -74,3 +74,5 @@
 ## Retomada de 18/10/2026
 
 Implementação nos commits `c23f314`, `9c479c3` e `5f4c231`. Evidências, limites e pendências em [phase-2-ingestion](../../validation/phase-2-ingestion.md). Os itens que incluem provas ainda indisponíveis permanecem abertos; a fase não está concluída.
+
+Provas adicionais: pgTAP 113/113, tipos gerados via CLI, concorrência PostgreSQL em duas conexões, build completo e UI Chromium local. O teste de UI descobriu e corrigiu corrida preexistente no middleware de login, com regressão RED→GREEN e login local comprovado. OAuth/download reais continuam abertos.
