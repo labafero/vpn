@@ -32,6 +32,10 @@ export type TwitchGateway = {
   validate: (accessToken: string) => Promise<TwitchIdentity | null>
   revoke: (accessToken: string) => Promise<void>
 }
+export const clipCapabilityScopes = {
+  clip_download: 'channel:manage:clips',
+  clip_create: 'clips:edit'
+} as const
 const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 
 export function createTwitchOAuthService(
@@ -100,24 +104,42 @@ export function createTwitchOAuthService(
   return {
     async beginTwitchAuthorization(
       user: Me,
-      consent: { consentVersion: string; consentAccepted: boolean },
+      consent: { consentVersion: string; consentAccepted: boolean; capabilities?: string[] },
       browserNonce: string
     ) {
       validateConfig()
+      const upgrade = consent.consentVersion === 'clip-processing-v1'
       if (
-        consent.consentVersion !== 'monitoring-v1' ||
+        !browserNonce ||
         consent.consentAccepted !== true ||
-        !browserNonce
+        (!upgrade &&
+          (consent.consentVersion !== 'monitoring-v1' || consent.capabilities !== undefined)) ||
+        (upgrade &&
+          (!Array.isArray(consent.capabilities) ||
+            consent.capabilities.length !== 1 ||
+            consent.capabilities[0] !== 'clip_download'))
       )
         throw new FoundationError(400)
       const current = await repository.getConnection(user.userId)
-      if (!canAuthorizeConnection(current)) throw new FoundationError(409)
+      if (
+        upgrade
+          ? current?.connection.status !== 'connected' || !current.credential
+          : !canAuthorizeConnection(current)
+      )
+        throw new FoundationError(409)
+      const requiredScopes = upgrade
+        ? [...new Set([...(current!.credential!.scopes ?? []), clipCapabilityScopes.clip_download])]
+        : []
       const state = randomBytes(32).toString('base64url')
       await repository.createAuthorization({
         stateHash: hash(state),
         userId: user.userId,
         nonceHash: hash(browserNonce),
-        consentVersion: 'monitoring-v1',
+        consentVersion: upgrade ? 'clip-processing-v1' : 'monitoring-v1',
+        connectionId: upgrade ? current!.connection.id : undefined,
+        providerUserId: upgrade ? current!.connection.providerUserId : undefined,
+        credentialFingerprint: upgrade ? hash(current!.credential!.ciphertext) : undefined,
+        requiredScopes,
         expiresAt: new Date(now().getTime() + 600000).toISOString()
       })
       const url = new URL('https://id.twitch.tv/oauth2/authorize')
@@ -125,7 +147,7 @@ export function createTwitchOAuthService(
         client_id: config.clientId,
         redirect_uri: config.redirectUri,
         response_type: 'code',
-        scope: '',
+        scope: requiredScopes.join(' '),
         state,
         force_verify: 'true'
       }))
@@ -138,18 +160,15 @@ export function createTwitchOAuthService(
     ) {
       validateConfig()
       const time = now()
-      if (
-        !input.code ||
-        !input.state ||
-        !input.browserNonce ||
-        !(await repository.consumeAuthorization(
-          hash(input.state),
-          hash(input.browserNonce),
-          user.userId,
-          time.toISOString()
-        ))
+      if (!input.code || !input.state || !input.browserNonce) throw new FoundationError(400)
+      const authorization = await repository.consumeAuthorization(
+        hash(input.state),
+        hash(input.browserNonce),
+        user.userId,
+        time.toISOString()
       )
-        throw new FoundationError(400)
+      if (!authorization) throw new FoundationError(400)
+      const upgrade = authorization.consentVersion === 'clip-processing-v1'
       const tokens = await gateway.exchange(input.code)
       try {
         const identity = await gateway.validate(tokens.accessToken)
@@ -158,24 +177,64 @@ export function createTwitchOAuthService(
           identity.clientId !== config.clientId ||
           !identity.userId ||
           !identity.login ||
-          identity.scopes.length !== 0
+          (upgrade
+            ? identity.userId !== authorization.providerUserId ||
+              !(authorization.requiredScopes ?? []).every((scope) =>
+                identity.scopes.includes(scope)
+              )
+            : identity.scopes.length !== 0)
         )
           throw new FoundationError(400)
-        await repository.saveConnection(
-          user.userId,
-          { userId: identity.userId, login: identity.login },
-          encrypt(tokens, identity.expiresIn, time),
-          time.toISOString()
-        )
+        const credential = { ...encrypt(tokens, identity.expiresIn, time), scopes: identity.scopes }
+        if (upgrade) {
+          await repository.withConnection(user.userId, async (current, locked) => {
+            if (
+              !current?.credential ||
+              current.connection.status !== 'connected' ||
+              current.connection.id !== authorization.connectionId ||
+              current.connection.providerUserId !== authorization.providerUserId ||
+              hash(current.credential.ciphertext) !== authorization.credentialFingerprint
+            )
+              throw new FoundationError(409)
+            await locked.saveCredential(credential)
+          })
+        } else {
+          await repository.saveConnection(
+            user.userId,
+            { userId: identity.userId, login: identity.login },
+            credential,
+            time.toISOString()
+          )
+        }
       } catch (error) {
         // A token issued by Twitch must not be left usable after a failed link.
         try {
-          await gateway.revoke(tokens.accessToken)
+          await repository.withConnection(user.userId, async (current) => {
+            if (
+              current?.credential &&
+              decrypt(current.credential).accessToken === tokens.accessToken
+            )
+              return
+            await gateway.revoke(tokens.accessToken)
+          })
         } catch {
           /* No raw provider error is logged. */
         }
         throw error instanceof FoundationError ? error : new FoundationError(503)
       }
+    },
+    async cancelTwitchAuthorization(user: Me, input: { state: string; browserNonce: string }) {
+      if (
+        !input.state ||
+        !input.browserNonce ||
+        !(await repository.consumeAuthorization(
+          hash(input.state),
+          hash(input.browserNonce),
+          user.userId,
+          now().toISOString()
+        ))
+      )
+        throw new FoundationError(400)
     },
     async getTwitchConnection(user: Me) {
       const value = await repository.getConnection(user.userId)
@@ -230,7 +289,10 @@ export function createTwitchOAuthService(
               try {
                 const refreshed = await gateway.refresh(tokens.refreshToken)
                 tokens = refreshed
-                credential = encrypt(tokens, refreshed.expiresIn, time)
+                credential = {
+                  ...encrypt(tokens, refreshed.expiresIn, time),
+                  scopes: credential.scopes ?? []
+                }
               } catch (error) {
                 if (!(error instanceof FoundationError) || error.statusCode !== 401) throw error
                 await locked.setStatus('expired', null)
@@ -253,7 +315,7 @@ export function createTwitchOAuthService(
               !identity ||
               identity.clientId !== config.clientId ||
               identity.userId !== value.connection.providerUserId ||
-              identity.scopes.length !== 0
+              !(credential.scopes ?? []).every((scope) => identity.scopes.includes(scope))
             ) {
               await locked.setStatus('expired', null)
               await locked.audit('authorization_expired')
@@ -343,6 +405,7 @@ export function createTwitchGateway(config: TwitchConfig, fetcher = fetch): Twit
         !value.user_id ||
         !value.login ||
         !Array.isArray(scopes) ||
+        scopes.some((scope) => typeof scope !== 'string' || !/^[a-z_:]+$/.test(scope)) ||
         !Number.isFinite(value.expires_in) ||
         value.expires_in < 0
       )

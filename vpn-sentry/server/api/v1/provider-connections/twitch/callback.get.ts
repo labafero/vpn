@@ -9,9 +9,18 @@ export default defineEventHandler((event) =>
     setHeader(event, 'Referrer-Policy', 'no-referrer')
     const user = await requireVpnUser(event)
     const query = getQuery(event)
-    if (query.error || typeof query.code !== 'string' || typeof query.state !== 'string')
-      throw new FoundationError(400)
-    await getTwitchOAuthService().completeTwitchAuthorization(user, {
+    if (typeof query.state !== 'string') throw new FoundationError(400)
+    const service = getTwitchOAuthService()
+    if (query.error) {
+      await service.cancelTwitchAuthorization(user, {
+        state: query.state,
+        browserNonce: getHeader(event, 'x-oauth-nonce') || ''
+      })
+      setHeader(event, 'X-OAuth-Result', 'declined')
+      return sendRedirect(event, `${process.env.NUXT_MONITOR_ORIGIN}/conexao`, 303)
+    }
+    if (typeof query.code !== 'string') throw new FoundationError(400)
+    await service.completeTwitchAuthorization(user, {
       code: query.code,
       state: query.state,
       browserNonce: getHeader(event, 'x-oauth-nonce') || ''

@@ -1,0 +1,17 @@
+BEGIN;
+CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
+SELECT plan(12);
+SELECT has_column('private', 'provider_credentials', 'scopes', 'validated scopes are private');
+SELECT has_column('private', 'oauth_transactions', 'connection_id', 'upgrade is bound to connection');
+SELECT has_column('private', 'oauth_transactions', 'provider_user_id', 'upgrade is bound to identity');
+SELECT has_column('private', 'oauth_transactions', 'credential_fingerprint', 'upgrade cannot overwrite a concurrent token update');
+SELECT has_column('private', 'oauth_transactions', 'required_scopes', 'requested grants are persisted privately');
+SELECT has_column('private', 'clip_processing_consents', 'revision', 'reaccept invalidates in-flight submissions');
+SELECT ok(NOT has_table_privilege('anon','private.provider_credentials','SELECT'), 'anon cannot read tokens or scopes');
+SELECT ok(NOT has_table_privilege('authenticated','private.provider_credentials','SELECT'), 'authenticated cannot read tokens or scopes');
+SELECT ok(NOT has_table_privilege('anon','private.oauth_transactions','SELECT'), 'anon cannot read OAuth transactions');
+SELECT ok(NOT has_table_privilege('authenticated','private.oauth_transactions','UPDATE'), 'authenticated cannot consume OAuth state');
+SELECT ok(has_column_privilege('vpn_sentry','private.provider_credentials','scopes','UPDATE'), 'Sentry can rotate validated grants');
+SELECT ok(has_column_privilege('vpn_sentry','private.clip_processing_consents','revision','UPDATE'), 'Sentry can invalidate in-flight ingestion');
+SELECT * FROM finish();
+ROLLBACK;

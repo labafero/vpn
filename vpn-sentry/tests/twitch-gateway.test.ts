@@ -21,7 +21,7 @@ test('Twitch null scopes normalize to empty permissions for validated identity',
     scopes: []
   })
 })
-test.each([undefined, 'channel:read', 1, {}])(
+test.each([undefined, 'channel:read', 1, {}, [null], [7], [{}]])(
   'malformed scopes remain rejected: %j',
   async (scopes) => {
     const gateway = createTwitchGateway(config, async () => Response.json({ ...identity, scopes }))

@@ -31,6 +31,10 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
       name.endsWith('_phase2_clip_persistence.sql')
     )!
     await db.exec(readFileSync(`supabase/migrations/${clipMigration}`, 'utf8'))
+    const ingestionMigration = readdirSync('supabase/migrations').find((name) =>
+      name.endsWith('_clip_ingestion_oauth.sql')
+    )!
+    await db.exec(readFileSync(`supabase/migrations/${ingestionMigration}`, 'utf8'))
     await db.exec(`
       INSERT INTO public.user_roles VALUES ('00000000-0000-0000-0000-000000000003', 'vpn_admin');
       INSERT INTO public.provider_connections(id,user_id,provider_user_id,login,consent_version,consented_at) VALUES
