@@ -8,6 +8,8 @@ Ler AGENTS.md, a parte relevante de PRD.md/DESIGN.md, o plano em docs/superpower
 
 O plano deve definir resultado observável, limites de escopo, dependências, critérios de conclusão e destino da entrega. Distinguir aprovação do plano, push da branch, preview, merge e alteração de produção. Uma autorização nova do usuário pode ampliar o escopo; não inferir que aprovação de código autoriza mudanças em produção.
 
+Para preparar máquina/acessos, usar [preparar ambiente](preparar-ambiente.md) via `vpn-environment`. Para preview em PR, produção ou acompanhamento de deploy existente, usar [publicação](publicacao.md) via `vpn-release`. Esses procedimentos detalham a execução sem substituir as autorizações e evidências deste fluxo.
+
 ## Descobrir antes de perguntar
 
 Consultar docs/operations/environments.md. Conferir configuração versionada, vínculos locais e nomes das variáveis privadas, sem imprimir valores. Usar CLI/API/MCP para consultar projetos, equipe, domínio, root directory, deployments e banco. Descobrir comandos pela ajuda e confirmar capacidades atuais na documentação oficial.

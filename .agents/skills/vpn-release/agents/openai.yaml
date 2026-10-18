@@ -1,0 +1,4 @@
+interface:
+  display_name: 'VPN: publicar e acompanhar'
+  short_description: 'Preview em PR, produção e validação de deployments'
+  default_prompt: 'Use $vpn-release para publicar a alteração autorizada e acompanhar até validar o destino real.'

@@ -1,0 +1,4 @@
+interface:
+  display_name: 'VPN: preparar ambiente'
+  short_description: 'Preparar máquina, CLIs e acessos do projeto VPN'
+  default_prompt: 'Use $vpn-environment para preparar esta máquina para desenvolver e validar o projeto VPN.'
