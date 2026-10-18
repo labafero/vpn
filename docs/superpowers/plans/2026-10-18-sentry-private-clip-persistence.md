@@ -66,11 +66,11 @@
 - `private.purge_expired_clip_submissions(p_now timestamptz) returns integer` deletes only finished submissions whose `finished_at <= p_now - interval '90 days'` and returns the deleted row count.
 - Pending states, including `pending_asr`, are never deleted by time-based cleanup.
 - Consent records remain until the owner/channel is deleted; issue #15 atomically revokes consent and cancels or removes pending submissions before any further download.
-- The operation script schedules the database-local cleanup using the existing Supabase Cron pattern; this plan does not run it remotely.
+- The operation script schedules the database-local cleanup using the existing Supabase Cron pattern; this plan does not run it remotely. Local pgTAP execution is pending because Docker Desktop WSL integration is unavailable; PGlite covers the routine behavior and role grants.
 
-- [ ] **Step 1: Add failing retention assertions** for finished rows older/newer than 90 days and old rows in `pending_metadata`, `pending_asr`, and `processing`.
-- [ ] **Step 2: Implement the cleanup function** with an injectable `p_now`, a terminal-state allowlist, and a deterministic delete count.
-- [ ] **Step 3: Add the reviewed Cron operation script** with a stable job name and a matching unschedule statement; do not add or execute a remote job.
+- [x] **Step 1: Add failing retention assertions** for finished rows older/newer than 90 days and old rows in `pending_metadata`, `pending_asr`, and `processing`.
+- [x] **Step 2: Implement the cleanup function** with an injectable `p_now`, a terminal-state allowlist, and a deterministic delete count.
+- [x] **Step 3: Add the reviewed Cron operation script** with a stable job name and a matching unschedule statement; do not add or execute a remote job.
 - [ ] **Step 4: Run pgTAP and PGlite tests** and confirm old terminal rows are removed while pending rows remain.
 - [ ] **Step 5: Commit the retention task** with `git add -- supabase/migrations/20261018173747_phase2_clip_persistence.sql supabase/operations/schedule-clip-retention.sql supabase/tests/clip-persistence.test.sql && git commit -m 'feat: add clip metadata retention'`.
 

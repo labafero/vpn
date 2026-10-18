@@ -1,6 +1,6 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(12);
+SELECT plan(16);
 
 INSERT INTO auth.users(id) VALUES
   ('00000000-0000-0000-0000-000000000001'),
@@ -37,5 +37,14 @@ SELECT throws_ok($$INSERT INTO private.clip_submissions(channel_id,twitch_clip_i
 SET LOCAL ROLE vpn_sentry;
 SELECT is((SELECT count(*)::integer FROM private.clip_submissions WHERE twitch_clip_id='UniqueClip123'),1,'Sentry can read persisted submissions');
 RESET ROLE;
+
+INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state,received_at,finished_at) VALUES
+  ('20000000-0000-0000-0000-000000000001','OldTerminal123','https://clips.twitch.tv/OldTerminal123','manual','completed','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),
+  ('20000000-0000-0000-0000-000000000001','RecentTerminal123','https://clips.twitch.tv/RecentTerminal123','manual','failed_terminal','2026-07-01T00:00:00Z','2026-07-21T00:00:00Z'),
+  ('20000000-0000-0000-0000-000000000001','OldPending123','https://clips.twitch.tv/OldPending123','manual','pending_asr','2026-01-01T00:00:00Z',NULL);
+SELECT is(private.purge_expired_clip_submissions('2026-10-18T00:00:00Z'),1,'cleanup returns the number of expired terminal rows deleted');
+SELECT is((SELECT count(*)::integer FROM private.clip_submissions WHERE twitch_clip_id='OldTerminal123'),0,'terminal submission older than 90 days is removed');
+SELECT is((SELECT count(*)::integer FROM private.clip_submissions WHERE twitch_clip_id='RecentTerminal123'),1,'terminal submission newer than 90 days is retained');
+SELECT is((SELECT count(*)::integer FROM private.clip_submissions WHERE twitch_clip_id='OldPending123'),1,'old pending submission is retained');
 SELECT * FROM finish();
 ROLLBACK;

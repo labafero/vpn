@@ -63,3 +63,24 @@ REVOKE ALL ON TABLE private.clip_processing_consents, private.clip_submissions
 GRANT SELECT, INSERT, UPDATE, DELETE
   ON TABLE private.clip_processing_consents, private.clip_submissions
   TO vpn_sentry;
+
+CREATE FUNCTION private.purge_expired_clip_submissions(p_now timestamptz)
+RETURNS integer
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+DECLARE
+  deleted_count integer;
+BEGIN
+  DELETE FROM private.clip_submissions
+  WHERE state IN ('completed', 'no_match', 'source_unavailable', 'failed_terminal', 'cancelled_consent')
+    AND finished_at <= p_now - interval '90 days';
+  GET DIAGNOSTICS deleted_count = ROW_COUNT;
+  RETURN deleted_count;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION private.purge_expired_clip_submissions(timestamptz)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION private.purge_expired_clip_submissions(timestamptz)
+  TO vpn_sentry;

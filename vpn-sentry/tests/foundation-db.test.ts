@@ -77,9 +77,20 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     await expect(db.query('SELECT * FROM private.clip_submissions')).rejects.toThrow(
       /permission denied/
     )
+    await db.exec('RESET ROLE; SET ROLE authenticated;')
+    await expect(
+      db.query("SELECT private.purge_expired_clip_submissions('2026-10-18T00:00:00Z'::timestamptz)")
+    ).rejects.toThrow(/permission denied/)
     await db.exec('RESET ROLE;')
     await db.exec('SET ROLE vpn_sentry;')
     expect((await db.query('SELECT * FROM private.clip_submissions')).rows).toHaveLength(1)
+    expect(
+      (
+        await db.query(
+          "SELECT private.purge_expired_clip_submissions('2026-10-18T00:00:00Z'::timestamptz) AS purged"
+        )
+      ).rows[0]?.purged
+    ).toBe(0)
     await expect(
       db.exec(`INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
         VALUES ('20000000-0000-0000-0000-000000000099','MissingChannel123','https://clips.twitch.tv/MissingChannel123','manual','pending_metadata')`)
@@ -117,6 +128,26 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     await expect(db.query('SELECT * FROM private.access_invites')).rejects.toThrow(
       /permission denied/
     )
+    await db.exec('RESET ROLE;')
+    await db.exec(`
+      INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state,received_at,finished_at) VALUES
+      ('20000000-0000-0000-0000-000000000001','OldTerminal123','https://clips.twitch.tv/OldTerminal123','manual','completed','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),
+      ('20000000-0000-0000-0000-000000000001','RecentTerminal123','https://clips.twitch.tv/RecentTerminal123','manual','failed_terminal','2026-07-01T00:00:00Z','2026-07-21T00:00:00Z'),
+      ('20000000-0000-0000-0000-000000000001','OldPending123','https://clips.twitch.tv/OldPending123','manual','pending_asr','2026-01-01T00:00:00Z',NULL);
+    `)
+    const purged = await db.query<{ purged: number }>(
+      "SELECT private.purge_expired_clip_submissions('2026-10-18T00:00:00Z'::timestamptz) AS purged"
+    )
+    expect(purged.rows[0]?.purged).toBe(1)
+    expect(
+      (await db.query("SELECT id FROM private.clip_submissions WHERE twitch_clip_id='OldTerminal123'")).rows
+    ).toHaveLength(0)
+    expect(
+      (await db.query("SELECT id FROM private.clip_submissions WHERE twitch_clip_id='RecentTerminal123'")).rows
+    ).toHaveLength(1)
+    expect(
+      (await db.query("SELECT id FROM private.clip_submissions WHERE twitch_clip_id='OldPending123'")).rows
+    ).toHaveLength(1)
   } finally {
     await db.close()
   }
