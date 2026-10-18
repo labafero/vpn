@@ -66,7 +66,7 @@
 - `private.purge_expired_clip_submissions(p_now timestamptz) returns integer` deletes only finished submissions whose `finished_at <= p_now - interval '90 days'` and returns the deleted row count.
 - Pending states, including `pending_asr`, are never deleted by time-based cleanup.
 - Consent records remain until the owner/channel is deleted; issue #15 atomically revokes consent and cancels or removes pending submissions before any further download.
-- The operation script schedules the database-local cleanup using the existing Supabase Cron pattern; this plan does not run it remotely. Local pgTAP execution is pending because Docker Desktop WSL integration is unavailable; PGlite covers the routine behavior and role grants.
+- The operation script schedules the database-local cleanup using the existing Supabase Cron pattern; this plan does not run it remotely. Local pgTAP and PGlite validation passed; evidence is recorded in `docs/validation/phase-2-persistence.md`.
 
 - [x] **Step 1: Add failing retention assertions** for finished rows older/newer than 90 days and old rows in `pending_metadata`, `pending_asr`, and `processing`.
 - [x] **Step 2: Implement the cleanup function** with an injectable `p_now`, a terminal-state allowlist, and a deterministic delete count.

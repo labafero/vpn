@@ -22,3 +22,11 @@
 - `supabase migration new` criou a migration usando Supabase CLI 2.119.0.
 
 O SQL de Cron continua sendo uma operação manual e não foi executado. Nenhuma migration, job Cron ou configuração foi aplicada ao Supabase remoto.
+
+## Revalidação e entrega em 18/10/2026
+
+- Branch/worktree: `codex/issue-14-persistence`, `/home/anewkilla/worktrees/vpn-issue-14-persistence`; implementação revisada no commit `30b9dbc` e PR https://github.com/labafero/vpn/pull/23.
+- O usuário forneceu nova execução de `supabase test db --local` nesse worktree: **7 arquivos, 101 testes, Result: PASS**, com Supabase CLI 2.119.0. Esta evidência foi executada no terminal do usuário, não pelo agente.
+- O agente reexecutou `pnpm exec vitest run vpn-sentry/tests/foundation-db.test.ts`: **1 arquivo, 1 teste aprovado**. A tentativa de pgTAP do agente foi bloqueada por acesso negado ao socket Docker; não houve falha de assertion nem reset do banco.
+- Revisão da PR não identificou bloqueios; a nota antiga de pgTAP pendente foi corrigida. A dependência PR #22 já foi integrada e a PR #23 tem `main` como base.
+- O usuário autorizou os ajustes documentais, push, integração da PR #23 e encerramento da issue #14 ao solicitar a execução do plano. Migration remota, ativação do Cron e deploy manual continuam fora desta entrega.
