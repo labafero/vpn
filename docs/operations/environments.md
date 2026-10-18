@@ -1,5 +1,13 @@
 # Ambientes e descoberta
 
+## Revalidação em 17 de outubro de 2026
+
+Nova máquina WSL preparada com NVM/Node 24.22.0, pnpm 11.1.3, Vercel CLI 64.5.0 e Supabase CLI 2.119.0. Vercel autenticada como quila na equipe anilson-lopes-projects; os quatro projetos abaixo foram revalidados e vinculados localmente, com root directories correspondentes e Node 24.x. Supabase autenticado no projeto VPN_RP, ref zxzigoaddoslkokbzmyc; vínculo e 25 migrations alinhadas confirmados, sem aplicar mudanças.
+
+Fluxo Git/Vercel comprovado pela PR #21 (`feat/site-splash`): commit a064a16, deployment Preview dpl_2ZJTf7W4j8cyMoiGh6Z1KHCzqJbY READY, CI passou e navegador validado. A integração disparou os quatro aplicativos mesmo com mudança somente no Site. Proteção dos previews mantida; CLI gerou credencial de automação para testar Site. Site publicado em produção após aprovação explícita do usuário: commit f15a8e9, deployment dpl_DJcRKgt4s8XKS3E2qsKLymvryfK5 READY e domínio vpn.labafero.com verificados no Chromium. Publicação direcionada pela CLI, sem merge em main e sem alterar outros aplicativos ou banco. Guia: [preparação](development-setup.md); evidências: [splash](../validation/site-splash.md).
+
+O restante deste documento registra a verificação histórica de 10 de outubro; não tratar seus números de migrations, versões de ferramentas ou estado de PRs como atuais.
+
 Estado verificado em 10 de outubro de 2026. Revalidar destino, conta e projeto antes de alterar configurações. Nunca imprimir credenciais ou respostas completas de variáveis privadas.
 
 ## Vercel

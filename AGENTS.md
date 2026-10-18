@@ -88,6 +88,8 @@ Duas superfícies distintas:
 - **Não sugerir atalhos ou workarounds** quando o problema real ainda não foi resolvido. Diagnosticar a causa raiz e resolver corretamente.
 - Para planejar, executar, retomar ou entregar uma fase, seguir [docs/workflows/entrega.md](docs/workflows/entrega.md). Recuperar plano, autorizações e evidências existentes antes de propor um novo plano ou repetir perguntas.
 - Para descobrir ambientes e acessos, consultar [docs/operations/environments.md](docs/operations/environments.md) e verificar CLI/API/MCP antes de pedir nomes ou URLs ao usuário. Revalidar o registro na conta; não tratá-lo como estado atual garantido.
+- Para preparar uma máquina, autenticar ferramentas ou diagnosticar o ambiente local, usar [vpn-environment](.agents/skills/vpn-environment/SKILL.md).
+- Para deploy Vercel, preview em PR, acompanhamento/status de deployment ou validação da UI publicada, usar [vpn-release](.agents/skills/vpn-release/SKILL.md) e [docs/workflows/publicacao.md](docs/workflows/publicacao.md). Essas instruções específicas do VPN complementam as skills de fornecedores; preservar autorizações já dadas e o destino pedido pelo usuário.
 
 ## Fundação privada
 

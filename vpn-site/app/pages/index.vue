@@ -33,6 +33,7 @@ const pillars = [
 
 <template>
   <div class="min-h-screen overflow-hidden bg-[#05090c] text-white">
+    <VpnSplash />
     <header class="relative z-20 border-b border-white/10 bg-[#05090c]/80 backdrop-blur-md">
       <UContainer
         class="flex min-h-16 items-center justify-between gap-3 py-3 sm:h-20 sm:gap-8 sm:py-0"
@@ -42,48 +43,7 @@ const pillars = [
           aria-label="VPN Roleplay — início"
           class="group flex min-w-0 items-center gap-2 sm:gap-3"
         >
-          <span
-            class="grid size-10 place-items-center rounded-xl bg-[#ed1c24] shadow-[0_0_28px_rgba(237,28,36,0.26)] transition-transform group-hover:scale-105"
-          >
-            <svg
-              viewBox="0 0 512 512"
-              aria-hidden="true"
-              class="size-7"
-            >
-              <path
-                d="M112 128 256 384 400 128"
-                fill="none"
-                stroke="white"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="58"
-              />
-              <circle
-                cx="112"
-                cy="128"
-                r="30"
-                fill="white"
-              />
-              <circle
-                cx="256"
-                cy="384"
-                r="30"
-                fill="white"
-              />
-              <circle
-                cx="400"
-                cy="128"
-                r="30"
-                fill="white"
-              />
-            </svg>
-          </span>
-          <span
-            class="text-xs font-semibold tracking-[0.12em] text-white sm:text-sm sm:tracking-[0.22em]"
-          >
-            VPN
-            <span class="text-white/45">ROLEPLAY</span>
-          </span>
+          <VpnBrand />
         </NuxtLink>
 
         <nav
@@ -166,6 +126,7 @@ const pillars = [
                 UNIVERSO ONLINE
               </div>
               <h1
+                tabindex="-1"
                 class="max-w-4xl text-5xl font-semibold leading-[0.95] tracking-[-0.055em] text-white sm:text-7xl lg:text-8xl"
               >
                 A cidade

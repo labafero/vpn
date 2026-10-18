@@ -1,0 +1,14 @@
+.git
+.aws
+.codex
+.agents
+**/node_modules
+**/.env
+**/.env.*
+!**/.env.example
+**/.nuxt
+**/.output
+**/.data
+**/.nitro
+**/.cache
+**/*.log
