@@ -27,12 +27,20 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
       name.endsWith('_fase_1_monitoramento_privado.sql')
     )!
     await db.exec(readFileSync(`supabase/migrations/${monitoringMigration}`, 'utf8'))
+    const clipMigration = readdirSync('supabase/migrations').find((name) =>
+      name.endsWith('_phase2_clip_persistence.sql')
+    )!
+    await db.exec(readFileSync(`supabase/migrations/${clipMigration}`, 'utf8'))
     await db.exec(`
       INSERT INTO public.user_roles VALUES ('00000000-0000-0000-0000-000000000003', 'vpn_admin');
       INSERT INTO public.provider_connections(id,user_id,provider_user_id,login,consent_version,consented_at) VALUES
       ('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','twitch-1','owner','monitoring-v1',now());
       INSERT INTO public.channels(id,connection_id,owner_id) VALUES
       ('20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001');
+      INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at,manual_enabled)
+      VALUES ('20000000-0000-0000-0000-000000000001','clip-processing-v1',now(),true);
+      INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
+      VALUES ('20000000-0000-0000-0000-000000000001','PgliteClip123','https://clips.twitch.tv/PgliteClip123','manual','pending_metadata');
     `)
     async function asUser(id: number) {
       await db.exec(
@@ -63,6 +71,19 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
     await expect(db.query('SELECT * FROM provider_connections')).rejects.toThrow(
       /permission denied/
     )
+    await expect(db.query('SELECT * FROM private.clip_processing_consents')).rejects.toThrow(
+      /permission denied/
+    )
+    await expect(db.query('SELECT * FROM private.clip_submissions')).rejects.toThrow(
+      /permission denied/
+    )
+    await db.exec('RESET ROLE;')
+    await db.exec('SET ROLE vpn_sentry;')
+    expect((await db.query('SELECT * FROM private.clip_submissions')).rows).toHaveLength(1)
+    await expect(
+      db.exec(`INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
+        VALUES ('20000000-0000-0000-0000-000000000099','MissingChannel123','https://clips.twitch.tv/MissingChannel123','manual','pending_metadata')`)
+    ).rejects.toThrow(/foreign key constraint/)
     await db.exec('RESET ROLE;')
     await expect(db.exec('UPDATE channels SET monitoring_enabled=true')).rejects.toThrow(
       /check constraint/
