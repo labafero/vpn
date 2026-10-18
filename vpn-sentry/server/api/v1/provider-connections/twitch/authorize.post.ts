@@ -10,7 +10,9 @@ export default defineEventHandler((event) =>
     const body = await readBody(event)
     if (
       !body ||
-      Object.keys(body).some((key) => !['consentVersion', 'consentAccepted'].includes(key))
+      Object.keys(body).some(
+        (key) => !['consentVersion', 'consentAccepted', 'capabilities'].includes(key)
+      )
     )
       throw new FoundationError(400)
     return getTwitchOAuthService().beginTwitchAuthorization(

@@ -4,6 +4,7 @@ import type { EncryptedTokens } from './token-crypto'
 import { FoundationError } from './api-error'
 
 export type Credential = EncryptedTokens & {
+  scopes?: string[]
   expiresAt: string
   validatedAt: string
   retryUntil: string | null
@@ -20,7 +21,11 @@ export type AuthorizationTransaction = {
   stateHash: string
   userId: string
   nonceHash: string
-  consentVersion: 'monitoring-v1'
+  consentVersion: 'monitoring-v1' | 'clip-processing-v1'
+  connectionId?: string
+  providerUserId?: string
+  requiredScopes?: string[]
+  credentialFingerprint?: string
   expiresAt: string
 }
 export type LockedConnection = {
@@ -39,7 +44,7 @@ export type FoundationRepository = {
     nonceHash: string,
     userId: string,
     now: string
-  ) => Promise<boolean>
+  ) => Promise<AuthorizationTransaction | null>
   saveConnection: (
     userId: string,
     identity: { userId: string; login: string },
@@ -65,6 +70,7 @@ type Row = {
   connected_at: Date
   revoked_at: Date | null
   monitoring_enabled: boolean | null
+  scopes: string[]
   ciphertext: string | null
   iv: string
   tag: string
@@ -91,6 +97,7 @@ function mapRow(row: Row): StoredConnection {
     },
     credential: row.ciphertext
       ? {
+          scopes: row.scopes ?? [],
           ciphertext: row.ciphertext,
           iv: row.iv,
           tag: row.tag,
@@ -129,7 +136,7 @@ export function getFoundationRepository(): FoundationRepository {
     lock = false
   ): Promise<StoredConnection | null> {
     const rows = await tx<Row[]>`
-      SELECT c.*, k.ciphertext, k.iv, k.tag, k.key_version, k.expires_at, k.validated_at, k.retry_until, ch.monitoring_enabled
+      SELECT c.*, k.ciphertext, k.iv, k.tag, k.key_version, k.expires_at, k.validated_at, k.retry_until, k.scopes, ch.monitoring_enabled
       FROM public.provider_connections c LEFT JOIN private.provider_credentials k ON k.connection_id = c.id LEFT JOIN public.channels ch ON ch.connection_id=c.id
       WHERE c.user_id = ${userId} ${lock ? tx`FOR UPDATE OF c` : tx``}
     `
@@ -141,9 +148,9 @@ export function getFoundationRepository(): FoundationRepository {
     value: Credential
   ) {
     await tx`
-      INSERT INTO private.provider_credentials(connection_id,ciphertext,iv,tag,key_version,expires_at,validated_at,retry_until)
-      VALUES (${id},${value.ciphertext},${value.iv},${value.tag},${value.keyVersion},${value.expiresAt},${value.validatedAt},${value.retryUntil})
-      ON CONFLICT(connection_id) DO UPDATE SET ciphertext=excluded.ciphertext,iv=excluded.iv,tag=excluded.tag,key_version=excluded.key_version,expires_at=excluded.expires_at,validated_at=excluded.validated_at,retry_until=excluded.retry_until
+      INSERT INTO private.provider_credentials(connection_id,ciphertext,iv,tag,key_version,expires_at,validated_at,retry_until,scopes)
+      VALUES (${id},${value.ciphertext},${value.iv},${value.tag},${value.keyVersion},${value.expiresAt},${value.validatedAt},${value.retryUntil},${tx.array(value.scopes ?? [])}::text[])
+      ON CONFLICT(connection_id) DO UPDATE SET ciphertext=excluded.ciphertext,iv=excluded.iv,tag=excluded.tag,key_version=excluded.key_version,expires_at=excluded.expires_at,validated_at=excluded.validated_at,retry_until=excluded.retry_until,scopes=excluded.scopes
     `
   }
   repository = {
@@ -167,13 +174,26 @@ export function getFoundationRepository(): FoundationRepository {
     },
     async createAuthorization(value) {
       await requireDatabaseRole()
-      await sql`INSERT INTO private.oauth_transactions(state_hash,user_id,browser_nonce_hash,consent_version,expires_at) VALUES (${value.stateHash},${value.userId},${value.nonceHash},${value.consentVersion},${value.expiresAt})`
+      await sql`INSERT INTO private.oauth_transactions(state_hash,user_id,browser_nonce_hash,consent_version,expires_at,connection_id,provider_user_id,required_scopes,credential_fingerprint) VALUES (${value.stateHash},${value.userId},${value.nonceHash},${value.consentVersion},${value.expiresAt},${value.connectionId ?? null},${value.providerUserId ?? null},${sql.array(value.requiredScopes ?? [])}::text[],${value.credentialFingerprint ?? null})`
     },
     async consumeAuthorization(stateHash, nonceHash, userId, now) {
       await requireDatabaseRole()
       const rows =
-        await sql`UPDATE private.oauth_transactions SET consumed_at=${now} WHERE state_hash=${stateHash} AND browser_nonce_hash=${nonceHash} AND user_id=${userId} AND expires_at>${now} AND consumed_at IS NULL RETURNING state_hash`
-      return rows.length === 1
+        await sql`UPDATE private.oauth_transactions SET consumed_at=${now} WHERE state_hash=${stateHash} AND browser_nonce_hash=${nonceHash} AND user_id=${userId} AND expires_at>${now} AND consumed_at IS NULL RETURNING *`
+      const row = rows[0]
+      return row
+        ? {
+            stateHash: row.state_hash,
+            userId: row.user_id,
+            nonceHash: row.browser_nonce_hash,
+            consentVersion: row.consent_version,
+            expiresAt: row.expires_at.toISOString(),
+            connectionId: row.connection_id ?? undefined,
+            providerUserId: row.provider_user_id ?? undefined,
+            requiredScopes: row.required_scopes,
+            credentialFingerprint: row.credential_fingerprint ?? undefined
+          }
+        : null
     },
     async saveConnection(userId, identity, credential, now) {
       await requireDatabaseRole()
