@@ -11,7 +11,7 @@
 
 ## Evidências executadas
 
-- `pnpm test:foundation`: **25 arquivos e 122 testes passaram**. A cobertura PGlite inclui papéis anônimo/autenticado sem acesso privado, leitura pelo Sentry, consentimento inválido, FK de canal, unicidade, estados/modos inválidos, permissão da função de retenção e limpeza determinística que mantém itens pendentes e terminais recentes.
+- `pnpm test:foundation`: **25 arquivos e 122 testes passaram**. A cobertura PGlite inclui negação de SELECT/INSERT/UPDATE/DELETE dos papéis anônimo/autenticado, CRUD privado pelo Sentry, FK de canal, unicidade, versão e revogação do consentimento, estados/modos inválidos, `finished_at` obrigatório nos estados terminais, e retenção dos cinco estados terminais antigos com preservação de pendências e processamentos antigos.
 - O teste foi observado falhar antes da migration por ausência das tabelas; após a migration e função, a suíte passou.
 - `git diff --check`: passou antes dos commits de esquema e retenção.
 - `supabase migration new` criou a migration usando Supabase CLI 2.119.0.

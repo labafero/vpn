@@ -49,7 +49,11 @@ CREATE TABLE private.clip_submissions (
     'provider_error'
   )),
   UNIQUE (channel_id, twitch_clip_id),
-  CHECK (canonical_url = 'https://clips.twitch.tv/' || twitch_clip_id)
+  CHECK (canonical_url = 'https://clips.twitch.tv/' || twitch_clip_id),
+  CHECK (
+    state NOT IN ('completed', 'no_match', 'source_unavailable', 'failed_terminal', 'cancelled_consent')
+    OR finished_at IS NOT NULL
+  )
 );
 
 CREATE INDEX clip_submissions_state_received_idx
