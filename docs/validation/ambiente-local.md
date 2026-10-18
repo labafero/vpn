@@ -30,6 +30,6 @@ Desenvolvimento, lint e testes locais; publicação na Vercel e Supabase hospeda
 ## Pendências
 
 - Preparar arquivos privados por aplicativo/destino e definir como serão carregados explicitamente. Não é necessário copiar segredos de produção para executar os checks já validados.
-- Fluxo Git/Vercel comprovado com PR #21, commit `a064a16` e preview READY do Site. CI passou; Chromium validou desktop/mobile, refresh, teclado, movimento reduzido e ausência de JavaScript. Detalhes em `site-splash.md`. Aguardar avaliação visual e confirmação de satisfação do usuário; documentação complementar ainda local.
+- Fluxo Git/Vercel comprovado com PR #21, commit `a064a16` e preview READY do Site. CI passou; Chromium validou desktop/mobile, refresh, teclado, movimento reduzido e ausência de JavaScript. Detalhes em `site-splash.md`. O usuário aprovou o visual final e autorizou produção; Site publicado e validado no domínio oficial a partir do commit `f15a8e9`. Documentação complementar consolidada na branch da PR #21.
 
 A CI ainda utiliza Node 22. Não foi alterada para Node 24 por esta preparação. Segredos, códigos de login e URLs OAuth não devem ser armazenados neste registro.

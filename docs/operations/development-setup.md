@@ -125,3 +125,6 @@ IDs não são segredos. Não definir a pasta do aplicativo como raiz de envio se
 Consultar `vercel inspect <url> --scope anilson-lopes-projects`, acompanhar logs e confirmar target Production, estado READY e alias oficial. Abrir `https://vpn.labafero.com` no Chromium e verificar a mudança real, console, mobile e comportamento sem JavaScript. Guardar o deployment anterior para reversão. Um deployment CLI pode apontar para uma branch ainda não integrada a main: registrar esse estado, pois um próximo deploy de main usará o código de main. Publicar em produção não autoriza merge ou alterações no banco.
 
 Referências oficiais: [monorepos](https://vercel.com/docs/monorepos), [seleção do projeto por IDs](https://vercel.com/docs/cli/global-options), [deploy pela CLI](https://vercel.com/docs/cli/deploy).
+
+
+Produção comprovada em 17/10/2026 com o procedimento acima: commit `f15a8e9`, deployment `dpl_DJcRKgt4s8XKS3E2qsKLymvryfK5`, target Production e READY; domínio `vpn.labafero.com` validado em Chromium desktop/mobile. A publicação direta afetou só o Site. Resultados e reversão: [registro do splash](../validation/site-splash.md).

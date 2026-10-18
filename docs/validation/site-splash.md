@@ -32,4 +32,21 @@ Pular/Escape antecipam a revelação, inclusive durante a saída automática. Mo
 
 ## Publicação em produção
 
-Autorizada pelo usuário. Pendente: registrar commit publicado, deployment READY, associação ao domínio e verificação real da versão final em Chromium. Só então declarar publicação concluída.
+Publicação concluída e verificada em 17/10/2026:
+
+- Código: `f15a8e9ee929cf59b88f338a32e7455491363e16`.
+- Deployment: `dpl_DJcRKgt4s8XKS3E2qsKLymvryfK5`, target `production`, estado `READY`, build em 54s.
+- URL do deployment: https://vpn-site-a3srhwyu3-anilson-lopes-projects.vercel.app.
+- Domínio oficial: https://vpn.labafero.com; alias e SHA conferidos via API Vercel. Sem merge em main e sem alterações de banco. Os outros aplicativos não foram publicados em produção por esta operação.
+- Chromium abriu o domínio oficial com HTTP 200 e a versão final. Desktop/mobile, F5, saída automática, Pular/foco, Escape, movimento reduzido e ausência de JavaScript passaram, sem erros no console/página e sem overflow horizontal. Escape sem foco e interrupção da saída automática também passaram. Carregamento artificialmente lento confirmou a espera pelo load.
+- Uma amostra pontual do teste de preto foi coletada já no início da revelação e falhou na condição de classe, embora o fundo ainda estivesse opaco. A medição posterior no próprio relógio de renderização do navegador registrou 29 quadros só no preto antes da revelação, abrangendo aproximadamente 467ms da pausa nominal de 500ms. Nenhuma alteração no produto foi necessária; a prova passou a observar quadros em vez de depender de um sleep externo.
+- Chromium visível reaberto no domínio oficial para avaliação humana. Capturas/resultados locais mais recentes correspondem à produção.
+
+Reversão preparada, não executada:
+
+```bash
+vercel rollback dpl_3KvVfsezVwoEtaB81JFpGDQrYspy --scope anilson-lopes-projects --yes
+vercel inspect vpn.labafero.com --scope anilson-lopes-projects
+```
+
+A produção foi publicada diretamente do commit da branch. A PR #21 mantém o código e a documentação para revisão/integração; um próximo deploy de main usará o estado de main até que a PR seja integrada. A atualização documental posterior à publicação não muda o SHA do código publicado.
