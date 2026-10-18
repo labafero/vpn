@@ -34,6 +34,8 @@ Twitch é uma vinculação a uma conta VPN autenticada por Supabase, não um mé
 - `public.channels`: um canal por conexão, dono consistente com ela, monitoramento desabilitado.
 - `private.provider_credentials`: tokens cifrados AES-256-GCM, IV/tag, versão da chave, validade, última validação e prazo de revogação. Schema fora da Data API.
 - `private.oauth_transactions`: hashes de state/nonce, dono, consentimento, validade de dez minutos e consumo atômico.
+- `private.clip_processing_consents`: consentimento `clip-processing-v1`, separado do vínculo Twitch e do monitoramento ao vivo, com modos manual/agendado e horário de revogação.
+- `private.clip_submissions`: URL canônica, ID e metadados permitidos da Twitch, canal dono, modo de captura e estado de processamento; somente `vpn_sentry` lê ou escreve. Não armazena áudio nem vídeo.
 
 RLS protege todas as tabelas públicas. Clientes autenticados podem somente ler os próprios metadados ou os permitidos ao administrador. Escritas acontecem no Sentry com papel Postgres restrito; não usar chave administrativa nas APIs públicas. Índices acompanham chaves estrangeiras e buscas do worker.
 
@@ -64,6 +66,12 @@ Desconexão bloqueia uso local imediatamente. Sucesso de revogação remove cred
 Após o prazo de revogação, `canReconnect=true` permite nova autorização com consentimento explícito. O estado anterior permanece pendente até que um novo vínculo seja concluído; o registro de falha remota é preservado. Uma autorização expirada mantém os tokens cifrados apenas para desconexão/revogação explícita; nunca para monitoramento. Isso permite ao dono desconectar e reconectar sem um bloqueio permanente.
 
 ## Retenção e exclusão
+
+### Clips da Fase 2 — issue #14
+
+Consentimento de clip não decorre de `monitoring-v1` ou `monitoring-v2`. O streamer autoriza separadamente o envio manual e/ou a captura agendada. Cada submissão aponta para `public.channels`; o Sentry deriva o dono por essa relação, sem confiar em um `owner_id` recebido do cliente. A chave `(channel_id, twitch_clip_id)` impede duplicatas.
+
+Enquanto aguarda capacidade, uma referência permanece pendente sem expiração automática. Não guardar MP4, áudio, transcrição ou URL temporária da Twitch nesta etapa. Estados terminais mantêm apenas metadados mínimos por 90 dias depois de `finished_at`; a rotina `private.purge_expired_clip_submissions` remove apenas estados terminais vencidos, preservando registros pendentes. O SQL para agendar a rotina fica em `supabase/operations/schedule-clip-retention.sql` e requer ativação operacional separada.
 
 ### Monitoramento privado da Fase 1
 
