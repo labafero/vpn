@@ -2,6 +2,7 @@
 .aws
 .codex
 .agents
+.superpowers
 **/node_modules
 **/.env
 **/.env.*
