@@ -47,11 +47,11 @@
 - Grant `SELECT`, `INSERT`, `UPDATE`, and `DELETE` only to `vpn_sentry`; revoke inherited/public, `anon`, and `authenticated` access.
 
 - [x] **Step 1: Add failing pgTAP cases** for `authenticated`/`anon` `42501` denial, `vpn_sentry` read/write success, missing channel FK `23503`, invalid consent version/state `23514`, and duplicate `(channel_id, twitch_clip_id)` `23505`.
-- [ ] **Step 2: Run the focused database test** with `supabase test db --local` and confirm the new assertions fail for the missing schema/constraints.
+- [x] **Step 2: Run the focused database test** with `supabase test db --local` and confirm the new assertions fail for the missing schema/constraints. The pre-migration RED was observed in PGlite (`relation private.clip_processing_consents does not exist`); focused Supabase pgTAP passes after the migration.
 - [x] **Step 3: Implement the migration** with the consent and submission tables, foreign keys, unique/index constraints, private grants, and no public Data API exposure.
 - [x] **Step 4: Add PGlite migration coverage** in `foundation-db.test.ts` proving browser roles cannot read private rows and submissions cannot reference missing channels after all migrations are applied. Cross-owner API isolation is verified in issue #15.
-- [ ] **Step 5: Run the focused database tests** and confirm the constraints and role boundaries pass.
-- [ ] **Step 6: Commit the schema task** with `git add -- supabase/migrations/20261018173747_phase2_clip_persistence.sql supabase/tests/clip-persistence.test.sql vpn-sentry/tests/foundation-db.test.ts && git commit -m 'feat: add private clip submission schema'`.
+- [x] **Step 5: Run the focused database tests** and confirm the constraints and role boundaries pass.
+- [x] **Step 6: Commit the schema task** with `git add -- supabase/migrations/20261018173747_phase2_clip_persistence.sql supabase/tests/clip-persistence.test.sql vpn-sentry/tests/foundation-db.test.ts && git commit -m 'feat: add private clip submission schema'`.
 
 ### Task 2: Pending/terminal retention routine
 
@@ -71,8 +71,8 @@
 - [x] **Step 1: Add failing retention assertions** for finished rows older/newer than 90 days and old rows in `pending_metadata`, `pending_asr`, and `processing`.
 - [x] **Step 2: Implement the cleanup function** with an injectable `p_now`, a terminal-state allowlist, and a deterministic delete count.
 - [x] **Step 3: Add the reviewed Cron operation script** with a stable job name and a matching unschedule statement; do not add or execute a remote job.
-- [ ] **Step 4: Run pgTAP and PGlite tests** and confirm old terminal rows are removed while pending rows remain.
-- [ ] **Step 5: Commit the retention task** with `git add -- supabase/migrations/20261018173747_phase2_clip_persistence.sql supabase/operations/schedule-clip-retention.sql supabase/tests/clip-persistence.test.sql && git commit -m 'feat: add clip metadata retention'`.
+- [x] **Step 4: Run pgTAP and PGlite tests** and confirm old terminal rows are removed while pending rows remain.
+- [x] **Step 5: Commit the retention task** with `git add -- supabase/migrations/20261018173747_phase2_clip_persistence.sql supabase/operations/schedule-clip-retention.sql supabase/tests/clip-persistence.test.sql && git commit -m 'feat: add clip metadata retention'`.
 
 ### Task 3: Generated types and data-policy documentation
 
@@ -87,14 +87,14 @@
 - Generated types reflect the two private tables and cleanup function; no hand edits.
 - The foundation document records clip consent as separate from `monitoring-v2`, the 90-day terminal metadata period, pending retention, and the absence of durable media storage in issue #14.
 - The validation record lists local migration/test evidence and explicitly marks remote Supabase migration/Cron as not applied.
-- Runtime dependency: Docker Desktop is installed on Windows but its WSL integration is not enabled for distro `labafero`. Until enabled, local reset, pgTAP, and Supabase type generation remain pending; do not substitute hand-edited generated types or remote database changes.
+- Runtime dependency resolved on 18/10/2026: Docker Desktop WSL integration for distro `labafero` is enabled; local reset, pgTAP, and Supabase type generation were run locally.
 
-- [ ] **Step 1: Reset the local Supabase database** to apply the full migration chain, including the new issue #14 migration.
-- [ ] **Step 2: Regenerate database types** with `supabase gen types typescript --local --schema public,private,graphql_public > packages/database/src/database.types.ts`.
+- [x] **Step 1: Reset the local Supabase database** to apply the full migration chain, including the new issue #14 migration.
+- [x] **Step 2: Regenerate database types** with `supabase gen types typescript --local --schema public,private,graphql_public > packages/database/src/database.types.ts`.
 - [x] **Step 3: Update the architecture and validation records** with exact consent/retention decisions and local verification results, without personal clip data or credentials.
-- [ ] **Step 4: Run `pnpm test:foundation`, `supabase test db --local`, `pnpm --filter @vpn/sentry typecheck`, `pnpm contracts:check`, and `pnpm format:check`**; record pass/fail evidence.
+- [x] **Step 4: Run `pnpm test:foundation`, `supabase test db --local`, `pnpm --filter @vpn/sentry typecheck`, `pnpm contracts:check`, and `pnpm format:check`**; record pass/fail evidence.
 - [x] **Step 5: Review the final diff** to confirm no generated file was hand-edited, no raw media/storage bucket was added, and no remote operation was performed.
-- [ ] **Step 6: Commit generated types and documentation** with `git add -- packages/database/src/database.types.ts docs/architecture/foundation.md docs/validation/phase-2-persistence.md && git commit -m 'docs: document private clip persistence'`.
+- [x] **Step 6: Commit generated types and documentation**. Generated types and validation evidence are committed as `b7e1fa6` (`docs: document private clip persistence`); the architecture foundation record was committed with the schema work.
 
 ## Roadmap for the Existing Phase 2 Issues
 
