@@ -343,6 +343,23 @@ const pillars = [
         class="flex flex-col gap-4 py-8 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between"
       >
         <p>© {{ new Date().getFullYear() }} VPN Roleplay</p>
+        <nav
+          aria-label="Informações legais"
+          class="flex flex-wrap gap-x-5 gap-y-2"
+        >
+          <NuxtLink
+            to="/termos-de-uso"
+            class="inline-flex min-h-11 items-center transition-colors hover:text-white"
+          >
+            Termos de uso
+          </NuxtLink>
+          <NuxtLink
+            to="/politica-de-privacidade"
+            class="inline-flex min-h-11 items-center transition-colors hover:text-white"
+          >
+            Política de privacidade
+          </NuxtLink>
+        </nav>
         <p class="tracking-[0.18em]">A CIDADE NUNCA DORME</p>
       </UContainer>
     </footer>
