@@ -57,7 +57,7 @@
 
 **Files:**
 
-- Modify: `vpn-site/package.json`, `vpn-site/nuxt.config.ts`, `pnpm-lock.yaml`
+- Modify: `vpn-site/package.json`, `vpn-site/nuxt.config.ts`, `vpn-site/.gitignore`, `pnpm-lock.yaml`
 - Create: `vpn-site/.env.example`, `vpn-site/app/pages/entrar.vue`, `vpn-site/app/pages/cadastro.vue`, `vpn-site/app/utils/auth-actions.ts`
 - Create: `vpn-site/server/api/auth/return-target.get.ts`
 - Test: `vpn-site/tests/auth-actions.test.ts`, `vpn-site/tests/auth-return-target.test.ts`
@@ -69,13 +69,13 @@
 - `signUpWithEmail(client, { email, password }, callbackUrl)` chama `auth.signUp` com `options.emailRedirectTo` e retorna se houve sessão imediata; a UI não exibe erro bruto.
 - `GET /api/auth/return-target?return_to=...` responde `{ returnTo: string }`, validado no servidor contra `NUXT_AUTH_RETURN_ORIGINS`; se ausente ou inválido, usa `https://vpn.labafero.com/`.
 
-- [ ] **Step 1: Escrever testes falhando** para Discord/Twitch encaminhados ao callback, signup incluindo `emailRedirectTo`, sessão imediata versus confirmação pendente e endpoint devolvendo fallback para origem externa/URL com `//`.
-- [ ] **Step 2: Confirmar RED** com `pnpm exec vitest run vpn-site/tests/auth-actions.test.ts vpn-site/tests/auth-return-target.test.ts`.
-- [ ] **Step 3: Adicionar a integração Supabase** ao Site com `@nuxtjs/supabase` 2.0.9, Valibot e `@vpn/auth`; definir `redirect: false` e `runtimeConfig.authReturnOrigins` como lista separada por vírgulas a partir de `NUXT_AUTH_RETURN_ORIGINS`; registrar as dependências no lockfile.
-- [ ] **Step 4: Implementar o endpoint de destino** usando `resolveAuthReturnTo`; criar `.env.example` com os nomes das variáveis necessárias e origens locais/prod, sem valores secretos.
-- [ ] **Step 5: Implementar as páginas** `/entrar` e `/cadastro`, com senha, confirmação de senha, botões Discord/Twitch e textos pt-BR. Consultar o endpoint antes de OAuth/cadastro e antes do redirect pós-login; mostrar instrução quando `signUp` não retorna sessão.
-- [ ] **Step 6: Confirmar GREEN** com os testes direcionados, `pnpm --filter @vpn/site lint` e `pnpm --filter @vpn/site typecheck`.
-- [ ] **Step 7: Commitar** `feat(site): add centralized VPN authentication portal`.
+- [x] **Step 1: Escrever testes falhando** para Discord/Twitch encaminhados ao callback, signup incluindo `emailRedirectTo`, sessão imediata versus confirmação pendente e endpoint devolvendo fallback para origem externa/URL com `//`.
+- [x] **Step 2: Confirmar RED** com `pnpm exec vitest run vpn-site/tests/auth-actions.test.ts vpn-site/tests/auth-return-target.test.ts`.
+- [x] **Step 3: Adicionar a integração Supabase** ao Site com `@nuxtjs/supabase` 2.0.9, Valibot e `@vpn/auth`; definir `redirect: false` e `runtimeConfig.authReturnOrigins` como lista separada por vírgulas a partir de `NUXT_AUTH_RETURN_ORIGINS`; registrar as dependências no lockfile.
+- [x] **Step 4: Implementar o endpoint de destino** usando `resolveAuthReturnTo`; criar `.env.example` com os nomes das variáveis necessárias e origens locais/prod, sem valores secretos.
+- [x] **Step 5: Implementar as páginas** `/entrar` e `/cadastro`, com senha, confirmação de senha, botões Discord/Twitch e textos pt-BR. Consultar o endpoint antes de OAuth/cadastro e antes do redirect pós-login; mostrar instrução quando `signUp` não retorna sessão.
+- [x] **Step 6: Confirmar GREEN** com os testes direcionados, `pnpm --filter @vpn/site lint` e `pnpm --filter @vpn/site typecheck`.
+- [x] **Step 7: Commitar** `feat(site): add centralized VPN authentication portal`.
 
 ### Task 3: Cookie SSO e callback PKCE nos três apps
 

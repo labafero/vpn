@@ -57,12 +57,9 @@ function getAllowedOrigins(allowedOrigins: readonly string[]): Set<string> {
   return origins
 }
 
-function getSafeFallback(fallback: string, allowedOrigins: Set<string>): string {
+function getSafeFallback(fallback: string): string {
   const fallbackUrl = parseSafeAbsoluteUrl(fallback)
-  if (fallbackUrl && allowedOrigins.has(fallbackUrl.origin)) return fallbackUrl.href
-
-  const firstAllowedOrigin = allowedOrigins.values().next().value
-  return firstAllowedOrigin ? new URL('/', firstAllowedOrigin).href : FALLBACK_AUTH_PORTAL_URL
+  return fallbackUrl?.href ?? FALLBACK_AUTH_PORTAL_URL
 }
 
 export function resolveAuthReturnTo(
@@ -71,7 +68,7 @@ export function resolveAuthReturnTo(
   fallback: string
 ): string {
   const origins = getAllowedOrigins(allowedOrigins)
-  const safeFallback = getSafeFallback(fallback, origins)
+  const safeFallback = getSafeFallback(fallback)
   if (!candidate) return safeFallback
 
   const candidateUrl = parseSafeAbsoluteUrl(candidate)
