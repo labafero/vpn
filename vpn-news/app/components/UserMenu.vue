@@ -2,7 +2,7 @@
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const colorMode = useColorMode()
-const router = useRouter()
+const config = useRuntimeConfig()
 
 const items = computed(() => [
   {
@@ -43,7 +43,7 @@ const items = computed(() => [
     icon: 'i-lucide-log-out',
     onSelect: async () => {
       await supabase.auth.signOut()
-      router.push('/login')
+      await navigateTo(config.public.vpnAuthUrl, { external: true })
     }
   }
 ])

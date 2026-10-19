@@ -116,11 +116,11 @@
 - `/login` legado do Monitor volta para `/conexao` quando não recebe destino; o do News volta para `/redacao`. Destinos recebidos devem ser caminhos locais.
 - Logout executa `signOut()` e leva ao portal. Convite mantém token somente no `sessionStorage` do Monitor e retorna a `/convites/aceitar`.
 
-- [ ] **Step 1: Escrever testes falhando**: rota/query preservadas para login anônimo; claims ausentes/anonymous bloqueiam Monitor; convite retorna à rota de aceite sem token na URL; ausência de sessão no News redireciona; usuário sem vínculo editorial recebe 403 e editor continua autorizado.
-- [ ] **Step 2: Confirmar RED** com `pnpm exec vitest run vpn-monitor/tests/auth-middleware.test.ts vpn-monitor/tests/accept-invite.test.ts vpn-news/tests/auth-middleware.test.ts`.
-- [ ] **Step 3: Atualizar gates e rotas legadas** para o portal, preservando query/path seguros e defaults definidos acima.
-- [ ] **Step 4: Atualizar convite e logout** para conservar o estado local necessário e invalidar o cookie compartilhado; manter intactos o gate `editorial_members` e os fluxos/scopes Twitch operacionais.
-- [ ] **Step 5: Confirmar GREEN** com testes direcionados, lint e typecheck Monitor/News.
+- [x] **Step 1: Escrever testes falhando**: rota/query preservadas para login anônimo; claims ausentes/anonymous bloqueiam Monitor; convite retorna à rota de aceite sem token na URL; ausência de sessão no News redireciona; usuário sem vínculo editorial recebe 403 e editor continua autorizado.
+- [x] **Step 2: Confirmar RED** com `pnpm exec vitest run vpn-monitor/tests/auth-middleware.test.ts vpn-monitor/tests/accept-invite.test.ts vpn-news/tests/auth-middleware.test.ts`.
+- [x] **Step 3: Atualizar gates e rotas legadas** para o portal, preservando query/path seguros e defaults definidos acima.
+- [x] **Step 4: Atualizar convite e logout** para conservar o estado local necessário e invalidar o cookie compartilhado; manter intactos o gate `editorial_members` e os fluxos/scopes Twitch operacionais.
+- [x] **Step 5: Confirmar GREEN** com testes direcionados, lint e typecheck Monitor/News.
 - [ ] **Step 6: Commitar** `feat(auth): route VPN apps through central sign-in`.
 
 ### Task 5: Prova local, callbacks reais e entrega verificável

@@ -1,91 +1,19 @@
 <script setup lang="ts">
-import * as v from 'valibot'
-import type { FormSubmitEvent } from '@nuxt/ui'
+import { buildAuthPortalUrl, resolveAuthCallbackPath } from '@vpn/auth'
 
-definePageMeta({ layout: 'auth' })
+definePageMeta({ layout: false })
 
-const schema = v.object({
-  email: v.pipe(v.string(), v.email('Invalid email')),
-  password: v.pipe(v.string(), v.minLength(8, 'Must be at least 8 characters'))
-})
+const route = useRoute()
+const config = useRuntimeConfig()
+const requestedPath = typeof route.query.return_to === 'string' ? route.query.return_to : null
+const returnPath = resolveAuthCallbackPath(requestedPath, '/redacao')
+const returnTo = new URL(returnPath, useRequestURL().origin).href
 
-type Schema = v.InferOutput<typeof schema>
-
-const state = reactive({
-  email: '',
-  password: ''
-})
-
-const toast = useToast()
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
-
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  const { error } = await supabase.auth.signInWithPassword({
-    email: event.data.email,
-    password: event.data.password
-  })
-
-  if (error) {
-    console.log(error?.message)
-    toast.add({ title: error.message, color: 'error' })
-    return
-  }
-
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims()
-  if (claimsError || !claimsData?.claims) {
-    toast.add({ title: 'Não foi possível confirmar sua sessão. Tente novamente.', color: 'error' })
-    return
-  }
-  user.value = claimsData.claims
-  await navigateTo('/redacao')
-}
+await navigateTo(buildAuthPortalUrl(config.public.vpnAuthUrl, returnTo), { external: true })
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-4 p-4">
-    <UPageCard
-      class="w-full max-w-md"
-      title="VPN Roleplay"
-      description="Faça login para continuar"
-    >
-      <UForm
-        :schema="schema"
-        :state="state"
-        class="space-y-4"
-        @submit="onSubmit"
-      >
-        <UFormField
-          label="E-mail"
-          name="email"
-        >
-          <UInput
-            v-model="state.email"
-            class="w-full"
-            :ui="{ base: 'text-base sm:text-sm' }"
-          />
-        </UFormField>
-
-        <UFormField
-          label="Senha"
-          name="password"
-        >
-          <UInput
-            v-model="state.password"
-            type="password"
-            class="w-full"
-            :ui="{ base: 'text-base sm:text-sm' }"
-          />
-        </UFormField>
-
-        <UButton
-          type="submit"
-          block
-          class="min-h-11"
-        >
-          Entrar
-        </UButton>
-      </UForm>
-    </UPageCard>
-  </div>
+  <main class="flex min-h-screen items-center justify-center bg-default p-4 text-muted">
+    <p role="status">Redirecionando para entrar na VPN…</p>
+  </main>
 </template>
