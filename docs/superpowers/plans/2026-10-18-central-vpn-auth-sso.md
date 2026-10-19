@@ -100,7 +100,7 @@
 - [x] **Step 5: Configurar a sessão compartilhada** nos três `nuxt.config.ts`, instalando `@vpn/auth` em Monitor/News e usando o mesmo prefixo/opções. Desabilitar `detectSessionInUrl` para evitar troca implícita duplicada.
 - [x] **Step 6: Implementar os callbacks** client-only nos três apps; cada callback limpa parâmetros OAuth após troca e usa `buildAuthPortalUrl(authPortalUrl, safeReturnTo, 'entrar', true)` em caso de erro.
 - [x] **Step 7: Confirmar GREEN** com testes direcionados, lint e typecheck dos três apps.
-- [ ] **Step 8: Commitar** `feat(auth): share Supabase SSR session across VPN apps`.
+- [x] **Step 8: Commitar** `feat(auth): share Supabase SSR session across VPN apps`.
 
 ### Task 4: Redirecionamentos, proteção e logout entre apps
 
@@ -121,7 +121,7 @@
 - [x] **Step 3: Atualizar gates e rotas legadas** para o portal, preservando query/path seguros e defaults definidos acima.
 - [x] **Step 4: Atualizar convite e logout** para conservar o estado local necessário e invalidar o cookie compartilhado; manter intactos o gate `editorial_members` e os fluxos/scopes Twitch operacionais.
 - [x] **Step 5: Confirmar GREEN** com testes direcionados, lint e typecheck Monitor/News.
-- [ ] **Step 6: Commitar** `feat(auth): route VPN apps through central sign-in`.
+- [x] **Step 6: Commitar** `feat(auth): route VPN apps through central sign-in`.
 
 ### Task 5: Prova local, callbacks reais e entrega verificável
 
@@ -136,12 +136,12 @@
 - A prova de browser usa três apps em `127.0.0.1` com portas distintas e Supabase local/serviço real. Para provar o atributo de cookie `.labafero.com`, usar domínio Vercel controlado sob `labafero.com` ou produção; hosts `vercel.app` isolados não fecham esse critério.
 - O usuário já autorizou deploy Vercel para teste e produção se Preview for insuficiente. Consultar a skill `vpn-release` na execução; registrar app, commit, deployment, URL, CI/build e observações sem tokens/códigos pessoais.
 
-- [ ] **Step 1: Criar o teste de browser** para entrada/cadastro, confirmação via Inbucket quando habilitada, retorno ao destino, sessão Site→Monitor→News, 403 editorial para membro comum, acesso editorial para editor, logout em um app invalidando o outro e código callback inválido retornando erro genérico ao portal com o destino preservado. Fixtures ficam apenas no Supabase local e são removidas ao final; verificar que o cadastro não criou registro em `user_roles` nem em `editorial_members`.
-- [ ] **Step 2: Formatar e validar o código**: `pnpm format`, `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:foundation -- --maxWorkers=1 --minWorkers=1` e `pnpm build`. Corrigir falhas relevantes antes de publicar ou registrar resultado.
+- [x] **Step 1: Criar o teste de browser** para entrada/cadastro, confirmação via Inbucket quando habilitada, retorno ao destino, sessão Site→Monitor→News, 403 editorial para membro comum, acesso editorial para editor, logout em um app invalidando o outro e código callback inválido retornando erro genérico ao portal com o destino preservado. Fixtures ficam apenas no Supabase local e são removidas ao final; verificar que o cadastro não criou registro em `user_roles` nem em `editorial_members`.
+- [x] **Step 2: Formatar e validar o código**: `pnpm format`, `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:foundation -- --maxWorkers=1 --minWorkers=1` e `pnpm build`. Corrigir falhas relevantes antes de publicar ou registrar resultado.
 - [ ] **Step 3: Executar integração local**: `pnpm exec supabase status -o json > /tmp/vpn-auth-supabase-status.json`; iniciar os três servidores; então executar `VPN_TEST_SUPABASE_STATUS=/tmp/vpn-auth-supabase-status.json pnpm --filter @vpn/site test:e2e:auth`. Não imprimir o arquivo de status, que contém chave administrativa.
-- [ ] **Step 4: Conferir configuração remota** do projeto Supabase autenticado: URL principal, Discord/Twitch habilitados, confirmação de e-mail, redirect allowlist e envs Vercel (`NUXT_AUTH_RETURN_ORIGINS` no Site e `NUXT_PUBLIC_VPN_AUTH_URL` nos apps), sem imprimir valores. Adicionar somente callbacks `/auth/callback` necessários; remover callbacks locais temporários ao fim e conferir a lista final.
+- [x] **Step 4: Conferir configuração remota** do projeto Supabase autenticado: URL principal, Discord/Twitch habilitados, confirmação de e-mail, redirect allowlist e envs Vercel (`NUXT_AUTH_RETURN_ORIGINS` no Site e `NUXT_PUBLIC_VPN_AUTH_URL` nos apps), sem imprimir valores. Adicionar somente callbacks `/auth/callback` necessários; remover callbacks locais temporários ao fim e conferir a lista final.
 - [ ] **Step 5: Provar callbacks reais** Discord e Twitch e confirmação real de e-mail no ambiente escolhido. Se Preview não demonstrar `.labafero.com`, publicar os três apps no destino autorizado que permite a prova; mock ou inspeção de URL do provider não contam como callback validado.
-- [ ] **Step 6: Registrar evidências** e limitações em `docs/validation/central-auth-sso.md`; executar `git diff --check`, revisar o diff e commitar `docs(auth): record central SSO validation`.
+- [x] **Step 6: Registrar evidências** e limitações em `docs/validation/central-auth-sso.md`; executar `git diff --check`, revisar o diff e commitar `docs(auth): record central SSO validation`.
 
 ## Revisão do plano
 
