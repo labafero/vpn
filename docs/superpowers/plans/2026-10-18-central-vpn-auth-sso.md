@@ -93,13 +93,13 @@
 - `completeAuthCallback(exchange: (code: string) => Promise<{ error: unknown | null }>, code: string | null | undefined, candidatePath: string | null | undefined): Promise<{ ok: boolean; destination: string }>` troca via `auth.exchangeCodeForSession(code)` uma vez e sempre devolve destino local.
 - Cada `/auth/callback` navega ao destino após sucesso e retorna ao portal com `auth_error=1` e texto genérico se faltar o código ou a troca falhar. A rota tem `ssr: false`.
 
-- [ ] **Step 1: Escrever testes falhando** em `packages/auth/tests/auth-callback.test.ts`: `completeAuthCallback` chama exchange uma vez, preserva `/conexao?tab=clips` e retorna `ok: false` para ausência/falha de código; `//evil.example` resolve para `/`.
-- [ ] **Step 2: Confirmar RED** com `pnpm exec vitest run packages/auth/tests/auth-callback.test.ts`.
-- [ ] **Step 3: Implementar `completeAuthCallback`** em `packages/auth/src/index.ts`; usar `resolveAuthCallbackPath` antes e depois da troca, sem interpolar erro Supabase.
-- [ ] **Step 4: Confirmar GREEN** com `pnpm exec vitest run packages/auth/tests/auth-callback.test.ts`.
-- [ ] **Step 5: Configurar a sessão compartilhada** nos três `nuxt.config.ts`, instalando `@vpn/auth` em Monitor/News e usando o mesmo prefixo/opções. Desabilitar `detectSessionInUrl` para evitar troca implícita duplicada.
-- [ ] **Step 6: Implementar os callbacks** client-only nos três apps; cada callback limpa parâmetros OAuth após troca e usa `buildAuthPortalUrl(authPortalUrl, safeReturnTo, 'entrar', true)` em caso de erro.
-- [ ] **Step 7: Confirmar GREEN** com testes direcionados, lint e typecheck dos três apps.
+- [x] **Step 1: Escrever testes falhando** em `packages/auth/tests/auth-callback.test.ts`: `completeAuthCallback` chama exchange uma vez, preserva `/conexao?tab=clips` e retorna `ok: false` para ausência/falha de código; `//evil.example` resolve para `/`.
+- [x] **Step 2: Confirmar RED** com `pnpm exec vitest run packages/auth/tests/auth-callback.test.ts`.
+- [x] **Step 3: Implementar `completeAuthCallback`** em `packages/auth/src/index.ts`; usar `resolveAuthCallbackPath` antes e depois da troca, sem interpolar erro Supabase.
+- [x] **Step 4: Confirmar GREEN** com `pnpm exec vitest run packages/auth/tests/auth-callback.test.ts`.
+- [x] **Step 5: Configurar a sessão compartilhada** nos três `nuxt.config.ts`, instalando `@vpn/auth` em Monitor/News e usando o mesmo prefixo/opções. Desabilitar `detectSessionInUrl` para evitar troca implícita duplicada.
+- [x] **Step 6: Implementar os callbacks** client-only nos três apps; cada callback limpa parâmetros OAuth após troca e usa `buildAuthPortalUrl(authPortalUrl, safeReturnTo, 'entrar', true)` em caso de erro.
+- [x] **Step 7: Confirmar GREEN** com testes direcionados, lint e typecheck dos três apps.
 - [ ] **Step 8: Commitar** `feat(auth): share Supabase SSR session across VPN apps`.
 
 ### Task 4: Redirecionamentos, proteção e logout entre apps

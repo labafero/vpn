@@ -105,6 +105,28 @@ export function resolveAuthCallbackPath(
   return resolvePath(candidate) ?? resolvePath(fallback) ?? '/'
 }
 
+export async function completeAuthCallback(
+  exchange: (code: string) => Promise<{ error: unknown | null }>,
+  code: string | null | undefined,
+  candidatePath: string | null | undefined
+): Promise<{ ok: boolean; destination: string }> {
+  const destination = resolveAuthCallbackPath(candidatePath, '/')
+  if (!code) return { ok: false, destination }
+
+  try {
+    const { error } = await exchange(code)
+    return {
+      ok: !error,
+      destination: resolveAuthCallbackPath(destination, '/')
+    }
+  } catch {
+    return {
+      ok: false,
+      destination: resolveAuthCallbackPath(destination, '/')
+    }
+  }
+}
+
 export function buildAuthCallbackUrl(returnTo: string, callbackPath = '/auth/callback'): string {
   const destination = parseSafeAbsoluteUrl(returnTo, true)
   const callbackUrl = new URL(
