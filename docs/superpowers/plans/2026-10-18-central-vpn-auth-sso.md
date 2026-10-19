@@ -47,11 +47,11 @@
 - `buildAuthPortalUrl(authPortalUrl: string, returnTo?: string, page?: 'entrar' | 'cadastro', authError?: boolean): string` gera a URL do portal e codifica `return_to`.
 - `VPN_AUTH_COOKIE_PREFIX = 'sb-vpn-auth-token'` e `getSupabaseCookieOptions(environment: 'development' | 'preview' | 'production')` são usados igualmente nos três apps; todas as opções incluem `maxAge: 28800`.
 
-- [ ] **Step 1: Escrever testes falhando**: `rejectsUnapprovedAuthReturnTargets` rejeita origem externa, `//host`, userinfo, protocolo inesperado, barra invertida e fragmento; `buildsAppCallbackWithoutHash` preserva `/conexao?tab=clips`; `resolvesOnlyLocalCallbackPaths` rejeita URL absoluta e `//host`; `buildsCentralLoginUrl` codifica o retorno e inclui `auth_error=1` somente quando solicitado; `usesSharedCookieOptions` espera Domain ausente em desenvolvimento/Preview, `.labafero.com` em produção, `path: '/'`, `maxAge: 28800`, `sameSite: 'lax'`, prefixo `sb-vpn-auth-token` e Secure em Preview/produção.
-- [ ] **Step 2: Confirmar RED** com `pnpm exec vitest run packages/auth/tests/auth-redirect.test.ts packages/auth/tests/supabase-cookie-options.test.ts` — pacote/funções ausentes.
-- [ ] **Step 3: Implementar** o pacote puro em TypeScript, sem dependências Nuxt/Supabase; adicionar `packages/auth/tests/**/*.test.ts` e `vpn-site/tests/**/*.test.ts` ao `include` do Vitest. A lista de origens vem do chamador e a comparação é por `URL.origin` exata.
-- [ ] **Step 4: Confirmar GREEN** com o mesmo comando.
-- [ ] **Step 5: Commitar** `feat(auth): add shared auth policies`.
+- [x] **Step 1: Escrever testes falhando**: `rejectsUnapprovedAuthReturnTargets` rejeita origem externa, `//host`, userinfo, protocolo inesperado, barra invertida e fragmento; `buildsAppCallbackWithoutHash` preserva `/conexao?tab=clips`; `resolvesOnlyLocalCallbackPaths` rejeita URL absoluta e `//host`; `buildsCentralLoginUrl` codifica o retorno e inclui `auth_error=1` somente quando solicitado; `usesSharedCookieOptions` espera Domain ausente em desenvolvimento/Preview, `.labafero.com` em produção, `path: '/'`, `maxAge: 28800`, `sameSite: 'lax'`, prefixo `sb-vpn-auth-token` e Secure em Preview/produção.
+- [x] **Step 2: Confirmar RED** com `pnpm exec vitest run packages/auth/tests/auth-redirect.test.ts packages/auth/tests/supabase-cookie-options.test.ts` — pacote/funções ausentes.
+- [x] **Step 3: Implementar** o pacote puro em TypeScript, sem dependências Nuxt/Supabase; adicionar `packages/auth/tests/**/*.test.ts` e `vpn-site/tests/**/*.test.ts` ao `include` do Vitest. A lista de origens vem do chamador e a comparação é por `URL.origin` exata.
+- [x] **Step 4: Confirmar GREEN** com o mesmo comando.
+- [x] **Step 5: Commitar** `feat(auth): add shared auth policies`.
 
 ### Task 2: Portal central de entrar e cadastrar
 
