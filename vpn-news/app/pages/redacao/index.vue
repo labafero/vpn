@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: ['auth', 'editorial'] })
 
 const supabase = useSupabaseClient()
 const { all: cidades, fetchAll: fetchCidades } = useCidadeConfig()
