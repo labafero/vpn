@@ -2,7 +2,7 @@
 
 Data: 18 de outubro de 2026
 
-Status: desenho aprovado em conversa; especificação aguardando revisão do usuário
+Status: especificação e plano de implementação aprovados pelo usuário em 18 de outubro de 2026; implementação nativa em andamento
 
 ## Contexto
 
