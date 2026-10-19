@@ -3,6 +3,7 @@ const { randomUUID } = require('node:crypto')
 const { readFile } = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
+const { assertLocalBrowserTargets } = require('./central-auth-browser-guards.cjs')
 
 const browserTools =
   process.env.VPN_BROWSER_TOOLS || path.join(os.homedir(), '.cache', 'vpn-tools', 'browser')
@@ -212,6 +213,7 @@ async function assertProtectedRouteRedirect(page, appUrl, path) {
 }
 
 async function run() {
+  assertLocalBrowserTargets({ site: siteUrl, monitor: monitorUrl, news: newsUrl })
   const supabase = await readSupabaseStatus()
   const response = await fetch(siteUrl)
   assert.ok(response.ok, `Site is available at ${siteUrl.origin}.`)

@@ -9,7 +9,7 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
-    "test:e2e:auth": "node tests/central-auth-browser.cjs"
+    "test:e2e:auth": "node --test tests/central-auth-browser-guards.test.cjs && node tests/central-auth-browser.cjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.108",

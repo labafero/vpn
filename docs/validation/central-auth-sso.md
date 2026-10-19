@@ -6,7 +6,8 @@ Estado em 19 de outubro de 2026 (UTC): publicação e verificações públicas c
 
 - Branch: `codex/central-auth-sso`
 - SHA publicado: `33405ebd14ebaf07da94dc65e049a3d37d792c38`
-- Supabase local: `pnpm exec supabase status -o json` não iniciou porque o processo não tem permissão no socket Docker (`permission denied`). O teste de browser foi mantido com uma trava que rejeita host Supabase remoto; a trava foi exercitada com uma configuração remota fictícia e recusou antes de criar fixtures.
+- Depois do deployment, uma revisão endureceu somente o harness: ele agora rejeita Supabase remoto e exige que Site, Monitor e News usem o mesmo hostname local. Os três testes Node de guarda passaram; o bundle dos apps não mudou após o SHA publicado.
+- Supabase local: `pnpm exec supabase status -o json` não iniciou porque o processo não tem permissão no socket Docker (`permission denied`). As travas do harness recusaram tanto um Supabase remoto quanto uma URL de app remota antes de criar fixtures ou acessar a URL do app.
 - Testes de autenticação e middleware: 8 arquivos, 24 testes passaram.
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm contracts:check` passaram.
 - `pnpm test:foundation -- --maxWorkers=1 --minWorkers=1`: 37 arquivos, 200 testes passaram.
