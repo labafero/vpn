@@ -20,6 +20,10 @@ export interface AuthActionClient {
       email: string
       password: string
     }): Promise<{ error: unknown | null }>
+    getClaims(): Promise<{
+      data: { claims: { sub?: string; is_anonymous?: boolean } } | null
+      error: unknown | null
+    }>
     signUp(input: {
       email: string
       password: string
@@ -53,7 +57,9 @@ export async function signInWithEmail(
 ): Promise<AuthActionResult> {
   try {
     const { error } = await client.auth.signInWithPassword(credentials)
-    return { ok: !error }
+    if (error) return { ok: false }
+    const { data, error: claimsError } = await client.auth.getClaims()
+    return { ok: !claimsError && Boolean(data?.claims?.sub) && !data?.claims?.is_anonymous }
   } catch {
     return { ok: false }
   }

@@ -2,9 +2,19 @@ import { beforeEach, expect, test, vi } from 'vitest'
 
 let user: { id: string } | null = null
 let hasEditorialAccess = false
+let result: { data: { claims: { sub: string; is_anonymous?: boolean } | null }; error: unknown }
+let ready: Promise<void>
 const navigate = vi.fn((url: string) => url)
 vi.stubGlobal('defineNuxtRouteMiddleware', (handler: unknown) => handler)
 vi.stubGlobal('useSupabaseUser', () => ({ value: user }))
+vi.stubGlobal('useSupabaseClient', () => ({
+  auth: {
+    getClaims: async () => {
+      await ready
+      return result
+    }
+  }
+}))
 vi.stubGlobal('useRuntimeConfig', () => ({ public: { vpnAuthUrl: 'https://vpn.labafero.com' } }))
 vi.stubGlobal('useRequestURL', () => new URL('https://vpn-news.labafero.com/redacao'))
 vi.stubGlobal('useEditorialAccess', () => ({ refresh: async () => hasEditorialAccess }))
@@ -18,10 +28,23 @@ const { default: editorialMiddleware } = await import('../app/middleware/editori
 beforeEach(() => {
   user = null
   hasEditorialAccess = false
+  result = { data: { claims: { sub: 'verified-user' } }, error: null }
+  ready = Promise.resolve()
   navigate.mockClear()
 })
 
+test('navigation waits for verified claims when reactive user is still empty after sign-in', async () => {
+  let release!: () => void
+  ready = new Promise((resolve) => {
+    release = resolve
+  })
+  const pending = authMiddleware({ fullPath: '/redacao' } as never, {} as never)
+  release()
+  expect(await pending).toBeUndefined()
+})
+
 test('anonymous requests return to central sign-in with their route and query', async () => {
+  result = { data: { claims: null }, error: new Error('invalid session') }
   const url = String(
     await authMiddleware({ fullPath: '/redacao/novo?cidade=vilavelha' } as never, {} as never)
   )

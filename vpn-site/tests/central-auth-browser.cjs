@@ -189,7 +189,7 @@ async function waitForSignupResult(page) {
   await page.waitForFunction(
     ({ monitorOrigin }) =>
       (location.origin === monitorOrigin && location.pathname === '/conexao') ||
-      document.body.innerText.includes('Confira seu e-mail'),
+      document.body?.innerText.includes('Confira seu e-mail'),
     { monitorOrigin: monitorUrl.origin },
     { timeout: 20000 }
   )
@@ -198,6 +198,7 @@ async function waitForSignupResult(page) {
 
 async function submitEmailForm(page, email, returnTo, action) {
   await page.goto(`${portalUrl}/${action}?return_to=${encodeURIComponent(returnTo)}`)
+  await page.waitForLoadState('networkidle')
   await page.locator('input[type="email"]').fill(email)
   const passwordFields = page.locator('input[type="password"]')
   await passwordFields.nth(0).fill(password)
@@ -206,7 +207,7 @@ async function submitEmailForm(page, email, returnTo, action) {
 }
 
 async function assertProtectedRouteRedirect(page, appUrl, path) {
-  await page.goto(new URL(path, appUrl))
+  await page.goto(new URL(path, appUrl).href)
   await page.waitForURL((url) => url.origin === siteUrl.origin && url.pathname === '/entrar')
   const returnTo = new URL(page.url()).searchParams.get('return_to')
   assert.equal(returnTo, new URL(path, appUrl).href)
@@ -230,6 +231,7 @@ async function run() {
 
     const monitorReturn = new URL('/conexao?tab=clips', monitorUrl).href
     await page.goto(`${portalUrl}/cadastro?return_to=${encodeURIComponent(monitorReturn)}`)
+    await page.waitForLoadState('networkidle')
     await page.locator('input[type="email"]').fill(confirmationEmail)
     const signupPasswords = page.locator('input[type="password"]')
     await signupPasswords.nth(0).fill(password)
@@ -258,7 +260,9 @@ async function run() {
     await page.getByRole('heading', { name: 'Conexão Twitch' }).waitFor()
     const denied = await page.goto(new URL('/redacao', newsUrl).href)
     assert.equal(denied?.status(), 403, 'A regular authenticated user receives 403 in /redacao.')
-    await page.getByText('Acesso restrito à equipe autorizada da redação').waitFor()
+    await page
+      .getByRole('heading', { name: 'Acesso restrito à equipe autorizada da redação' })
+      .waitFor()
 
     const editorialReturn = new URL('/redacao', newsUrl).href
     await submitEmailForm(page, editorEmail, editorialReturn, 'entrar')
@@ -276,6 +280,7 @@ async function run() {
     await page.getByRole('heading', { name: 'Redação' }).waitFor()
 
     await page.goto(new URL('/conexao', monitorUrl).href)
+    await page.waitForLoadState('networkidle')
     await page.getByRole('button', { name: 'Sair' }).click()
     await page.waitForURL((url) => url.origin === siteUrl.origin)
     assert.equal(

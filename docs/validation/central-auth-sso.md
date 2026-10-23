@@ -1,6 +1,6 @@
 # Validação do SSO central da VPN
 
-Estado em 19 de outubro de 2026 (UTC): publicação e verificações públicas concluídas; callbacks OAuth com consentimento real e fluxo de sessão entre apps ainda aguardam validação em um navegador comum. Nenhum merge foi feito.
+Estado em 23 de outubro de 2026 (UTC): publicação e verificações públicas concluídas; a integração local e o fluxo de sessão entre apps foram validados em navegador. Callbacks OAuth com consentimento real ainda aguardam validação. Nenhum merge foi feito.
 
 ## Código e checks
 
@@ -12,6 +12,8 @@ Estado em 19 de outubro de 2026 (UTC): publicação e verificações públicas c
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm contracts:check` passaram.
 - `pnpm test:foundation -- --maxWorkers=1 --minWorkers=1`: 37 arquivos, 200 testes passaram.
 - `pnpm build` passou para todos os workspaces com as variáveis públicas do exemplo News. Permaneceram avisos já observados de mapas de origem, tamanho de chunks e tipos Supabase ausentes no app Site; nenhum interrompeu o build.
+- Continuação da validação local: 38 arquivos, 203 testes da fundação passaram; lint, format:check, typecheck, contratos e `git diff --check` passaram.
+- O middleware do News passou a aguardar claims verificados, e o gate editorial consulta o `sub` verificado em vez de depender do ref reativo ainda vazio durante a navegação SSO. O login por senha do portal também confirma os claims antes de navegar.
 
 ## Produção Vercel
 
@@ -41,13 +43,17 @@ Nos três projetos Vercel, comparei sem exibir valores as variáveis de produç�
 
 ## Evidência de browser nos domínios oficiais
 
-Os testes usaram Chromium headless contra os domínios de produção, sem cookie de usuário:
+Os testes publicados usaram Chromium headless contra os domínios de produção, sem cookie de usuário:
 
 - Site: `/entrar`, `/cadastro`, `/termos-de-uso` e `/politica-de-privacidade` responderam `200`; os formulários exibiram campos de e-mail/senha e ações Discord/Twitch. O endpoint de retorno preservou `https://vpn-monitor.labafero.com/conexao?tab=clips` e substituiu uma origem externa pelo fallback central.
 - Monitor: `/conexao?tab=clips` e o `/login` legado redirecionaram ao portal com o destino esperado. Um callback PKCE com código inválido voltou ao portal com mensagem genérica, preservou o destino e não deixou o código na URL final.
 - News: `/` respondeu `200`; `/redacao` e o `/login` legado sem sessão redirecionaram ao portal com `/redacao` como destino. Callback inválido voltou com o mesmo erro genérico e destino preservado.
 
 Esses resultados provam renderização e redirecionamentos sem sessão. Não provam autenticação concluída, cookie compartilhado, autorização editorial autenticada ou logout entre domínios.
+
+## Evidência de integração local
+
+Em 23/10/2026, a stack Supabase local foi iniciada com a CLI `2.119.0`, migrations aplicadas e Mailpit disponível. Site, Monitor e News foram executados em `127.0.0.1:3003`, `:3001` e `:3000`, respectivamente. As guardas locais e o roteiro de browser passaram usando o Google Chrome do sistema via `VPN_CHROME_PATH` (o download Chromium padrão do Playwright não suporta Ubuntu 26.04 neste host), confirmando signup/confirmação, cookie compartilhado, 403 para usuário comum, acesso editorial para membro, logout, rotas legadas, isolamento de papéis e callback PKCE inválido. Fixtures de Auth e associação editorial foram removidas pelo `finally` do roteiro.
 
 ## Pendências para fechar a prova ponta a ponta
 

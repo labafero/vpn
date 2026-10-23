@@ -13,6 +13,7 @@ function createAuthClient(
     auth: {
       signInWithOAuth: vi.fn().mockResolvedValue({ error: options.oauthError ?? null }),
       signInWithPassword: vi.fn().mockResolvedValue({ error: options.signInError ?? null }),
+      getClaims: vi.fn().mockResolvedValue({ data: { claims: { sub: 'user-1' } }, error: null }),
       signUp: vi.fn().mockResolvedValue({
         data: { session: options.signUpSession ?? null },
         error: options.signUpError ?? null
@@ -52,6 +53,17 @@ describe('central auth actions', () => {
     ).toEqual({
       ok: false
     })
+  })
+
+  test('verifies the new password session before returning success', async () => {
+    const client = createAuthClient()
+
+    expect(
+      await signInWithEmail(client, { email: 'pessoa@example.com', password: 'senha-segura' })
+    ).toEqual({
+      ok: true
+    })
+    expect(client.auth.getClaims).toHaveBeenCalledOnce()
   })
 
   test('sends signup confirmation to the callback and distinguishes immediate session from email confirmation', async () => {
