@@ -11,11 +11,13 @@ export default defineConfig({
   },
   test: {
     include: [
+      'packages/auth/tests/**/*.test.ts',
       'packages/contracts/tests/**/*.test.ts',
       'scripts/phase-2-spike/tests/**/*.test.mjs',
       'vpn-sentry/tests/**/*.test.ts',
       'vpn-monitor/tests/**/*.test.ts',
-      'vpn-news/tests/**/*.test.ts'
+      'vpn-news/tests/**/*.test.ts',
+      'vpn-site/tests/**/*.test.ts'
     ],
     environment: 'node'
   }

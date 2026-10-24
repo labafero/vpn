@@ -10,6 +10,7 @@ const loading = ref(true)
 const busy = ref(false)
 const message = ref('')
 const client = useSupabaseClient()
+const config = useRuntimeConfig()
 const oauthResult = useCookie('vpn-oauth-result', { path: '/conexao' })
 const declined = ref(false)
 const failedUpgrade = ref(false)
@@ -101,7 +102,7 @@ async function disconnect() {
 }
 async function logout() {
   await client.auth.signOut()
-  await navigateTo('/login')
+  await navigateTo(config.public.vpnAuthUrl, { external: true })
 }
 onMounted(async () => {
   declined.value = oauthResult.value === 'declined'

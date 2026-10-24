@@ -8,13 +8,18 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test:e2e:auth": "node --test tests/central-auth-browser-guards.test.cjs && node tests/central-auth-browser.cjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.108",
+    "@nuxt/fonts": "0.14.0",
     "@nuxt/ui": "^4.7.1",
+    "@nuxtjs/supabase": "2.0.9",
+    "@vpn/auth": "workspace:*",
     "nuxt": "^4.4.6",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "valibot": "1.4.1"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
