@@ -24,6 +24,8 @@ Reutilizar worktree apropriado e manter correções independentes em branches/PR
 
 Verificar o necessário à mudança e os checks exigidos pelo repositório. Rodar novamente somente quando novas alterações ou falhas justificarem. Falha preexistente da CI deve ter causa identificada, PR responsável e impacto descrito; não eliminar checks para obter verde.
 
+Mudanças em autenticação, sessão ou autorização devem provar o percurso inteiro do usuário pelas aplicações envolvidas, e não somente o app alterado: portal Site, retorno ao Monitor/News e uma operação autenticada do Sentry (`/api/v1/me` ou fluxo de negócio equivalente). Cobrir também logout e o estado sem sessão quando fizerem parte da mudança. Registrar separadamente apps locais e serviços remotos usados na prova.
+
 Separar evidências:
 
 | Etapa | Evidência necessária |

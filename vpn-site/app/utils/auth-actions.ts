@@ -19,6 +19,7 @@ export interface AuthActionClient {
     signInWithPassword(input: {
       email: string
       password: string
+      options: { captchaToken: string }
     }): Promise<{ error: unknown | null }>
     getClaims(): Promise<{
       data: { claims: { sub?: string; is_anonymous?: boolean } } | null
@@ -27,7 +28,7 @@ export interface AuthActionClient {
     signUp(input: {
       email: string
       password: string
-      options: { emailRedirectTo: string }
+      options: { emailRedirectTo: string; captchaToken: string }
     }): Promise<{
       data: { session: unknown | null }
       error: unknown | null
@@ -53,10 +54,14 @@ export async function startOAuth(
 
 export async function signInWithEmail(
   client: AuthActionClient,
-  credentials: { email: string; password: string }
+  credentials: { email: string; password: string },
+  captchaToken: string
 ): Promise<AuthActionResult> {
   try {
-    const { error } = await client.auth.signInWithPassword(credentials)
+    const { error } = await client.auth.signInWithPassword({
+      ...credentials,
+      options: { captchaToken }
+    })
     if (error) return { ok: false }
     const { data, error: claimsError } = await client.auth.getClaims()
     return { ok: !claimsError && Boolean(data?.claims?.sub) && !data?.claims?.is_anonymous }
@@ -68,12 +73,13 @@ export async function signInWithEmail(
 export async function signUpWithEmail(
   client: AuthActionClient,
   credentials: { email: string; password: string },
-  callbackUrl: string
+  callbackUrl: string,
+  captchaToken: string
 ): Promise<SignUpActionResult> {
   try {
     const { data, error } = await client.auth.signUp({
       ...credentials,
-      options: { emailRedirectTo: callbackUrl }
+      options: { emailRedirectTo: callbackUrl, captchaToken }
     })
     return { ok: !error, hasSession: !error && data.session !== null }
   } catch {
@@ -83,9 +89,13 @@ export async function signUpWithEmail(
 
 export function resolveAuthReturnTarget(
   candidate: string | null | undefined,
-  allowedOrigins: readonly string[]
+  allowedOrigins: readonly string[],
+  currentOrigin?: string
 ): string {
-  return resolveAuthReturnTo(candidate, allowedOrigins, AUTH_PORTAL_FALLBACK)
+  const currentOriginIsAllowed = currentOrigin && allowedOrigins.includes(currentOrigin)
+  const fallback = currentOriginIsAllowed ? new URL('/', currentOrigin).href : AUTH_PORTAL_FALLBACK
+
+  return resolveAuthReturnTo(candidate, allowedOrigins, fallback)
 }
 
 export function createAuthCallbackUrl(returnTo: string): string {

@@ -1,5 +1,13 @@
 # Ambientes e descoberta
 
+## Revalidação local em 24 de outubro de 2026
+
+Máquina WSL2 em `/home/anils/labafero/vpn`, branch `main`, commit base `0c44318`. Node Linux 24.21.0 já instalado via NVM e pnpm 11.1.3 disponíveis. Dependências instaladas com lockfile congelado. Vercel CLI 64.5.0 e Supabase CLI 2.119.0 instaladas nesta máquina; binário Supabase Linux amd64 conferido com checksum oficial. GitHub CLI autenticado como `anilsonlopes`.
+
+Após login humano, Vercel autenticada como `quila`, equipe `anilson-lopes-projects`; os quatro projetos foram conferidos e vinculados por aplicativo, com root directories correspondentes e Node 24.x. Supabase autenticado com acesso ao projeto `VPN_RP`, ref `zxzigoaddoslkokbzmyc`; vínculo local criado e 27 migrations locais/remotas alinhadas confirmadas, sem aplicação de migrations. Configuração pública versionada do Supabase respondeu HTTP 200 em Auth settings e leitura de `city_config`. Em 24/10, login real validado pelo Site local, retorno ao Monitor e News locais e `/api/v1/me` do Sentry de produção.
+
+Checks locais passaram: lint, typecheck, contratos OpenAPI, formatação, 205 testes em 38 arquivos e build dos quatro aplicativos. `.env` por aplicativo criado com valores públicos e campos privados vazios, ignorado pelo Git e com permissão `600`; diretório `~/.config/vpn` com `700`. Pendências e evidências: [ambiente local em 24/10](../validation/ambiente-local-2026-10-24.md).
+
 ## Revalidação em 17 de outubro de 2026
 
 Nova máquina WSL preparada com NVM/Node 24.22.0, pnpm 11.1.3, Vercel CLI 64.5.0 e Supabase CLI 2.119.0. Vercel autenticada como quila na equipe anilson-lopes-projects; os quatro projetos abaixo foram revalidados e vinculados localmente, com root directories correspondentes e Node 24.x. Supabase autenticado no projeto VPN_RP, ref zxzigoaddoslkokbzmyc; vínculo e 25 migrations alinhadas confirmados, sem aplicar mudanças.

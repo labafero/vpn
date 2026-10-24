@@ -12,6 +12,8 @@ definePageMeta({ colorMode: 'dark' })
 
 const route = useRoute()
 const client = useSupabaseClient()
+const captcha = ref<{ reset: () => void }>()
+const captchaToken = ref('')
 const busy = ref(false)
 const message = ref(
   route.query.auth_error === '1' ? 'Não foi possível concluir o cadastro. Tente novamente.' : ''
@@ -101,6 +103,11 @@ const providers = computed<ButtonProps[]>(() => [
 ])
 
 async function register(event: FormSubmitEvent<SignUpInput>) {
+  if (!captchaToken.value) {
+    message.value = 'Conclua a verificação antirobô antes de continuar.'
+    return
+  }
+
   busy.value = true
   message.value = ''
   messageColor.value = 'error'
@@ -109,7 +116,8 @@ async function register(event: FormSubmitEvent<SignUpInput>) {
     const result = await signUpWithEmail(
       client,
       { email: event.data.email, password: event.data.password },
-      createAuthCallbackUrl(returnTo)
+      createAuthCallbackUrl(returnTo),
+      captchaToken.value
     )
 
     if (!result.ok) {
@@ -127,6 +135,7 @@ async function register(event: FormSubmitEvent<SignUpInput>) {
   } catch {
     message.value = 'Não foi possível criar sua conta. Tente novamente.'
   } finally {
+    captcha.value?.reset()
     busy.value = false
   }
 }
@@ -168,6 +177,11 @@ async function register(event: FormSubmitEvent<SignUpInput>) {
           @submit="register"
         >
           <template #validation>
+            <TurnstileChallenge
+              ref="captcha"
+              @verified="(token) => (captchaToken = token)"
+              @reset="captchaToken = ''"
+            />
             <UAlert
               v-if="message"
               :color="messageColor"

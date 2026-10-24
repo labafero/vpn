@@ -12,6 +12,8 @@ definePageMeta({ colorMode: 'dark' })
 
 const route = useRoute()
 const client = useSupabaseClient()
+const captcha = ref<{ reset: () => void }>()
+const captchaToken = ref('')
 const busy = ref(false)
 const message = ref(
   route.query.auth_error === '1' ? 'Não foi possível concluir o login. Tente novamente.' : ''
@@ -84,11 +86,16 @@ const providers = computed<ButtonProps[]>(() => [
 ])
 
 async function login(event: FormSubmitEvent<LoginInput>) {
+  if (!captchaToken.value) {
+    message.value = 'Conclua a verificação antirobô antes de continuar.'
+    return
+  }
+
   busy.value = true
   message.value = ''
   try {
     const returnTo = await fetchAuthReturnTarget(rawReturnTo.value)
-    const result = await signInWithEmail(client, event.data)
+    const result = await signInWithEmail(client, event.data, captchaToken.value)
     if (!result.ok) {
       message.value = 'Não foi possível entrar. Confira os dados e tente novamente.'
       return
@@ -97,6 +104,7 @@ async function login(event: FormSubmitEvent<LoginInput>) {
   } catch {
     message.value = 'Não foi possível entrar. Tente novamente.'
   } finally {
+    captcha.value?.reset()
     busy.value = false
   }
 }
@@ -138,6 +146,11 @@ async function login(event: FormSubmitEvent<LoginInput>) {
           @submit="login"
         >
           <template #validation>
+            <TurnstileChallenge
+              ref="captcha"
+              @verified="(token) => (captchaToken = token)"
+              @reset="captchaToken = ''"
+            />
             <UAlert
               v-if="message"
               color="error"

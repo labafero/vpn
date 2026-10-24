@@ -49,7 +49,11 @@ describe('central auth actions', () => {
       ok: false
     })
     expect(
-      await signInWithEmail(client, { email: 'pessoa@example.com', password: 'senha-segura' })
+      await signInWithEmail(
+        client,
+        { email: 'pessoa@example.com', password: 'senha-segura' },
+        'turnstile-token'
+      )
     ).toEqual({
       ok: false
     })
@@ -59,11 +63,20 @@ describe('central auth actions', () => {
     const client = createAuthClient()
 
     expect(
-      await signInWithEmail(client, { email: 'pessoa@example.com', password: 'senha-segura' })
+      await signInWithEmail(
+        client,
+        { email: 'pessoa@example.com', password: 'senha-segura' },
+        'turnstile-token'
+      )
     ).toEqual({
       ok: true
     })
     expect(client.auth.getClaims).toHaveBeenCalledOnce()
+    expect(client.auth.signInWithPassword).toHaveBeenCalledWith({
+      email: 'pessoa@example.com',
+      password: 'senha-segura',
+      options: { captchaToken: 'turnstile-token' }
+    })
   })
 
   test('sends signup confirmation to the callback and distinguishes immediate session from email confirmation', async () => {
@@ -72,17 +85,21 @@ describe('central auth actions', () => {
     const pendingClient = createAuthClient()
     const credentials = { email: 'pessoa@example.com', password: 'senha-segura' }
 
-    expect(await signUpWithEmail(immediateClient, credentials, callbackUrl)).toEqual({
+    expect(
+      await signUpWithEmail(immediateClient, credentials, callbackUrl, 'turnstile-token')
+    ).toEqual({
       ok: true,
       hasSession: true
     })
-    expect(await signUpWithEmail(pendingClient, credentials, callbackUrl)).toEqual({
+    expect(
+      await signUpWithEmail(pendingClient, credentials, callbackUrl, 'turnstile-token')
+    ).toEqual({
       ok: true,
       hasSession: false
     })
     expect(immediateClient.auth.signUp).toHaveBeenCalledWith({
       ...credentials,
-      options: { emailRedirectTo: callbackUrl }
+      options: { emailRedirectTo: callbackUrl, captchaToken: 'turnstile-token' }
     })
   })
 

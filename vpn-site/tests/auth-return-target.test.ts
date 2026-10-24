@@ -21,4 +21,22 @@ describe('auth return target endpoint policy', () => {
     )
     expect(resolveAuthReturnTarget(undefined, allowedOrigins)).toBe('https://vpn.labafero.com/')
   })
+
+  test('returns to the current allowed environment when the portal was opened directly', () => {
+    const currentOrigin = 'http://127.0.0.1:3003'
+    const allowedOrigins = [currentOrigin, 'http://127.0.0.1:3001']
+
+    expect(resolveAuthReturnTarget(undefined, allowedOrigins, currentOrigin)).toBe(
+      `${currentOrigin}/`
+    )
+    expect(
+      resolveAuthReturnTarget('https://attacker.example/path', allowedOrigins, currentOrigin)
+    ).toBe(`${currentOrigin}/`)
+  })
+
+  test('does not use a current origin until it is explicitly allowed', () => {
+    expect(
+      resolveAuthReturnTarget(undefined, ['http://127.0.0.1:3001'], 'http://127.0.0.1:3003')
+    ).toBe('https://vpn.labafero.com/')
+  })
 })

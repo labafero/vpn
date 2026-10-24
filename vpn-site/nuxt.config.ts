@@ -14,7 +14,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     authReturnOrigins: process.env.NUXT_AUTH_RETURN_ORIGINS || '',
     public: {
-      vpnAuthUrl: process.env.NUXT_PUBLIC_VPN_AUTH_URL || 'https://vpn.labafero.com'
+      vpnAuthUrl: process.env.NUXT_PUBLIC_VPN_AUTH_URL || 'https://vpn.labafero.com',
+      turnstileSiteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY || ''
     }
   },
   routeRules: { '/auth/callback': { ssr: false } },
