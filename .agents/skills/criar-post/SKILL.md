@@ -80,7 +80,7 @@ Se o usuário confirmar:
 
 1. Usar [scripts/publish-post.mjs](scripts/publish-post.mjs). Não reimplementar chamadas ao Supabase em comandos avulsos.
 2. Criar um arquivo JSON temporário com somente `title`, `cidade`, `body`, `published_at` e `destaque` da versão aprovada. Não incluir a chamada para perfil nem o roteiro do narrador.
-3. Executar `node .codex/skills/criar-post/scripts/publish-post.mjs --check-connection` e ler o resultado. Essa checagem é somente leitura e valida credenciais e autoria sem publicar dados.
+3. Executar `node .agents/skills/criar-post/scripts/publish-post.mjs --check-connection` e ler o resultado. Essa checagem é somente leitura e valida credenciais e autoria sem publicar dados.
 4. Executar o publicador com `--dry-run` e ler o resultado. Passar `--cover <caminho>` somente quando houver uma capa aprovada.
 5. Se as validações passarem, executar novamente sem `--dry-run`. Essa execução é uma mutação externa autorizada pela confirmação final do usuário.
 6. O script deve ler `NUXT_PUBLIC_SUPABASE_URL` e `NUXT_SUPABASE_SECRET_KEY` do ambiente ou de `.env`; nunca exibir, copiar ou pedir que o usuário cole a chave secreta na conversa.

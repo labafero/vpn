@@ -17,8 +17,8 @@ const MIME_BY_EXTENSION = new Map([
 
 function usage() {
   return `Uso:
-  node .codex/skills/criar-post/scripts/publish-post.mjs --post <post.json> [--cover <imagem>] [--author-id <uuid>] [--dry-run]
-  node .codex/skills/criar-post/scripts/publish-post.mjs --check-connection [--author-id <uuid>]
+  node .agents/skills/criar-post/scripts/publish-post.mjs --post <post.json> [--cover <imagem>] [--author-id <uuid>] [--dry-run]
+  node .agents/skills/criar-post/scripts/publish-post.mjs --check-connection [--author-id <uuid>]
 
 Variáveis esperadas em .env ou no ambiente:
   NUXT_PUBLIC_SUPABASE_URL
