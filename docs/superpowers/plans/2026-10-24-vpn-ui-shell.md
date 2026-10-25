@@ -20,7 +20,7 @@
 - Keep `/overlay*`, `/auth/callback`, and redirect-only login routes free of the shared app bar.
 - Do not change database schema, APIs, editorial authorization, Twitch scopes/consents, or Sentry behavior.
 - Use the Site palette: `#ed1c24`, `#05090c`, Inter, and dark surfaces. Use Nuxt UI semantic colors for Nuxt UI controls.
-- Local destinations use `127.0.0.1:3003` (Site), `127.0.0.1:3000` (News), and `127.0.0.1:3001` (Monitor); production destinations use the official `vpn.labafero.com`, `vpn-news.labafero.com`, and `vpn-monitor.labafero.com` origins. Allow per-environment overrides for Preview.
+- Local destinations use `localhost:3000` (Site), `localhost:3001` (News), and `localhost:3002` (Monitor); Sentry runs at `localhost:3003`. Production destinations use the official `vpn.labafero.com`, `vpn-news.labafero.com`, and `vpn-monitor.labafero.com` origins. Allow per-environment overrides for Preview.
 
 ## Review Focus
 

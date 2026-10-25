@@ -5,9 +5,10 @@ Este arquivo fornece orientações ao trabalhar neste repositório.
 ## Comandos
 
 ```bash
-pnpm dev:news      # portal público e redação em 0.0.0.0:3000
-pnpm dev:monitor   # portal privado
-pnpm dev:sentry    # API Nitro em 0.0.0.0:3002
+pnpm dev:site      # site principal em 0.0.0.0:3000
+pnpm dev:news      # portal público e redação em 0.0.0.0:3001
+pnpm dev:monitor   # portal privado em 0.0.0.0:3002
+pnpm dev:sentry    # API Nitro em 0.0.0.0:3003
 pnpm build         # build de todos os workspaces
 pnpm lint          # ESLint de todos os workspaces
 pnpm lint:fix      # corrige problemas autofixáveis de ESLint
@@ -27,10 +28,12 @@ Pipeline de CI: `lint → format:check → typecheck → contracts:check → tes
 Duas superfícies distintas:
 
 **Pública** — sem sidebar, header com marca VPN:
+
 - `/` — índice de notícias: slider hero de posts `destaque`, filtro por cidade, grid de posts
 - `/[cidade]` — página de notícias por cidade, temática definida por `city_config.cor_primaria`
 
 **Redação** (protegida, layout dashboard com sidebar):
+
 - `/redacao` — lista de posts
 - `/redacao/novo` — criar post
 - `/redacao/[id]/editar` — editar post
@@ -39,6 +42,7 @@ Duas superfícies distintas:
 - `/redacao/cidades` — CRUD de configuração de cidades
 
 **Overlays** (browser sources do OBS, layout `overlay` — manter simples e autocontidos):
+
 - `/overlay` (página `overlay/index.vue`, exige `?broadcaster=<uuid>`), `/overlay/idle`
 
 ### Layouts
@@ -53,13 +57,13 @@ Duas superfícies distintas:
 
 ### Tabelas do Supabase
 
-| Tabela | Finalidade |
-|---|---|
-| `posts` | Matérias com `cidade`, `destaque`, `published_at`, `media_url`/`media_type` opcionais |
-| `broadcast_config` | Configuração de transmissão ao vivo por usuário (título, cidade) — upsert em `user_id` |
-| `city_config` | Configuração de exibição por cidade (slug, nome, jornal, `cor_primaria`, logo) — upsert em `slug` |
-| `market_values` | Entradas de mercado em série temporal por usuário |
-| `market_values_latest` | View: última entrada por label por usuário |
+| Tabela                 | Finalidade                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------- |
+| `posts`                | Matérias com `cidade`, `destaque`, `published_at`, `media_url`/`media_type` opcionais             |
+| `broadcast_config`     | Configuração de transmissão ao vivo por usuário (título, cidade) — upsert em `user_id`            |
+| `city_config`          | Configuração de exibição por cidade (slug, nome, jornal, `cor_primaria`, logo) — upsert em `slug` |
+| `market_values`        | Entradas de mercado em série temporal por usuário                                                 |
+| `market_values_latest` | View: última entrada por label por usuário                                                        |
 
 ### Composables
 

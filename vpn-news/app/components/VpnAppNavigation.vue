@@ -40,7 +40,6 @@ async function signOut() {
       >
         Abrir redação
       </UButton>
-      <UserAppearanceOptions />
     </template>
   </VpnAppBar>
 </template>

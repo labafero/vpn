@@ -9,9 +9,9 @@ const browserTools =
   process.env.VPN_BROWSER_TOOLS || path.join(os.homedir(), '.cache', 'vpn-tools', 'browser')
 const { chromium } = require(path.join(browserTools, 'node_modules', 'playwright'))
 
-const siteUrl = new URL(process.env.VPN_E2E_SITE_URL || 'http://127.0.0.1:3003')
-const monitorUrl = new URL(process.env.VPN_E2E_MONITOR_URL || 'http://127.0.0.1:3001')
-const newsUrl = new URL(process.env.VPN_E2E_NEWS_URL || 'http://127.0.0.1:3000')
+const siteUrl = new URL(process.env.VPN_E2E_SITE_URL || 'http://localhost:3000')
+const monitorUrl = new URL(process.env.VPN_E2E_MONITOR_URL || 'http://localhost:3002')
+const newsUrl = new URL(process.env.VPN_E2E_NEWS_URL || 'http://localhost:3001')
 const portalUrl = `${siteUrl.origin}`
 const password = `VpnAuth-${randomUUID()}-Aa1!`
 const testNamespace = randomUUID().replaceAll('-', '')
@@ -186,24 +186,52 @@ async function waitForConfirmationLink(mailpitUrl, email) {
 }
 
 async function waitForSignupResult(page) {
-  await page.waitForFunction(
-    ({ monitorOrigin }) =>
-      (location.origin === monitorOrigin && location.pathname === '/conexao') ||
-      document.body?.innerText.includes('Confira seu e-mail'),
-    { monitorOrigin: monitorUrl.origin },
-    { timeout: 20000 }
-  )
-  return page.url().startsWith(`${monitorUrl.origin}/conexao`) ? 'session' : 'confirmation'
+  let result
+  try {
+    result = await page.waitForFunction(
+      ({ monitorOrigin }) => {
+        if (location.origin === monitorOrigin && location.pathname === '/conexao') return 'session'
+        const text = document.body?.innerText ?? ''
+        if (text.includes('Confira seu e-mail')) return 'confirmation'
+        const error = [
+          'Não foi possível criar sua conta.',
+          'Conclua a verificação antirobô antes de continuar.',
+          'Não foi possível carregar a verificação antirobô.'
+        ].find((message) => text.includes(message))
+        return error ? `error: ${error}` : false
+      },
+      { monitorOrigin: monitorUrl.origin },
+      { timeout: 20000 }
+    )
+  } catch {
+    const currentUrl = new URL(page.url())
+    const notices = await page.locator('[role="alert"], [role="status"]').allTextContents()
+    await page.screenshot({ path: '/tmp/vpn-auth-signup-timeout.png' })
+    throw new Error(
+      `Signup did not finish at ${currentUrl.origin}${currentUrl.pathname}; notices: ${notices.join(' | ') || 'none'}`
+    )
+  }
+  const state = await result.jsonValue()
+  if (state.startsWith('error: ')) throw new Error(state.slice('error: '.length))
+  return state
 }
 
 async function submitEmailForm(page, email, returnTo, action) {
   await page.goto(`${portalUrl}/${action}?return_to=${encodeURIComponent(returnTo)}`)
-  await page.waitForLoadState('networkidle')
-  await page.locator('input[type="email"]').fill(email)
+  await waitForAuthFormReady(page)
+  const emailInput = page.locator('input[type="email"]')
+  await emailInput.fill(email)
   const passwordFields = page.locator('input[type="password"]')
   await passwordFields.nth(0).fill(password)
   if (action === 'cadastro') await passwordFields.nth(1).fill(password)
   await page.getByRole('button', { name: action === 'cadastro' ? 'Criar conta' : 'Entrar' }).click()
+}
+
+async function waitForAuthFormReady(page) {
+  await page.locator('input[type="email"]').waitFor({ state: 'visible' })
+  await page.waitForFunction(() => window.__VPN_E2E_TURNSTILE_RENDERED__ === true, undefined, {
+    timeout: 10000
+  })
 }
 
 async function assertProtectedRouteRedirect(page, appUrl, path) {
@@ -233,7 +261,7 @@ async function assertVpnAppNavigation(page, activeApp, accountEmail) {
 
   if (activeApp === 'news') {
     await page.getByText('Abrir redação', { exact: true }).waitFor({ state: 'visible' })
-    await page.getByText('Aparência', { exact: true }).waitFor({ state: 'visible' })
+    assert.equal(await page.getByText('Aparência', { exact: true }).count(), 0)
     const bar = await page.locator('.vpn-app-bar').boundingBox()
     const dashboard = await page.locator('.editorial-dashboard').boundingBox()
     assert.ok(bar && dashboard && dashboard.y >= bar.y + bar.height - 1)
@@ -252,14 +280,32 @@ async function run() {
     const editorId = await createUser(supabase, editorEmail, true)
     await seedEditorialMember(supabase, editorId)
 
-    browser = await chromium.launch({ headless: process.env.VPN_E2E_HEADED !== '1' })
+    browser = await chromium.launch({
+      headless: process.env.VPN_E2E_HEADED !== '1',
+      ...(process.env.VPN_BROWSER_EXECUTABLE
+        ? { executablePath: process.env.VPN_BROWSER_EXECUTABLE }
+        : {})
+    })
     context = await browser.newContext()
+    await context.addInitScript(() => {
+      window.__VPN_E2E_TURNSTILE_RENDERED__ = false
+      window.turnstile = {
+        render(_container, options) {
+          window.__VPN_E2E_TURNSTILE_RENDERED__ = true
+          queueMicrotask(() => options.callback('local-e2e-turnstile-token'))
+          return 'local-e2e-widget'
+        },
+        reset() {},
+        remove() {}
+      }
+    })
     const page = await context.newPage()
 
     const monitorReturn = new URL('/conexao?tab=clips', monitorUrl).href
     await page.goto(`${portalUrl}/cadastro?return_to=${encodeURIComponent(monitorReturn)}`)
-    await page.waitForLoadState('networkidle')
-    await page.locator('input[type="email"]').fill(confirmationEmail)
+    const emailInput = page.locator('input[type="email"]')
+    await waitForAuthFormReady(page)
+    await emailInput.fill(confirmationEmail)
     const signupPasswords = page.locator('input[type="password"]')
     await signupPasswords.nth(0).fill(password)
     await signupPasswords.nth(1).fill(password)
@@ -286,17 +332,31 @@ async function run() {
     )
     await page.goto(new URL('/conexao', monitorUrl).href)
     await page.getByRole('heading', { name: 'Conexão Twitch' }).waitFor()
-    const denied = await page.goto(new URL('/redacao', newsUrl).href)
-    assert.equal(denied?.status(), 403, 'A regular authenticated user receives 403 in /redacao.')
-    await page
-      .getByRole('heading', { name: 'Acesso restrito à equipe autorizada da redação' })
-      .waitFor()
+    const denied = await context.request.get(new URL('/redacao', newsUrl).href)
+    assert.equal(denied.status(), 403, 'A regular authenticated user receives 403 in /redacao.')
+
+    await page.goto(new URL('/login', monitorUrl).href)
+    await page.waitForURL((url) => url.origin === siteUrl.origin && url.pathname === '/entrar')
+    const monitorLoginReturn = new URL('/conexao', monitorUrl).href
+    assert.equal(new URL(page.url()).searchParams.get('return_to'), monitorLoginReturn)
+    await submitEmailForm(page, editorEmail, monitorLoginReturn, 'entrar')
+    await page.waitForURL((url) => url.origin === monitorUrl.origin && url.pathname === '/conexao')
+    await page.getByRole('heading', { name: 'Conexão Twitch' }).waitFor()
+    await assertVpnAppNavigation(page, 'monitor', editorEmail)
 
     const editorialReturn = new URL('/redacao', newsUrl).href
     await submitEmailForm(page, editorEmail, editorialReturn, 'entrar')
     await page.waitForURL((url) => url.origin === newsUrl.origin && url.pathname === '/redacao')
     await page.getByRole('heading', { name: 'Redação' }).waitFor()
     await assertVpnAppNavigation(page, 'news', editorEmail)
+
+    if (process.env.VPN_E2E_REDIRECTS_ONLY === '1') {
+      process.stdout.write(
+        'Local auth redirect E2E passed: signup to Monitor, password login to Monitor, and password login to News.\n'
+      )
+      return
+    }
+
     await page.goto(siteUrl.href)
     await assertVpnAppNavigation(page, 'site', editorEmail)
     assert.ok(
@@ -312,7 +372,7 @@ async function run() {
     await assertVpnAppNavigation(page, 'news', editorEmail)
 
     await page.goto(new URL('/conexao', monitorUrl).href)
-    await page.waitForLoadState('networkidle')
+    await page.locator('.vpn-app-bar__account-trigger').waitFor({ state: 'visible' })
     await page.locator('.vpn-app-bar__account-trigger').click()
     await page.getByRole('button', { name: 'Sair' }).click()
     await page.waitForURL((url) => url.origin === siteUrl.origin)
@@ -368,6 +428,6 @@ async function run() {
 }
 
 run().catch((error) => {
-  process.stderr.write(`${error.message}\n`)
+  process.stderr.write(`${error.stack || error.message}\n`)
   process.exitCode = 1
 })

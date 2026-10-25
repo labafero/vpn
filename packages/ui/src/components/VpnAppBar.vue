@@ -68,12 +68,11 @@ const links = computed(() => createVpnAppLinks(props.activeApp, props.appUrls))
               aria-hidden="true"
             />
             <span>Conta VPN</span>
-            <span
-              class="vpn-app-bar__chevron"
+            <UIcon
+              name="i-lucide-chevron-down"
+              class="size-4"
               aria-hidden="true"
-            >
-              ⌄
-            </span>
+            />
           </summary>
           <div class="vpn-app-bar__account-menu">
             <p class="vpn-app-bar__account-label">Sessão VPN</p>
@@ -224,10 +223,6 @@ const links = computed(() => createVpnAppLinks(props.activeApp, props.appUrls))
   border-radius: 50%;
   background: #4ade80;
   box-shadow: 0 0 0.8rem rgb(74 222 128 / 45%);
-}
-
-.vpn-app-bar__chevron {
-  color: rgb(255 255 255 / 55%);
 }
 
 .vpn-app-bar__account-menu {

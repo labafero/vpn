@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const carousel = ref<HTMLDivElement | null>(null)
+
 type Highlight = {
   id: number
   title: string
@@ -9,16 +11,26 @@ type Highlight = {
 defineProps<{
   posts: Highlight[]
 }>()
+
+function goToHighlight(index: number) {
+  const element = carousel.value
+  const target = element?.children.item(index)
+  if (!(element instanceof HTMLElement) || !(target instanceof HTMLElement)) return
+
+  const left =
+    element.scrollLeft + target.getBoundingClientRect().left - element.getBoundingClientRect().left
+  element.scrollTo({ left, behavior: 'smooth' })
+}
 </script>
 
 <template>
   <div class="relative">
     <div
+      ref="carousel"
       class="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <article
         v-for="(post, index) in posts"
-        :id="`cidade-destaque-${index}`"
         :key="post.id"
         class="relative grid min-w-full snap-start grid-cols-1 md:grid-cols-2 bg-elevated"
       >
@@ -62,26 +74,28 @@ defineProps<{
           :aria-label="`Controles do destaque ${index + 1}`"
           class="pointer-events-none absolute inset-x-0 bottom-4 flex justify-between px-4 sm:px-6"
         >
-          <a
-            :href="`#cidade-destaque-${index === 0 ? posts.length - 1 : index - 1}`"
+          <button
+            type="button"
             :aria-label="`Destaque anterior a ${post.title}`"
             class="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-default bg-default/90 text-default shadow-sm transition hover:bg-accented focus-visible:outline-2 focus-visible:outline-offset-2"
+            @click="goToHighlight(index === 0 ? posts.length - 1 : index - 1)"
           >
             <UIcon
               name="i-lucide-arrow-left"
               class="size-4"
             />
-          </a>
-          <a
-            :href="`#cidade-destaque-${index === posts.length - 1 ? 0 : index + 1}`"
+          </button>
+          <button
+            type="button"
             :aria-label="`Próximo destaque: ${post.title}`"
             class="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-default bg-default/90 text-default shadow-sm transition hover:bg-accented focus-visible:outline-2 focus-visible:outline-offset-2"
+            @click="goToHighlight(index === posts.length - 1 ? 0 : index + 1)"
           >
             <UIcon
               name="i-lucide-arrow-right"
               class="size-4"
             />
-          </a>
+          </button>
         </nav>
       </article>
     </div>

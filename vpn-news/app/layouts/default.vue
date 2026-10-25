@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
-import VpnBrand from '@vpn/ui/VpnBrand.vue'
 
 const open = ref(false)
 const router = useRouter()
@@ -101,10 +100,6 @@ const searchGroups = computed(() => [
         collapsible
         resizable
       >
-        <template #header>
-          <VpnBrand />
-        </template>
-
         <template #default>
           <UDashboardSearchButton label="Buscar" />
           <UNavigationMenu

@@ -6,9 +6,9 @@ const os = require('node:os')
 const browserTools =
   process.env.VPN_BROWSER_TOOLS || path.join(os.homedir(), '.cache', 'vpn-tools', 'browser')
 const { chromium } = require(path.join(browserTools, 'node_modules', 'playwright'))
-const siteUrl = new URL(process.env.VPN_UI_SITE_URL || 'http://127.0.0.1:3003')
-const newsUrl = new URL(process.env.VPN_UI_NEWS_URL || 'http://127.0.0.1:3000')
-const monitorUrl = new URL(process.env.VPN_UI_MONITOR_URL || 'http://127.0.0.1:3001')
+const siteUrl = new URL(process.env.VPN_UI_SITE_URL || 'http://localhost:3000')
+const newsUrl = new URL(process.env.VPN_UI_NEWS_URL || 'http://localhost:3001')
+const monitorUrl = new URL(process.env.VPN_UI_MONITOR_URL || 'http://localhost:3002')
 const builtNewsUrl = new URL(
   process.env.VPN_UI_BUILD_NEWS_URL ||
     (process.env.VERCEL_ENV === 'preview' && process.env.VERCEL_URL
@@ -19,6 +19,51 @@ const browserExecutable =
   process.env.VPN_BROWSER_EXECUTABLE ||
   ['/usr/bin/google-chrome', '/usr/bin/chromium'].find((candidate) => fs.existsSync(candidate))
 
+async function assertHostedOAuthEndpoint(page, provider) {
+  const liveOAuth = process.env.VPN_UI_LIVE_OAUTH === '1'
+  const authRequests = []
+  const onRequest = (request) => {
+    const url = new URL(request.url())
+    if (url.pathname.startsWith('/api/auth/') || url.pathname.startsWith('/auth/v1/')) {
+      authRequests.push(`${url.host}${url.pathname}`)
+    }
+  }
+  page.on('request', onRequest)
+  if (!liveOAuth) await page.route('**/auth/v1/authorize**', (route) => route.abort())
+  try {
+    const requestPromise = page
+      .waitForRequest(
+        (request) => {
+          const url = new URL(request.url())
+          return url.pathname === '/auth/v1/authorize'
+        },
+        { timeout: 10000 }
+      )
+      .catch(() => {
+        throw new Error(
+          `No ${provider} OAuth request was issued. Auth requests observed: ${authRequests.join(', ') || 'none'}.`
+        )
+      })
+    await page.getByRole('button', { name: `Continuar com ${provider}` }).click()
+    const authorizeUrl = new URL((await requestPromise).url())
+    assert.match(authorizeUrl.hostname, /^[a-z0-9-]+\.supabase\.co$/)
+    assert.equal(authorizeUrl.searchParams.get('provider'), provider.toLowerCase())
+    const callbackUrl = new URL(authorizeUrl.searchParams.get('redirect_to'))
+    assert.ok(
+      [siteUrl.origin, newsUrl.origin, monitorUrl.origin].includes(callbackUrl.origin),
+      'OAuth returns through the local callback of the requested app.'
+    )
+    assert.equal(callbackUrl.pathname, '/auth/callback')
+    if (liveOAuth) {
+      const providerDomain = provider === 'Discord' ? 'discord.com' : 'twitch.tv'
+      await page.waitForURL((url) => url.hostname.endsWith(providerDomain), { timeout: 20000 })
+    }
+  } finally {
+    page.off('request', onRequest)
+    if (!liveOAuth) await page.unroute('**/auth/v1/authorize**')
+  }
+}
+
 async function run() {
   const browser = await chromium.launch({
     headless: process.env.VPN_UI_HEADED !== '1',
@@ -26,6 +71,18 @@ async function run() {
   })
   try {
     const page = await browser.newPage()
+    await page.addInitScript(() => {
+      window.__VPN_E2E_TURNSTILE_RENDERED__ = false
+      window.turnstile = {
+        render(_container, options) {
+          window.__VPN_E2E_TURNSTILE_RENDERED__ = true
+          queueMicrotask(() => options.callback('local-e2e-turnstile-token'))
+          return 'local-e2e-widget'
+        },
+        reset() {},
+        remove() {}
+      }
+    })
     await page.goto(siteUrl.href, { waitUntil: 'domcontentloaded' })
 
     const navigation = page.getByRole('navigation', { name: 'Navegação VPN' })
@@ -44,6 +101,27 @@ async function run() {
     )
     await page.getByRole('link', { name: 'Explorar a VPN', exact: true }).waitFor()
     assert.equal(await page.getByRole('button', { name: 'Abrir navegação VPN' }).isVisible(), false)
+
+    await page.goto(
+      new URL('/entrar?return_to=http%3A%2F%2Flocalhost%3A3002%2Fconexao', siteUrl).href,
+      {
+        waitUntil: 'domcontentloaded'
+      }
+    )
+    assert.equal(await page.getByRole('navigation', { name: 'Navegação VPN' }).count(), 0)
+    await page.getByText('Entre na sua conta').waitFor()
+    await page.waitForFunction(() => window.__VPN_E2E_TURNSTILE_RENDERED__ === true)
+    await assertHostedOAuthEndpoint(page, 'Discord')
+    await page.goto(new URL('/entrar', siteUrl).href, { waitUntil: 'domcontentloaded' })
+    await page.waitForFunction(() => window.__VPN_E2E_TURNSTILE_RENDERED__ === true)
+    await assertHostedOAuthEndpoint(page, 'Twitch')
+
+    await page.goto(new URL('/cadastro', siteUrl).href, { waitUntil: 'domcontentloaded' })
+    assert.equal(await page.getByRole('navigation', { name: 'Navegação VPN' }).count(), 0)
+    await page.getByText('Crie sua conta VPN').waitFor()
+
+    await page.goto(siteUrl.href, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('navigation', { name: 'Navegação VPN' }).waitFor({ state: 'visible' })
 
     await page.setViewportSize({ width: 390, height: 844 })
     assert.equal(await page.getByRole('button', { name: 'Abrir navegação VPN' }).isVisible(), true)
@@ -77,18 +155,7 @@ async function run() {
     assert.equal(signIn.searchParams.get('return_to'), newsUrl.origin + '/')
 
     await page.goto(new URL('/neon', newsUrl).href, { waitUntil: 'domcontentloaded' })
-    const cityNavigation = page.getByRole('navigation', { name: 'Navegação VPN' })
-    await cityNavigation.waitFor({ state: 'visible', timeout: 8000 })
-    assert.equal(
-      await cityNavigation
-        .getByRole('link', { name: 'News', exact: true })
-        .getAttribute('aria-current'),
-      'page'
-    )
-    const citySignIn = new URL(
-      await page.getByRole('link', { name: 'Entrar', exact: true }).getAttribute('href')
-    )
-    assert.equal(citySignIn.searchParams.get('return_to'), new URL('/neon', newsUrl).href)
+    assert.equal(await page.getByRole('navigation', { name: 'Navegação VPN' }).count(), 0)
 
     const prerenderedCityPath = path.join(
       __dirname,
@@ -112,7 +179,7 @@ async function run() {
     assert.equal(monitorReturnTo, new URL('/conexao', monitorUrl).href)
 
     process.stdout.write(
-      'Shared shell smoke passed: Site desktop/mobile, News public/city/static return paths, OBS overlay exclusion, and Monitor auth return path.\n'
+      'Shared shell smoke passed: Site desktop/mobile and auth OAuth providers, News public/city/static return paths, OBS overlay exclusion, and Monitor auth return path.\n'
     )
   } finally {
     await browser.close()
@@ -120,6 +187,6 @@ async function run() {
 }
 
 run().catch((error) => {
-  process.stderr.write(`${error.message}\n`)
+  process.stderr.write(`${error.stack || error.message}\n`)
   process.exitCode = 1
 })

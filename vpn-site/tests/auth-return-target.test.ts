@@ -11,7 +11,7 @@ describe('auth return target endpoint policy', () => {
   })
 
   test('uses the central portal fallback for external and protocol-relative URLs', () => {
-    const allowedOrigins = ['http://127.0.0.1:3001', 'http://127.0.0.1:3003']
+    const allowedOrigins = ['http://localhost:3001', 'http://localhost:3002']
 
     expect(resolveAuthReturnTarget('https://attacker.example/path', allowedOrigins)).toBe(
       'https://vpn.labafero.com/'
@@ -23,8 +23,8 @@ describe('auth return target endpoint policy', () => {
   })
 
   test('returns to the current allowed environment when the portal was opened directly', () => {
-    const currentOrigin = 'http://127.0.0.1:3003'
-    const allowedOrigins = [currentOrigin, 'http://127.0.0.1:3001']
+    const currentOrigin = 'http://localhost:3000'
+    const allowedOrigins = [currentOrigin, 'http://localhost:3002']
 
     expect(resolveAuthReturnTarget(undefined, allowedOrigins, currentOrigin)).toBe(
       `${currentOrigin}/`
@@ -36,7 +36,7 @@ describe('auth return target endpoint policy', () => {
 
   test('does not use a current origin until it is explicitly allowed', () => {
     expect(
-      resolveAuthReturnTarget(undefined, ['http://127.0.0.1:3001'], 'http://127.0.0.1:3003')
+      resolveAuthReturnTarget(undefined, ['http://localhost:3002'], 'http://localhost:3000')
     ).toBe('https://vpn.labafero.com/')
   })
 })

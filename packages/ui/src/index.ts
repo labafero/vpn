@@ -15,9 +15,9 @@ const APP_LABELS: Record<VpnAppId, string> = {
 }
 
 const DEVELOPMENT_URLS: VpnAppUrls = {
-  site: 'http://127.0.0.1:3003',
-  news: 'http://127.0.0.1:3000',
-  monitor: 'http://127.0.0.1:3001'
+  site: 'http://localhost:3000',
+  news: 'http://localhost:3001',
+  monitor: 'http://localhost:3002'
 }
 
 const PRODUCTION_URLS: VpnAppUrls = {

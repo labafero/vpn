@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import VpnAppNavigation from '~/components/VpnAppNavigation.vue'
+
+const route = useRoute()
+const showVpnNavigation = computed(() => !['/entrar', '/cadastro'].includes(route.path))
 </script>
 
 <template>
   <div class="vpn-site-shell">
-    <VpnAppNavigation />
+    <VpnAppNavigation v-if="showVpnNavigation" />
     <slot />
   </div>
 </template>

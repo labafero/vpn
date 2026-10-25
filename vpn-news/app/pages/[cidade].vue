@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { corClasses, DEFAULT_COR, DEFAULT_SIGLA, type CorPrimaria } from '~/utils/cidadeColors'
 
-definePageMeta({ layout: 'auth' })
+definePageMeta({ layout: false })
 
 if (import.meta.server && !import.meta.dev && !import.meta.prerender) {
   throw createError({
