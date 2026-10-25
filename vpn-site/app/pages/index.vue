@@ -1,10 +1,5 @@
 <script setup lang="ts">
-const menuOpen = ref(false)
-const navigation = [
-  { label: 'O universo', to: '#universo' },
-  { label: 'Como funciona', to: '#como-funciona' },
-  { label: 'Notícias', to: 'https://vpn-news.labafero.com' }
-]
+const appUrls = useRuntimeConfig().public.vpnAppUrls
 
 const pillars = [
   {
@@ -34,70 +29,6 @@ const pillars = [
 <template>
   <div class="min-h-screen overflow-hidden bg-[#05090c] text-white">
     <VpnSplash />
-    <header class="relative z-20 border-b border-white/10 bg-[#05090c]/80 backdrop-blur-md">
-      <UContainer
-        class="flex min-h-16 items-center justify-between gap-3 py-3 sm:h-20 sm:gap-8 sm:py-0"
-      >
-        <NuxtLink
-          to="/"
-          aria-label="VPN Roleplay — início"
-          class="group flex min-w-0 items-center gap-2 sm:gap-3"
-        >
-          <VpnBrand />
-        </NuxtLink>
-
-        <nav
-          class="hidden items-center gap-8 md:flex"
-          aria-label="Navegação principal"
-        >
-          <a
-            v-for="item in navigation"
-            :key="item.label"
-            :href="item.to"
-            class="text-sm text-white/55 transition-colors hover:text-white"
-          >
-            {{ item.label }}
-          </a>
-        </nav>
-
-        <UButton
-          class="hidden md:inline-flex"
-          to="https://vpn-news.labafero.com"
-          target="_blank"
-          color="neutral"
-          variant="outline"
-          trailing-icon="i-lucide-arrow-up-right"
-          label="Abrir portal"
-        />
-        <UButton
-          class="min-h-11 min-w-11 md:hidden"
-          color="neutral"
-          variant="ghost"
-          :icon="menuOpen ? 'i-lucide-x' : 'i-lucide-menu'"
-          :aria-label="menuOpen ? 'Fechar navegação' : 'Abrir navegação'"
-          :aria-expanded="menuOpen"
-          aria-controls="mobile-navigation"
-          @click="menuOpen = !menuOpen"
-        />
-      </UContainer>
-      <nav
-        v-if="menuOpen"
-        id="mobile-navigation"
-        aria-label="Navegação mobile"
-        class="border-t border-white/10 px-4 py-2 md:hidden"
-      >
-        <a
-          v-for="item in navigation"
-          :key="item.label"
-          :href="item.to"
-          class="flex min-h-11 items-center text-white/80"
-          @click="menuOpen = false"
-        >
-          {{ item.label }}
-        </a>
-      </nav>
-    </header>
-
     <main>
       <section class="relative isolate flex min-h-[calc(100vh-5rem)] items-center overflow-hidden">
         <div
@@ -142,10 +73,18 @@ const pillars = [
               >
                 <UButton
                   size="xl"
-                  to="https://vpn-news.labafero.com"
-                  target="_blank"
-                  label="Entrar no universo"
+                  :to="appUrls.news"
+                  label="News"
                   trailing-icon="i-lucide-arrow-up-right"
+                />
+                <UButton
+                  size="xl"
+                  color="neutral"
+                  variant="outline"
+                  :to="appUrls.monitor"
+                  label="Monitor"
+                  trailing-icon="i-lucide-arrow-up-right"
+                  class="border-white/20 text-white hover:bg-white/10"
                 />
                 <UButton
                   size="xl"
@@ -329,8 +268,7 @@ const pillars = [
             class="mt-9"
             size="xl"
             color="neutral"
-            to="https://vpn-news.labafero.com"
-            target="_blank"
+            :to="appUrls.news"
             label="Abrir VPN News"
             trailing-icon="i-lucide-arrow-up-right"
           />

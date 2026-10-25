@@ -5,8 +5,12 @@ let ready: Promise<void>
 const navigate = vi.fn((url: string) => url)
 vi.stubGlobal('defineNuxtRouteMiddleware', (handler: unknown) => handler)
 vi.stubGlobal('useSupabaseUser', () => ({ value: null }))
-vi.stubGlobal('useRuntimeConfig', () => ({ public: { vpnAuthUrl: 'https://vpn.labafero.com' } }))
-vi.stubGlobal('useRequestURL', () => new URL('https://vpn-monitor.labafero.com/conexao'))
+vi.stubGlobal('useRuntimeConfig', () => ({
+  public: {
+    vpnAuthUrl: 'https://vpn.labafero.com',
+    vpnAppUrls: { monitor: 'https://vpn-monitor.labafero.com' }
+  }
+}))
 vi.stubGlobal('useSupabaseClient', () => ({
   auth: {
     getClaims: async () => {

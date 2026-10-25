@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@vpn/ui/theme.css';
 @import '@nuxt/ui';
 
 :root {
@@ -6,8 +7,20 @@
   --font-breaking: 'Oswald', sans-serif;
 }
 
+.editorial-dashboard {
+  inset: 3.5rem 0 0;
+}
+
+.editorial-dashboard [data-slot='root'] {
+  min-height: 0;
+}
+
 /* Keep the OBS layouts independent of the newsroom's touch controls. */
 @media (width < 640px) {
+  .editorial-dashboard {
+    inset-block-start: 3.5rem;
+  }
+
   .editorial-dashboard input,
   .editorial-dashboard textarea,
   .editorial-dashboard [role='combobox'] {

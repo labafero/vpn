@@ -7,7 +7,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (error || !data?.claims?.sub || data.claims.is_anonymous) {
     const config = useRuntimeConfig()
     const returnPath = resolveAuthCallbackPath(to.fullPath, '/')
-    const returnTo = new URL(returnPath, useRequestURL().origin).href
+    const returnTo = new URL(returnPath, config.public.vpnAppUrls.monitor).href
     return navigateTo(buildAuthPortalUrl(config.public.vpnAuthUrl, returnTo), {
       external: true
     })

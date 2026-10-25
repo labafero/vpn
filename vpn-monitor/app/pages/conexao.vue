@@ -9,8 +9,6 @@ const monitoringConsent = ref(false)
 const loading = ref(true)
 const busy = ref(false)
 const message = ref('')
-const client = useSupabaseClient()
-const config = useRuntimeConfig()
 const oauthResult = useCookie('vpn-oauth-result', { path: '/conexao' })
 const declined = ref(false)
 const failedUpgrade = ref(false)
@@ -100,10 +98,6 @@ async function disconnect() {
     busy.value = false
   }
 }
-async function logout() {
-  await client.auth.signOut()
-  await navigateTo(config.public.vpnAuthUrl, { external: true })
-}
 onMounted(async () => {
   declined.value = oauthResult.value === 'declined'
   failedUpgrade.value = oauthResult.value === 'failed'
@@ -115,15 +109,8 @@ onMounted(async () => {
 <template>
   <main class="min-h-screen bg-default p-4 sm:p-6 text-default">
     <div class="mx-auto max-w-2xl min-w-0 space-y-6 py-4 sm:py-10">
-      <header class="flex flex-wrap items-start justify-between gap-3">
+      <header class="flex flex-wrap items-start gap-3">
         <h1 class="text-2xl font-semibold wrap-anywhere sm:text-3xl">Conexão Twitch</h1>
-        <UButton
-          color="neutral"
-          variant="outline"
-          @click="logout"
-        >
-          Sair
-        </UButton>
       </header>
       <UAlert
         v-if="declined"

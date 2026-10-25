@@ -13,6 +13,7 @@ export default defineConfig({
     include: [
       'packages/auth/tests/**/*.test.ts',
       'packages/contracts/tests/**/*.test.ts',
+      'packages/ui/tests/**/*.test.ts',
       'scripts/phase-2-spike/tests/**/*.test.mjs',
       'vpn-sentry/tests/**/*.test.ts',
       'vpn-monitor/tests/**/*.test.ts',

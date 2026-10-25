@@ -103,7 +103,7 @@ function formatDate(iso: string) {
   >
     <!-- Sticky header -->
     <header
-      class="sticky top-0 z-50 bg-default/90 backdrop-blur-sm border-b"
+      class="border-b bg-default"
       :class="cor.border"
     >
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

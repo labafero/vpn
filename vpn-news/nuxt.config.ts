@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { getSupabaseCookieOptions, VPN_AUTH_COOKIE_PREFIX } from '@vpn/auth'
+import { resolveVpnAppUrls } from '@vpn/ui'
 
 type CitySlugRow = {
   slug: string
@@ -12,6 +13,21 @@ const authCookieEnvironment =
     : process.env.VERCEL_ENV === 'preview'
       ? 'preview'
       : 'development'
+const vpnAppEnvironment =
+  process.env.VERCEL_ENV === 'preview'
+    ? 'preview'
+    : process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production'
+      ? 'production'
+      : 'development'
+const vpnAppUrls = resolveVpnAppUrls(vpnAppEnvironment, {
+  news:
+    process.env.NUXT_PUBLIC_VPN_NEWS_URL ||
+    (process.env.VERCEL_ENV === 'preview' && process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : undefined),
+  site: process.env.NUXT_PUBLIC_VPN_SITE_URL,
+  monitor: process.env.NUXT_PUBLIC_VPN_MONITOR_URL
+})
 
 async function fetchStaticCityRoutes() {
   const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
@@ -55,9 +71,11 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     public: {
-      vpnAuthUrl: process.env.NUXT_PUBLIC_VPN_AUTH_URL || 'https://vpn.labafero.com'
+      vpnAuthUrl: process.env.NUXT_PUBLIC_VPN_AUTH_URL || 'https://vpn.labafero.com',
+      vpnAppUrls
     }
   },
+  build: { transpile: ['@vpn/ui'] },
   routeRules: { '/auth/callback': { ssr: false } },
 
   compatibilityDate: '2026-06-07',
@@ -76,8 +94,7 @@ export default defineNuxtConfig({
       for (const route of cityRoutes) {
         routeRules[route] = {
           ...routeRules[route],
-          prerender: true,
-          noScripts: true
+          prerender: true
         }
       }
 

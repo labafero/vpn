@@ -13,19 +13,11 @@ const pages = [
 
 <template>
   <div class="min-h-screen bg-[#05090c] text-white">
-    <header class="border-b border-white/10 bg-[#05090c]/90">
-      <UContainer class="flex min-h-20 flex-wrap items-center justify-between gap-4 py-4">
-        <NuxtLink
-          to="/"
-          aria-label="VPN Roleplay — início"
-          class="flex min-h-11 items-center"
-        >
-          <VpnBrand />
-        </NuxtLink>
-
+    <main>
+      <UContainer class="max-w-4xl py-12 sm:py-16 lg:py-20">
         <nav
           aria-label="Documentos legais"
-          class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
+          class="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
         >
           <NuxtLink
             v-for="page in pages"
@@ -40,11 +32,7 @@ const pages = [
             {{ page.label }}
           </NuxtLink>
         </nav>
-      </UContainer>
-    </header>
 
-    <main>
-      <UContainer class="max-w-4xl py-12 sm:py-16 lg:py-20">
         <header class="border-b border-white/10 pb-10">
           <NuxtLink
             to="/"

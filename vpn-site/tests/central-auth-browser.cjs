@@ -213,6 +213,33 @@ async function assertProtectedRouteRedirect(page, appUrl, path) {
   assert.equal(returnTo, new URL(path, appUrl).href)
 }
 
+async function assertVpnAppNavigation(page, activeApp, accountEmail) {
+  const navigation = page.getByRole('navigation', { name: 'Navegação VPN' })
+  await navigation.waitFor({ state: 'visible' })
+
+  const appUrls = { Site: siteUrl, News: newsUrl, Monitor: monitorUrl }
+  for (const [label, url] of Object.entries(appUrls)) {
+    const link = navigation.getByRole('link', { name: label, exact: true })
+    assert.equal(await link.getAttribute('href'), url.origin)
+    assert.equal(
+      await link.getAttribute('aria-current'),
+      label.toLowerCase() === activeApp ? 'page' : null
+    )
+  }
+  assert.equal(await navigation.locator('[aria-current="page"]').count(), 1)
+
+  await page.locator('.vpn-app-bar__account-trigger').click()
+  await page.getByText(accountEmail, { exact: true }).waitFor({ state: 'visible' })
+
+  if (activeApp === 'news') {
+    await page.getByText('Abrir redação', { exact: true }).waitFor({ state: 'visible' })
+    await page.getByText('Aparência', { exact: true }).waitFor({ state: 'visible' })
+    const bar = await page.locator('.vpn-app-bar').boundingBox()
+    const dashboard = await page.locator('.editorial-dashboard').boundingBox()
+    assert.ok(bar && dashboard && dashboard.y >= bar.y + bar.height - 1)
+  }
+}
+
 async function run() {
   assertLocalBrowserTargets({ site: siteUrl, monitor: monitorUrl, news: newsUrl })
   const supabase = await readSupabaseStatus()
@@ -251,6 +278,7 @@ async function run() {
     await assertNoRoleRows(supabase, signupId)
 
     await page.goto(siteUrl.href)
+    await assertVpnAppNavigation(page, 'site', confirmationEmail)
     assert.ok(
       (await context.cookies(siteUrl.href)).some((cookie) =>
         cookie.name.startsWith('sb-vpn-auth-token')
@@ -268,7 +296,9 @@ async function run() {
     await submitEmailForm(page, editorEmail, editorialReturn, 'entrar')
     await page.waitForURL((url) => url.origin === newsUrl.origin && url.pathname === '/redacao')
     await page.getByRole('heading', { name: 'Redação' }).waitFor()
+    await assertVpnAppNavigation(page, 'news', editorEmail)
     await page.goto(siteUrl.href)
+    await assertVpnAppNavigation(page, 'site', editorEmail)
     assert.ok(
       (await context.cookies(siteUrl.href)).some((cookie) =>
         cookie.name.startsWith('sb-vpn-auth-token')
@@ -276,11 +306,14 @@ async function run() {
     )
     await page.goto(new URL('/conexao', monitorUrl).href)
     await page.getByRole('heading', { name: 'Conexão Twitch' }).waitFor()
+    await assertVpnAppNavigation(page, 'monitor', editorEmail)
     await page.goto(new URL('/redacao', newsUrl).href)
     await page.getByRole('heading', { name: 'Redação' }).waitFor()
+    await assertVpnAppNavigation(page, 'news', editorEmail)
 
     await page.goto(new URL('/conexao', monitorUrl).href)
     await page.waitForLoadState('networkidle')
+    await page.locator('.vpn-app-bar__account-trigger').click()
     await page.getByRole('button', { name: 'Sair' }).click()
     await page.waitForURL((url) => url.origin === siteUrl.origin)
     assert.equal(

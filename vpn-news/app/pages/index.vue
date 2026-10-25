@@ -52,37 +52,8 @@ function formatDate(iso: string) {
 <template>
   <div
     id="inicio"
-    class="min-h-screen bg-zinc-950 text-white"
+    class="min-h-screen bg-vpn-ink text-white"
   >
-    <!-- Sticky header -->
-    <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-b border-red-600">
-      <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <span class="font-bold text-base tracking-tight">
-          <span class="text-red-500">VPN</span>
-        </span>
-        <div class="flex items-center gap-2">
-          <UButton
-            to="/"
-            size="sm"
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-globe-2"
-            class="hidden sm:inline-flex"
-          >
-            Todas as cidades
-          </UButton>
-          <UButton
-            to="/redacao"
-            size="sm"
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-pen-line"
-            aria-label="Redação"
-          />
-        </div>
-      </div>
-    </header>
-
     <!-- Loading state -->
     <template v-if="loading">
       <USkeleton class="h-64 sm:h-96 w-full rounded-none" />

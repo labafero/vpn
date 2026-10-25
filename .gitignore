@@ -34,3 +34,6 @@ logs
 # oh-my-claudecode runtime state
 .omc/
 !.omc/skills/
+
+# Local Codex brainstorming and implementation workspaces
+.superpowers/

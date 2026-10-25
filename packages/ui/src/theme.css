@@ -1,0 +1,18 @@
+@source "./**/*.{vue,ts}";
+
+@theme static {
+  --color-vpn-red: #ed1c24;
+  --color-vpn-red-soft: #ff6468;
+  --color-vpn-ink: #05090c;
+  --color-vpn-surface: #0b1015;
+  --color-vpn-border: rgb(255 255 255 / 10%);
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --vpn-red: #ed1c24;
+  --vpn-red-soft: #ff6468;
+  --vpn-ink: #05090c;
+  --vpn-surface: #0b1015;
+  --vpn-border: rgb(255 255 255 / 10%);
+}

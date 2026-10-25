@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import VpnBrand from '@vpn/ui/VpnBrand.vue'
 
 const open = ref(false)
 const router = useRouter()
@@ -88,37 +89,34 @@ const searchGroups = computed(() => [
 </script>
 
 <template>
-  <UDashboardGroup
-    unit="rem"
-    class="editorial-dashboard"
-  >
-    <UDashboardSidebar
-      id="dashboard"
-      v-model:open="open"
-      collapsible
-      resizable
+  <div class="min-h-screen bg-vpn-ink text-default">
+    <VpnAppNavigation />
+    <UDashboardGroup
+      unit="rem"
+      class="editorial-dashboard"
     >
-      <template #header>
-        <div class="flex items-center gap-2 px-2 py-1">
-          <span class="text-xl font-bold">VPN Roleplay</span>
-        </div>
-      </template>
+      <UDashboardSidebar
+        id="dashboard"
+        v-model:open="open"
+        collapsible
+        resizable
+      >
+        <template #header>
+          <VpnBrand />
+        </template>
 
-      <template #default>
-        <UDashboardSearchButton label="Buscar" />
-        <UNavigationMenu
-          :items="links"
-          orientation="vertical"
-        />
-      </template>
+        <template #default>
+          <UDashboardSearchButton label="Buscar" />
+          <UNavigationMenu
+            :items="links"
+            orientation="vertical"
+          />
+        </template>
+      </UDashboardSidebar>
 
-      <template #footer>
-        <UserMenu />
-      </template>
-    </UDashboardSidebar>
+      <UDashboardSearch :groups="searchGroups" />
 
-    <UDashboardSearch :groups="searchGroups" />
-
-    <slot />
-  </UDashboardGroup>
+      <slot />
+    </UDashboardGroup>
+  </div>
 </template>

@@ -18,6 +18,7 @@
     "@vpn/auth": "workspace:*",
     "@vpn/contracts": "workspace:*",
     "@vpn/database": "workspace:*",
+    "@vpn/ui": "workspace:*",
     "h3": "1.15.4",
     "nuxt": "^4.4.6",
     "valibot": "^1.4.1"

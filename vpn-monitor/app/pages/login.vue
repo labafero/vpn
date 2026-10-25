@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { buildAuthPortalUrl, resolveAuthCallbackPath } from '@vpn/auth'
 
-definePageMeta({ colorMode: 'dark' })
+definePageMeta({ colorMode: 'dark', layout: false })
 
 const route = useRoute()
 const config = useRuntimeConfig()

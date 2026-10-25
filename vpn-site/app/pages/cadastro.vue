@@ -154,15 +154,7 @@ async function register(event: FormSubmitEvent<SignUpInput>) {
       aria-hidden="true"
     />
 
-    <UContainer class="relative flex w-full max-w-md flex-col items-center gap-8">
-      <NuxtLink
-        to="/"
-        aria-label="VPN Roleplay — início"
-        class="group"
-      >
-        <VpnBrand />
-      </NuxtLink>
-
+    <UContainer class="relative flex w-full max-w-md flex-col items-center gap-6">
       <UCard class="w-full border-default bg-elevated shadow-xl shadow-black/20">
         <UAuthForm
           :schema="schema"

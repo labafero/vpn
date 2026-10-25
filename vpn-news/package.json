@@ -21,6 +21,7 @@
     "@vpn/auth": "workspace:*",
     "@vpn/contracts": "workspace:*",
     "@vpn/database": "workspace:*",
+    "@vpn/ui": "workspace:*",
     "nuxt": "^4.4.6",
     "p5": "^2.3.1",
     "tailwindcss": "^4.3.0",
