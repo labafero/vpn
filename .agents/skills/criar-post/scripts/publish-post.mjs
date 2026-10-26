@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-import { randomUUID } from "node:crypto"
-import { readFile, stat } from "node:fs/promises"
-import { extname, resolve } from "node:path"
+import { randomUUID } from 'node:crypto'
+import { readFile, stat } from 'node:fs/promises'
+import { extname, resolve } from 'node:path'
 
-const BUCKET = "post-media"
+const BUCKET = 'post-media'
 const MAX_COVER_BYTES = 10 * 1024 * 1024
-const VALID_CITIES = new Set(["neon", "dallas", "nordeste", "vice"])
+const VALID_CITIES = new Set(['neon', 'dallas', 'nordeste', 'vice'])
 const MIME_BY_EXTENSION = new Map([
-  [".gif", "image/gif"],
-  [".jpeg", "image/jpeg"],
-  [".jpg", "image/jpeg"],
-  [".png", "image/png"],
-  [".webp", "image/webp"]
+  ['.gif', 'image/gif'],
+  ['.jpeg', 'image/jpeg'],
+  ['.jpg', 'image/jpeg'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp']
 ])
 
 function usage() {
@@ -27,49 +27,49 @@ Variáveis esperadas em .env ou no ambiente:
 }
 
 function parseArgs(argv) {
-  const args = { authorId: "", checkConnection: false, cover: "", dryRun: false, post: "" }
+  const args = { authorId: '', checkConnection: false, cover: '', dryRun: false, post: '' }
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
-    if (arg === "--dry-run") {
+    if (arg === '--dry-run') {
       args.dryRun = true
       continue
     }
-    if (arg === "--check-connection") {
+    if (arg === '--check-connection') {
       args.checkConnection = true
       continue
     }
-    if (["--author-id", "--cover", "--post"].includes(arg)) {
+    if (['--author-id', '--cover', '--post'].includes(arg)) {
       const value = argv[index + 1]
-      if (!value || value.startsWith("--")) throw new Error(`Valor ausente para ${arg}`)
-      args[arg.slice(2).replace("author-id", "authorId")] = value
+      if (!value || value.startsWith('--')) throw new Error(`Valor ausente para ${arg}`)
+      args[arg.slice(2).replace('author-id', 'authorId')] = value
       index += 1
       continue
     }
-    if (arg === "--help" || arg === "-h") {
+    if (arg === '--help' || arg === '-h') {
       console.log(usage())
       process.exit(0)
     }
     throw new Error(`Argumento desconhecido: ${arg}`)
   }
 
-  if (!args.post && !args.checkConnection) throw new Error("Informe --post <post.json>")
+  if (!args.post && !args.checkConnection) throw new Error('Informe --post <post.json>')
   return args
 }
 
 async function loadDotEnv(filePath) {
   let contents
   try {
-    contents = await readFile(filePath, "utf8")
+    contents = await readFile(filePath, 'utf8')
   } catch (error) {
-    if (error?.code === "ENOENT") return
+    if (error?.code === 'ENOENT') return
     throw error
   }
 
   for (const rawLine of contents.split(/\r?\n/)) {
     const line = rawLine.trim()
-    if (!line || line.startsWith("#")) continue
-    const separator = line.indexOf("=")
+    if (!line || line.startsWith('#')) continue
+    const separator = line.indexOf('=')
     if (separator < 1) continue
     const key = line.slice(0, separator).trim()
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key) || process.env[key] !== undefined) continue
@@ -98,21 +98,21 @@ function assertUuid(value, label) {
 }
 
 function validatePost(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("O JSON do post deve ser um objeto")
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('O JSON do post deve ser um objeto')
   }
 
-  const title = typeof value.title === "string" ? value.title.trim() : ""
-  const body = typeof value.body === "string" ? value.body.trim() : ""
-  const cidade = typeof value.cidade === "string" ? value.cidade.trim() : ""
-  const publishedAt = typeof value.published_at === "string" ? value.published_at.trim() : ""
+  const title = typeof value.title === 'string' ? value.title.trim() : ''
+  const body = typeof value.body === 'string' ? value.body.trim() : ''
+  const cidade = typeof value.cidade === 'string' ? value.cidade.trim() : ''
+  const publishedAt = typeof value.published_at === 'string' ? value.published_at.trim() : ''
 
-  if (!title) throw new Error("title é obrigatório")
-  if (!body) throw new Error("body é obrigatório")
-  if (!VALID_CITIES.has(cidade)) throw new Error("cidade deve ser neon, dallas, nordeste ou vice")
-  if (typeof value.destaque !== "boolean") throw new Error("destaque deve ser booleano")
+  if (!title) throw new Error('title é obrigatório')
+  if (!body) throw new Error('body é obrigatório')
+  if (!VALID_CITIES.has(cidade)) throw new Error('cidade deve ser neon, dallas, nordeste ou vice')
+  if (typeof value.destaque !== 'boolean') throw new Error('destaque deve ser booleano')
   if (!publishedAt || Number.isNaN(Date.parse(publishedAt))) {
-    throw new Error("published_at deve ser uma data ISO 8601 válida")
+    throw new Error('published_at deve ser uma data ISO 8601 válida')
   }
 
   return {
@@ -129,11 +129,11 @@ async function loadCover(filePath) {
   const absolutePath = resolve(filePath)
   const extension = extname(absolutePath).toLowerCase()
   const contentType = MIME_BY_EXTENSION.get(extension)
-  if (!contentType) throw new Error("A capa deve ser PNG, JPEG, GIF ou WebP")
+  if (!contentType) throw new Error('A capa deve ser PNG, JPEG, GIF ou WebP')
 
   const metadata = await stat(absolutePath)
-  if (!metadata.isFile()) throw new Error("O caminho da capa não aponta para um arquivo")
-  if (metadata.size > MAX_COVER_BYTES) throw new Error("A capa excede o limite de 10 MB")
+  if (!metadata.isFile()) throw new Error('O caminho da capa não aponta para um arquivo')
+  if (metadata.size > MAX_COVER_BYTES) throw new Error('A capa excede o limite de 10 MB')
 
   return {
     absolutePath,
@@ -144,7 +144,7 @@ async function loadCover(filePath) {
 }
 
 function encodeObjectPath(path) {
-  return path.split("/").map(encodeURIComponent).join("/")
+  return path.split('/').map(encodeURIComponent).join('/')
 }
 
 async function request(url, options, label) {
@@ -160,8 +160,9 @@ async function request(url, options, label) {
   }
 
   if (!response.ok) {
-    const detail = typeof body === "string" ? body : body?.message || body?.error || JSON.stringify(body)
-    throw new Error(`${label} falhou (${response.status}): ${detail || "sem detalhes"}`)
+    const detail =
+      typeof body === 'string' ? body : body?.message || body?.error || JSON.stringify(body)
+    throw new Error(`${label} falhou (${response.status}): ${detail || 'sem detalhes'}`)
   }
   return body
 }
@@ -176,20 +177,20 @@ function authHeaders(secretKey, extra = {}) {
 
 async function resolveAuthorId(baseUrl, secretKey, explicitAuthorId) {
   const configured = explicitAuthorId || process.env.SUPABASE_POST_AUTHOR_ID?.trim()
-  if (configured) return assertUuid(configured, "author-id")
+  if (configured) return assertUuid(configured, 'author-id')
 
   const data = await request(
     `${baseUrl}/auth/v1/admin/users?page=1&per_page=2`,
     { headers: authHeaders(secretKey) },
-    "Consulta de autores"
+    'Consulta de autores'
   )
   const users = Array.isArray(data?.users) ? data.users : []
-  if (users.length === 1) return assertUuid(users[0].id, "ID do autor encontrado")
+  if (users.length === 1) return assertUuid(users[0].id, 'ID do autor encontrado')
   if (users.length === 0) {
-    throw new Error("Nenhum usuário foi encontrado no Supabase para assumir a autoria do post")
+    throw new Error('Nenhum usuário foi encontrado no Supabase para assumir a autoria do post')
   }
   throw new Error(
-    "Há mais de um usuário no Supabase. Configure SUPABASE_POST_AUTHOR_ID no .env ou informe --author-id"
+    'Há mais de um usuário no Supabase. Configure SUPABASE_POST_AUTHOR_ID no .env ou informe --author-id'
   )
 }
 
@@ -200,13 +201,13 @@ async function uploadCover(baseUrl, secretKey, authorId, cover) {
     {
       body: cover.bytes,
       headers: authHeaders(secretKey, {
-        "cache-control": "max-age=3600",
-        "content-type": cover.contentType,
-        "x-upsert": "false"
+        'cache-control': 'max-age=3600',
+        'content-type': cover.contentType,
+        'x-upsert': 'false'
       }),
-      method: "POST"
+      method: 'POST'
     },
-    "Upload da capa"
+    'Upload da capa'
   )
   return {
     objectPath,
@@ -219,10 +220,10 @@ async function removeCover(baseUrl, secretKey, objectPath) {
     `${baseUrl}/storage/v1/object/${BUCKET}`,
     {
       body: JSON.stringify({ prefixes: [objectPath] }),
-      headers: authHeaders(secretKey, { "content-type": "application/json" }),
-      method: "DELETE"
+      headers: authHeaders(secretKey, { 'content-type': 'application/json' }),
+      method: 'DELETE'
     },
-    "Rollback da capa"
+    'Rollback da capa'
   )
 }
 
@@ -232,48 +233,57 @@ async function insertPost(baseUrl, secretKey, authorId, post, coverUrl) {
     {
       body: JSON.stringify({ ...post, cover_url: coverUrl, user_id: authorId }),
       headers: authHeaders(secretKey, {
-        "content-type": "application/json",
-        Prefer: "return=representation"
+        'content-type': 'application/json',
+        Prefer: 'return=representation'
       }),
-      method: "POST"
+      method: 'POST'
     },
-    "Publicação do post"
+    'Publicação do post'
   )
   if (!Array.isArray(data) || data.length !== 1) {
-    throw new Error("O Supabase não retornou o registro publicado")
+    throw new Error('O Supabase não retornou o registro publicado')
   }
   return data[0]
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
-  await loadDotEnv(resolve(".env"))
+  await loadDotEnv(resolve('.env'))
 
   if (args.checkConnection) {
-    const baseUrl = requireEnv("NUXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "")
-    const secretKey = requireEnv("NUXT_SUPABASE_SECRET_KEY")
+    const baseUrl = requireEnv('NUXT_PUBLIC_SUPABASE_URL').replace(/\/$/, '')
+    const secretKey = requireEnv('NUXT_SUPABASE_SECRET_KEY')
     const authorId = await resolveAuthorId(baseUrl, secretKey, args.authorId)
     console.log(JSON.stringify({ author_id: authorId, connected: true }, null, 2))
     return
   }
 
-  const post = validatePost(JSON.parse(await readFile(resolve(args.post), "utf8")))
+  const post = validatePost(JSON.parse(await readFile(resolve(args.post), 'utf8')))
   const cover = await loadCover(args.cover)
 
   if (args.dryRun) {
-    const authorId = args.authorId || process.env.SUPABASE_POST_AUTHOR_ID?.trim() || "resolvido no envio"
-    console.log(JSON.stringify({ authorId, cover: cover?.absolutePath || null, post, valid: true }, null, 2))
+    const authorId =
+      args.authorId || process.env.SUPABASE_POST_AUTHOR_ID?.trim() || 'resolvido no envio'
+    console.log(
+      JSON.stringify({ authorId, cover: cover?.absolutePath || null, post, valid: true }, null, 2)
+    )
     return
   }
 
-  const baseUrl = requireEnv("NUXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "")
-  const secretKey = requireEnv("NUXT_SUPABASE_SECRET_KEY")
+  const baseUrl = requireEnv('NUXT_PUBLIC_SUPABASE_URL').replace(/\/$/, '')
+  const secretKey = requireEnv('NUXT_SUPABASE_SECRET_KEY')
   const authorId = await resolveAuthorId(baseUrl, secretKey, args.authorId)
   let uploadedCover = null
 
   try {
     if (cover) uploadedCover = await uploadCover(baseUrl, secretKey, authorId, cover)
-    const created = await insertPost(baseUrl, secretKey, authorId, post, uploadedCover?.publicUrl || "")
+    const created = await insertPost(
+      baseUrl,
+      secretKey,
+      authorId,
+      post,
+      uploadedCover?.publicUrl || ''
+    )
     console.log(
       JSON.stringify(
         {
@@ -291,7 +301,9 @@ async function main() {
       try {
         await removeCover(baseUrl, secretKey, uploadedCover.objectPath)
       } catch (rollbackError) {
-        throw new Error(`${error.message}. O rollback da capa também falhou: ${rollbackError.message}`)
+        throw new Error(
+          `${error.message}. O rollback da capa também falhou: ${rollbackError.message}`
+        )
       }
     }
     throw error
