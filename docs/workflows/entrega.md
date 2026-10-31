@@ -4,9 +4,9 @@ Rotina para agentes trabalhando neste repositório. Preservar o objetivo e as au
 
 ## Retomar e planejar
 
-Ler AGENTS.md, a parte relevante de PRD.md/DESIGN.md, o plano em docs/superpowers/plans e seu registro de validação. Consultar branch, worktree, diff, PR e CI atuais. Identificar a primeira etapa ainda incompleta. Não refazer design ou implementação já aprovados. Aplicar as skills relevantes e usar o nível de planejamento proporcional à mudança.
+Ler AGENTS.md, o PRD do app em `docs/product/`, ADRs relevantes em `docs/adr/`, `PRD.md` geral quando o escopo cruzar apps, `DESIGN.md` para mudanças visuais e evidências atuais em `docs/validation/`. Consultar branch, worktree, diff, PR e CI. Identificar a primeira etapa incompleta. Não refazer decisões ou implementação já aprovadas. Aplicar skills relevantes e usar planejamento proporcional à mudança.
 
-O plano deve definir resultado observável, limites de escopo, dependências, critérios de conclusão e destino da entrega. Distinguir aprovação do plano, push da branch, preview, merge e alteração de produção. Uma autorização nova do usuário pode ampliar o escopo; não inferir que aprovação de código autoriza mudanças em produção.
+Mudanças complexas podem usar um plano de execução curto com resultado observável, limites, dependências, critérios e destino. Plano não é fonte durável de produto ou arquitetura: ao concluir a entrega, atualizar PRD/ADR/evidência correspondente e remover o plano. Distinguir aprovação de código, push, preview, merge e produção; uma autorização não implica as demais.
 
 Para preparar máquina/acessos, usar [preparar ambiente](preparar-ambiente.md) via `vpn-environment`. Para preview em PR, produção ou acompanhamento de deploy existente, usar [publicação](publicacao.md) via `vpn-release`. Esses procedimentos detalham a execução sem substituir as autorizações e evidências deste fluxo.
 
@@ -28,14 +28,14 @@ Mudanças em autenticação, sessão ou autorização devem provar o percurso in
 
 Separar evidências:
 
-| Etapa | Evidência necessária |
-|---|---|
-| Código local | Comandos, resultado, commit ou diff verificado |
-| Integração local | Serviços reais envolvidos, resposta observada e limpeza das fixtures |
-| Preview | URL, commit publicado, configuração do destino e prova HTTP/UI |
-| Banco remoto | Projeto confirmado, migrations existentes/pendentes, execução e verificação posterior |
-| Job remoto | Agenda registrada e resposta HTTP da execução, não apenas enfileiramento |
-| Produção | Autorização compatível, resultado real e procedimento de reversão |
+| Etapa            | Evidência necessária                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Código local     | Comandos, resultado, commit ou diff verificado                                        |
+| Integração local | Serviços reais envolvidos, resposta observada e limpeza das fixtures                  |
+| Preview          | URL, commit publicado, configuração do destino e prova HTTP/UI                        |
+| Banco remoto     | Projeto confirmado, migrations existentes/pendentes, execução e verificação posterior |
+| Job remoto       | Agenda registrada e resposta HTTP da execução, não apenas enfileiramento              |
+| Produção         | Autorização compatível, resultado real e procedimento de reversão                     |
 
 Sucesso local não substitui prova remota. Sanitização de logs da aplicação não prova ausência de metadados nos logs da plataforma. Falha ou trabalho adiado não conta como sucesso parcial suficiente para fechar a fase.
 
@@ -47,7 +47,7 @@ Atualizar a PR em torno da implementação final e anexá-la à tarefa. Não mes
 
 ## Deixar continuidade e fechar
 
-No registro de validação da fase, manter: objetivo, plano e PRs, branch/worktree, autorizações vigentes, ambiente confirmado, evidências com data/commit, pendências por destino e próxima ação concreta. Guardar somente metadados operacionais necessários, nunca credenciais, URLs com códigos OAuth ou dados pessoais de testes.
+Em `docs/validation/`, manter somente evidências úteis para reproduzir ou auditar integração, publicação, ambiente e pendências. Registrar objetivo, PR/commit, autorização, ambiente confirmado, resultado e próxima ação; remover detalhes transitórios quando deixarem de orientar uma operação. Guardar somente metadados operacionais necessários, nunca credenciais, URLs com códigos OAuth ou dados pessoais de testes.
 
 Na entrega ao usuário, informar o que mudou, o que passou, o que permanece aberto e a ação que depende dele. Marcar uma fase concluída apenas quando seus critérios estiverem atendidos. Se depender de login ou decisão externa, preservar o resultado revisável e o ponto de retomada.
 

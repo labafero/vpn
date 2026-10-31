@@ -15,16 +15,21 @@ eventos e evidências.
 
 ## Arquitetura do monorepo
 
+Este documento mantém a visão geral do ecossistema. Requisitos específicos ficam
+nos [PRDs de News, Monitor e Sentry](docs/product/README.md); decisões
+transversais aceitas ficam em [ADRs](docs/adr/).
+
 O produto é organizado em projetos independentes que compartilham contratos e
 tipos:
 
-| Projeto | Responsabilidade | Superfície |
-| --- | --- | --- |
-| `vpn-news` | Portal público, redação editorial e overlays | Pública e editorial |
-| `vpn-monitor` | Sessões monitoradas, convites, eventos e alertas | Privada |
-| `vpn-sentry` | Backend privado, integrações com provedores e workers de processamento | Privada, API e execução assíncrona |
-| `packages/contracts` | Contratos REST/OpenAPI compartilhados entre aplicações | Compartilhada |
-| `packages/database` | Tipos gerados para o banco de dados | Compartilhada |
+| Projeto              | Responsabilidade                                                       | Superfície                         |
+| -------------------- | ---------------------------------------------------------------------- | ---------------------------------- |
+| `vpn-site`           | Portal institucional e entrada de autenticação central                 | Pública                            |
+| `vpn-news`           | Portal público, redação editorial e overlays                           | Pública e editorial                |
+| `vpn-monitor`        | Sessões monitoradas, convites, eventos e alertas                       | Privada                            |
+| `vpn-sentry`         | Backend privado, integrações com provedores e workers de processamento | Privada, API e execução assíncrona |
+| `packages/contracts` | Contratos REST/OpenAPI compartilhados entre aplicações                 | Compartilhada                      |
+| `packages/database`  | Tipos gerados para o banco de dados                                    | Compartilhada                      |
 
 As migrações, políticas e configuração do Supabase permanecem em `supabase/`
 na raiz. O `vpn-news` mantém o fluxo editorial já existente; o `vpn-monitor`
@@ -65,14 +70,14 @@ identificar manualmente os momentos que podem exigir atenção ou virar matéria
 
 ## Públicos
 
-| Público | Necessidade |
-| --- | --- |
-| Streamer | Conectar sua conta Twitch, autorizar monitoramento e controlar acessos |
-| Dono da transmissão | Receber alertas e gerenciar sua lista de transmissão |
-| Administrador VPN | Monitorar sinais autorizados e receber todos os alertas |
-| Contato autorizado | Receber avisos de transmissão e possíveis riscos |
-| Redação | Revisar eventos, clips e evidências para criar conteúdo |
-| Comunidade FiveM | Receber notificações por Discord e, futuramente, dentro do jogo |
+| Público             | Necessidade                                                            |
+| ------------------- | ---------------------------------------------------------------------- |
+| Streamer            | Conectar sua conta Twitch, autorizar monitoramento e controlar acessos |
+| Dono da transmissão | Receber alertas e gerenciar sua lista de transmissão                   |
+| Administrador VPN   | Monitorar sinais autorizados e receber todos os alertas                |
+| Contato autorizado  | Receber avisos de transmissão e possíveis riscos                       |
+| Redação             | Revisar eventos, clips e evidências para criar conteúdo                |
+| Comunidade FiveM    | Receber notificações por Discord e, futuramente, dentro do jogo        |
 
 ## Privacidade e modelo de acesso
 
@@ -153,6 +158,11 @@ primeiro MVP, mas o modelo de eventos deve permitir esses destinos.
 
 A validação inicial será feita com lives gravadas e clips, antes de exigir
 análise contínua em tempo real.
+
+O produto VPN Monitor tem como núcleo detectar frases-gatilho e apresentar
+ocorrências com timestamp para revisão humana. Quando captions nativas da Twitch
+estiverem disponíveis, o Sentry deve priorizá-las para evitar ASR; Whisper é
+fallback sujeito a consentimento e capacidade, não o objetivo do produto.
 
 O primeiro protótipo deve priorizar recursos gratuitos e regras simples:
 

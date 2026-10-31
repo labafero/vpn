@@ -1,30 +1,30 @@
 # Fundação da VPN
 
-Decisões do plano da Fase 0 aprovado em 6 de outubro de 2026. VPN identifica a rede privada de monitoramento de roleplay; não um túnel de rede.
+Referência técnica corrente para identidade, acesso, consentimento e retenção. Decisões transversais: [ADR-0001](../adr/0001-product-surfaces.md), [ADR-0002](../adr/0002-identidade-consentimento-e-dados-privados.md) e [ADR-0003](../adr/0003-deteccao-de-clips.md). VPN identifica a rede privada de monitoramento de roleplay; não um túnel de rede.
 
 ## Fronteiras
 
-| Superfície | Responsabilidade | Limite |
-| --- | --- | --- |
-| vpn-news | Matérias, redação, cidades e overlays | Não publica transmissões ou credenciais privadas |
-| vpn-monitor | Login VPN, consentimento e conexão Twitch; central privada de sessões na Fase 1 | Browser consome proxy de mesma origem, nunca banco privado |
-| vpn-sentry | Autorização, OAuth, persistência privada e workers | Confere identidade e dono em cada operação |
-| vpn-site | Site institucional existente | Sem mudança nesta fase |
-| packages/contracts | OpenAPI e tipos gerados de API | Fonte de formatos compartilhados |
-| packages/database | Tipos Supabase gerados | Não editar manualmente |
+| Superfície         | Responsabilidade                                                                               | Limite                                                     |
+| ------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| vpn-news           | Matérias, redação, cidades e overlays                                                          | Não publica transmissões ou credenciais privadas           |
+| vpn-monitor        | Experiência autenticada para consentimento, conexão Twitch, sessões, clips e revisão de sinais | Browser consome proxy de mesma origem, nunca banco privado |
+| vpn-sentry         | Autorização, OAuth, persistência privada e workers                                             | Confere identidade e dono em cada operação                 |
+| vpn-site           | Site institucional existente                                                                   | Sem mudança nesta fase                                     |
+| packages/contracts | OpenAPI e tipos gerados de API                                                                 | Fonte de formatos compartilhados                           |
+| packages/database  | Tipos Supabase gerados                                                                         | Não editar manualmente                                     |
 
 Twitch é uma vinculação a uma conta VPN autenticada por Supabase, não um método alternativo de login. Conectar não habilita coleta. Na Fase 0 `monitoring_enabled` permanece falso por constraint.
 
 ## Acesso
 
-| Ação | Público/convidado | Membro | Dono | vpn_admin |
-| --- | --- | --- | --- | --- |
-| Ler notícias públicas | Sim | Sim | Sim | Sim |
-| Ler conexão/canal privado | Não | Não | Próprios | Todos os metadados |
-| Conectar/desconectar Twitch | Não | Própria vinculação | Própria vinculação | Somente a própria |
-| Conceder/retirar consentimento | Não | Próprio | Próprio | Somente o próprio |
-| Ler tokens | Não | Não | Não | Não |
-| Alterar papel global | Não | Não | Não | Operação administrativa confiável fora da API |
+| Ação                           | Público/convidado | Membro             | Dono               | vpn_admin                                     |
+| ------------------------------ | ----------------- | ------------------ | ------------------ | --------------------------------------------- |
+| Ler notícias públicas          | Sim               | Sim                | Sim                | Sim                                           |
+| Ler conexão/canal privado      | Não               | Não                | Próprios           | Todos os metadados                            |
+| Conectar/desconectar Twitch    | Não               | Própria vinculação | Própria vinculação | Somente a própria                             |
+| Conceder/retirar consentimento | Não               | Próprio            | Próprio            | Somente o próprio                             |
+| Ler tokens                     | Não               | Não                | Não                | Não                                           |
+| Alterar papel global           | Não               | Não                | Não                | Operação administrativa confiável fora da API |
 
 `auth.users` é a identidade canônica. `public.user_roles` guarda somente `member` ou `vpn_admin`; ausência de registro significa `member`. Dono e convidado são relações, não papéis globais. Papéis de redação não concedem acesso administrativo VPN. A autorização consulta a atribuição atual; `user_metadata` e claims desatualizadas não decidem privilégios.
 
@@ -41,15 +41,15 @@ RLS protege todas as tabelas públicas. Clientes autenticados podem somente ler 
 
 ## Evolução conceitual
 
-| Entidade futura | Relações e responsabilidade | Fase |
-| --- | --- | --- |
-| `private.monitoring_sessions` | Canal, dono, início/fim e consentimento que permitiu coleta; leitura apenas pelo Sentry | 1 |
-| `private.access_invites` | Hash do convite de uso único, sessão/canal, emissor, expiração e revogação | 1 |
-| notification_recipients | Dono, destinatário VPN/Discord e autorização | 2/4 |
-| monitoring_events | Sessão, origem, versão de regra, confiança e estado de possível risco | 2 |
-| evidence | Evento/sessão, referência temporal, mídia privada e expiração | 2 |
-| notification_deliveries | Evento, destinatário, canal, tentativa e resultado | 2 |
-| editorial_items | Evento/evidência e matéria existente; publicação exige revisão | 4 |
+| Entidade futura               | Relações e responsabilidade                                                             | Fase |
+| ----------------------------- | --------------------------------------------------------------------------------------- | ---- |
+| `private.monitoring_sessions` | Canal, dono, início/fim e consentimento que permitiu coleta; leitura apenas pelo Sentry | 1    |
+| `private.access_invites`      | Hash do convite de uso único, sessão/canal, emissor, expiração e revogação              | 1    |
+| notification_recipients       | Dono, destinatário VPN/Discord e autorização                                            | 2/4  |
+| monitoring_events             | Sessão, origem, versão de regra, confiança e estado de possível risco                   | 2    |
+| evidence                      | Evento/sessão, referência temporal, mídia privada e expiração                           | 2    |
+| notification_deliveries       | Evento, destinatário, canal, tentativa e resultado                                      | 2    |
+| editorial_items               | Evento/evidência e matéria existente; publicação exige revisão                          | 4    |
 
 Essas entidades não recebem tabelas ou endpoints nesta fase. Convites vencidos/revogados não concederão acesso; escopos não poderão ampliar autorização do emissor. Nenhum dado de monitoramento chega ao portal por associação implícita.
 
@@ -67,9 +67,9 @@ Após o prazo de revogação, `canReconnect=true` permite nova autorização com
 
 ## Retenção e exclusão
 
-### Clips da Fase 2 — issue #14
+### Clips e processamento
 
-Consentimento de clip não decorre de `monitoring-v1` ou `monitoring-v2`. O streamer autoriza separadamente o envio manual e/ou a captura agendada. Cada submissão aponta para `public.channels`; o Sentry deriva o dono por essa relação, sem confiar em um `owner_id` recebido do cliente. A chave `(channel_id, twitch_clip_id)` impede duplicatas.
+Consentimento de clip não decorre de `monitoring-v1` ou `monitoring-v2`. O streamer autoriza separadamente o envio manual e/ou a captura agendada. Cada submissão aponta para `public.channels`; o Sentry deriva o dono por essa relação, sem confiar em um `owner_id` recebido do cliente. A chave `(channel_id, twitch_clip_id)` impede duplicatas. A ordem de fonte e os limites do piloto estão no ADR-0003.
 
 Enquanto aguarda capacidade, uma referência permanece pendente sem expiração automática. Não guardar MP4, áudio, transcrição ou URL temporária da Twitch nesta etapa. Estados terminais mantêm apenas metadados mínimos por 90 dias depois de `finished_at`; a rotina `private.purge_expired_clip_submissions` remove apenas estados terminais vencidos, preservando registros pendentes. O SQL para agendar a rotina fica em `supabase/operations/schedule-clip-retention.sql` e requer ativação operacional separada.
 
@@ -79,14 +79,15 @@ O vínculo OAuth usa `monitoring-v1` e não ativa coleta. O dono precisa aceitar
 
 Sessões, hashes de convites de uso único, subscriptions e IDs deduplicados ficam em `private`, fora da Data API; somente o papel `vpn_sentry` tem acesso ao banco. Sentry autoriza dono, administrador ou convidado autenticado por sessão, revalidando concessão e sessão ativa a cada leitura. Desativar ou perder a conexão encerra sessões e revoga convites em transação; limpeza de subscriptions remotas é retentada pelo Cron.
 
-| Categoria | Prazo | Executor |
-| --- | --- | --- |
-| Transação OAuth | Até 24 horas após expiração | Worker Sentry |
-| Credenciais válidas | Enquanto conexão autorizada | Sentry |
-| Credencial de revogação pendente | Até 24 horas após retirada | Worker Sentry |
-| Consentimento e metadados | Enquanto conta existir; no máximo 30 dias após solicitação de exclusão | Operação de exclusão Sentry |
-| Mídia futura | Proposta de 30 dias; revisar antes da Fase 2 | Worker futuro |
-| Eventos futuros | Proposta de 90 dias; revisar antes da Fase 2 | Worker futuro |
+| Categoria                          | Prazo                                                                  | Executor                    |
+| ---------------------------------- | ---------------------------------------------------------------------- | --------------------------- |
+| Transação OAuth                    | Até 24 horas após expiração                                            | Worker Sentry               |
+| Credenciais válidas                | Enquanto conexão autorizada                                            | Sentry                      |
+| Credencial de revogação pendente   | Até 24 horas após retirada                                             | Worker Sentry               |
+| Consentimento e metadados          | Enquanto conta existir; no máximo 30 dias após solicitação de exclusão | Operação de exclusão Sentry |
+| Mídia/transcrição de processamento | Temporária durante o job; não persistir por padrão                     | Worker Sentry               |
+| Resultados mínimos de clip         | Conforme estado; terminais por 90 dias após `finished_at`              | Sentry e rotina de retenção |
+| Eventos de monitoramento futuro    | Definir na decisão do fluxo de eventos antes de persistir              | A definir                   |
 
 Na Fase 0, exclusão da conta é uma operação administrativa: primeiro retirar autorização e tentar revogar todas as conexões, aguardar resolução/prazo, depois excluir a conta Supabase. Exclusão direta em `auth.users` faz cascade e remove credenciais locais, mas não revoga Twitch; esse caminho não atende o procedimento. Os 30 dias são teto, não obrigação de reter: cascade imediato após revogação é permitido. Publicação editorial não prolonga automaticamente retenção de evidências.
 
