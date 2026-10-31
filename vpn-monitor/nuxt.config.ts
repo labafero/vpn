@@ -25,7 +25,8 @@ const authCookieEnvironment =
       : 'development'
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxtjs/supabase'],
+  extends: ['../packages/ui'],
+  modules: ['@nuxt/eslint', '@nuxtjs/supabase'],
   compatibilityDate: '2026-06-07',
   supabase: {
     redirect: false,
@@ -35,7 +36,6 @@ export default defineNuxtConfig({
     clientOptions: { auth: { detectSessionInUrl: false } }
   },
   colorMode: { preference: 'dark' },
-  css: ['~/assets/css/main.css'],
   build: { transpile: ['@vpn/ui'] },
   runtimeConfig: {
     sentryUrl: '',

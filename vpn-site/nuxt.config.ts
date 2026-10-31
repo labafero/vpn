@@ -26,7 +26,8 @@ const authCookieEnvironment =
       : 'development'
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxtjs/supabase'],
+  extends: ['../packages/ui'],
+  modules: ['@nuxt/eslint', '@nuxtjs/supabase'],
   devtools: { enabled: false },
   css: ['~/assets/css/main.css'],
   runtimeConfig: {

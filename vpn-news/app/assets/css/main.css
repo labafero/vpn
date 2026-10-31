@@ -1,9 +1,4 @@
-@import 'tailwindcss';
-@import '@vpn/ui/theme.css';
-@import '@nuxt/ui';
-
 :root {
-  --font-sans: 'Inter', sans-serif;
   --font-breaking: 'Oswald', sans-serif;
 }
 
