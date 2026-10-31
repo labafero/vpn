@@ -2,9 +2,9 @@
 
 ## Escopo e autorização
 
-Planos e specs aprovados em 10/10/2026. Base compartilhada entre usuários autorizados da redação. Implementação direta nesta sessão; autorização cobre código e integração local. Em 10/10/2026, o usuário escolheu publicar a branch e criar a PR (opção 2). Esta autorização cobre push e criação da PR contra main, incluindo automações disparadas pela publicação; não autoriza atribuição de membros reais, migration remota, merge ou produção. Issues remotas permanecem abertas.
+Registro histórico da entrega das issues editoriais #1–#3. Os requisitos atuais ficam no [PRD de News](../product/news.md); decisões transversais ficam nos ADRs. A implementação foi integrada pela PR #8. Este arquivo preserva evidências e contexto operacional da entrega, não seu plano de execução.
 
-Plano coordenador: `docs/superpowers/plans/2026-10-10-issues-editoriais.md`. Worktree `C:/Users/anils/.codex/worktrees/issues-editoriais/vpn`, branch `codex/issues-editoriais`, base `e797899`. Documentação de DNS no checkout original preservada fora deste lote.
+Worktree original: `C:/Users/anils/.codex/worktrees/issues-editoriais/vpn`, branch `codex/issues-editoriais`, base `e797899`. Documentação de DNS no checkout original preservada fora deste lote.
 
 ## Resultado
 
@@ -22,18 +22,18 @@ Tipos de banco regenerados pelo CLI para public/private/graphql_public, sem edi�
 
 ## Evidências de 10/10/2026
 
-| Verificação | Resultado |
-|---|---|
-| `pnpm lint` | PASS, todos os workspaces |
-| `pnpm typecheck` com variáveis públicas do Supabase local | PASS, todos os workspaces |
-| `pnpm contracts:check` | PASS |
-| `pnpm test:foundation` | PASS, 92 testes em 21 arquivos |
-| `pnpm dlx supabase@2.119.0 test db --workdir .superpowers/runtime` | PASS, 68 testes em 6 arquivos |
-| `pnpm build` com Supabase local | PASS, todos os workspaces |
-| `git diff --check` | PASS |
-| Advisors locais, nível warn, fail-on error | Sem ERROR; avisos existentes sobre search_path, RLS initplan/permissivas e city_seasons; nenhum finding nas tabelas novas |
-| `supabase/operations/editorial-preflight.sql` no banco local | PASS, somente leitura; zero dados incompatíveis na base local vazia após limpeza |
-| Roteiro browser versionado contra build de produção local | PASS, 12 grupos de aceitação e limpeza das fixtures |
+| Verificação                                                        | Resultado                                                                                                                 |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`                                                        | PASS, todos os workspaces                                                                                                 |
+| `pnpm typecheck` com variáveis públicas do Supabase local          | PASS, todos os workspaces                                                                                                 |
+| `pnpm contracts:check`                                             | PASS                                                                                                                      |
+| `pnpm test:foundation`                                             | PASS, 92 testes em 21 arquivos                                                                                            |
+| `pnpm dlx supabase@2.119.0 test db --workdir .superpowers/runtime` | PASS, 68 testes em 6 arquivos                                                                                             |
+| `pnpm build` com Supabase local                                    | PASS, todos os workspaces                                                                                                 |
+| `git diff --check`                                                 | PASS                                                                                                                      |
+| Advisors locais, nível warn, fail-on error                         | Sem ERROR; avisos existentes sobre search_path, RLS initplan/permissivas e city_seasons; nenhum finding nas tabelas novas |
+| `supabase/operations/editorial-preflight.sql` no banco local       | PASS, somente leitura; zero dados incompatíveis na base local vazia após limpeza                                          |
+| Roteiro browser versionado contra build de produção local          | PASS, 12 grupos de aceitação e limpeza das fixtures                                                                       |
 
 pgTAP novo: acesso editorial 17, catálogo/valores 13, overlay 8 e relações 8. Casos executados antes das migrations demonstraram RED; depois da aplicação local, GREEN. Cobertura: anon, não editor, dois editores, revogação, autopromoção, autoria, notas alheias, precisão/FK/imutabilidade, deduplicação/limite/cidade/broadcaster, relações e cascade. As suites anteriores da fundação continuam passando.
 

@@ -23,6 +23,8 @@ Pipeline de CI: `lint → format:check → typecheck → contracts:check → tes
 
 **Monorepo pnpm** com quatro projetos Nuxt 4 (incluindo o site institucional vpn-site) e pacotes compartilhados. `vpn-news` usa a convenção de diretório `app/`; backend e Auth são Supabase. UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.
 
+Fonte de produto: [PRD geral](PRD.md), [PRDs por app](docs/product/README.md) e [ADRs aceitas](docs/adr/). Detalhes técnicos de papéis, consentimento e retenção permanecem em [foundation](docs/architecture/foundation.md). `DESIGN.md` é a referência do sistema visual compartilhado.
+
 ### Rotas
 
 Duas superfícies distintas:
@@ -90,7 +92,7 @@ Duas superfícies distintas:
 ## Forma de trabalho
 
 - **Não sugerir atalhos ou workarounds** quando o problema real ainda não foi resolvido. Diagnosticar a causa raiz e resolver corretamente.
-- Para planejar, executar, retomar ou entregar uma fase, seguir [docs/workflows/entrega.md](docs/workflows/entrega.md). Recuperar plano, autorizações e evidências existentes antes de propor um novo plano ou repetir perguntas.
+- Para planejar, executar, retomar ou entregar uma fase, seguir [docs/workflows/entrega.md](docs/workflows/entrega.md). Recuperar PRD do app, ADRs relevantes, autorizações e evidências antes de propor trabalho. Planos de execução são temporários; não mantê-los como requisitos depois da entrega.
 - Para descobrir ambientes e acessos, consultar [docs/operations/environments.md](docs/operations/environments.md) e verificar CLI/API/MCP antes de pedir nomes ou URLs ao usuário. Revalidar o registro na conta; não tratá-lo como estado atual garantido.
 - Para preparar uma máquina, autenticar ferramentas ou diagnosticar o ambiente local, usar [vpn-environment](.agents/skills/vpn-environment/SKILL.md).
 - Para deploy Vercel, preview em PR, acompanhamento/status de deployment ou validação da UI publicada, usar [vpn-release](.agents/skills/vpn-release/SKILL.md) e [docs/workflows/publicacao.md](docs/workflows/publicacao.md). Essas instruções específicas do VPN complementam as skills de fornecedores; preservar autorizações já dadas e o destino pedido pelo usuário.
