@@ -1,3 +1,40 @@
+<script setup lang="ts">
+const config = useRuntimeConfig()
+const monitorUrl = (config.public.vpnAppUrls as { monitor: string }).monitor
+
+useHead({ title: 'VPN Sentry' })
+
+onMounted(() => {
+  window.location.replace(monitorUrl)
+})
+</script>
+
 <template>
-  <div>VPN Sentry</div>
+  <main class="redirect-page">
+    <p>Redirecionando para o VPN Monitor…</p>
+    <a :href="monitorUrl">Clique aqui se o redirecionamento não acontecer.</a>
+  </main>
 </template>
+
+<style scoped>
+.redirect-page {
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: #05090c;
+  color: #fff;
+  font-family: Inter, sans-serif;
+  text-align: center;
+}
+
+.redirect-page p {
+  margin: 0;
+}
+
+.redirect-page a {
+  color: #67e8f9;
+}
+</style>
