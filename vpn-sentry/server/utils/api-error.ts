@@ -9,11 +9,15 @@ const messages = {
   404: ['NOT_FOUND', 'O conteúdo solicitado não está disponível.'],
   409: ['CONNECTION_CONFLICT', 'Desconecte o vínculo existente antes de conectar outro canal.'],
   410: ['GONE', 'Este convite expirou ou já foi utilizado.'],
+  429: [
+    'RATE_LIMITED',
+    'A fila de transcrição atingiu o limite. Aguarde uma vaga e tente novamente.'
+  ],
   503: ['SERVICE_UNAVAILABLE', 'Serviço temporariamente indisponível. Tente novamente.']
 } as const
 
 export class FoundationError extends Error {
-  constructor(public statusCode: 400 | 401 | 403 | 404 | 409 | 410 | 503) {
+  constructor(public statusCode: 400 | 401 | 403 | 404 | 409 | 410 | 429 | 503) {
     super(messages[statusCode][1])
   }
 }

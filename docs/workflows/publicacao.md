@@ -6,11 +6,11 @@ Procedimento da skill [vpn-release](../../.agents/skills/vpn-release/SKILL.md). 
 
 Recuperar aplicativo/projeto, equipe, branch, SHA completo, PR, ambiente, domínio e autorização existente. Revalidar o projeto/root directory na conta. Ler o diff e executar os checks pertinentes antes de publicar. Não repetir aprovação compatível já dada; não inferir merge, produção dos outros aplicativos ou mudança no banco.
 
-| Pedido | Caminho |
-| --- | --- |
-| Preview de uma PR | Push autorizado na branch e integração Git existente |
-| Produção aprovada de um aplicativo | Publicação direcionada por CLI, ou fluxo Git expressamente escolhido |
-| Acompanhar/status/abrir deploy existente | Consultar o deployment; não criar outro |
+| Pedido                                   | Caminho                                                              |
+| ---------------------------------------- | -------------------------------------------------------------------- |
+| Preview de uma PR                        | Push autorizado na branch e integração Git existente                 |
+| Produção aprovada de um aplicativo       | Publicação direcionada por CLI, ou fluxo Git expressamente escolhido |
+| Acompanhar/status/abrir deploy existente | Consultar o deployment; não criar outro                              |
 
 Não exigir preview adicional quando a versão local já foi aprovada e o usuário pediu produção. Git e CLI são alternativas para a publicação escolhida; evitar publicar a mesma versão duas vezes sem necessidade. Um push no monorepo pode disparar todos os projetos conectados; isso não é evidência de que todos precisavam de deploy.
 
@@ -51,12 +51,12 @@ python3 .agents/skills/vpn-release/scripts/deployment_status.py <dpl_id> --scope
 
 Em produção acrescentar `--domain <hostname-oficial>`. O helper usa a API autenticada pela CLI e imprime somente evidências selecionadas; não publica, promove ou muda aliases.
 
-| Retorno | Significado | Próxima ação |
-| --- | --- | --- |
-| 0 | Plataforma READY e identidade conferida nos campos fornecidos | Validar HTTP/UI real; ainda não é entrega concluída |
-| 2 | INITIALIZING/QUEUED/BUILDING ou alias oficial ainda pendente | Consultar novamente com espera limitada |
-| 1 | Projeto/target/SHA incorreto ou falha terminal | Investigar; não validar nem promover o artefato errado |
-| 3 | Falha de CLI/acesso/schema/estado desconhecido | Diagnosticar autenticação, ajuda e resposta suportada |
+| Retorno | Significado                                                   | Próxima ação                                           |
+| ------- | ------------------------------------------------------------- | ------------------------------------------------------ |
+| 0       | Plataforma READY e identidade conferida nos campos fornecidos | Validar HTTP/UI real; ainda não é entrega concluída    |
+| 2       | INITIALIZING/QUEUED/BUILDING ou alias oficial ainda pendente  | Consultar novamente com espera limitada                |
+| 1       | Projeto/target/SHA incorreto ou falha terminal                | Investigar; não validar nem promover o artefato errado |
+| 3       | Falha de CLI/acesso/schema/estado desconhecido                | Diagnosticar autenticação, ajuda e resposta suportada  |
 
 Sem `--sha`, a consulta pode informar status, mas `commitVerified` será falso. Não apresentar esse resultado como prova do commit da PR. Target nulo em um preview comum é normal na API Vercel; custom environments não devem ser tratados como preview por suposição.
 
@@ -68,8 +68,8 @@ Logs: `vercel inspect <url> --scope <equipe> --logs`. Usar o ID/URL registrado, 
 
 Seguir a [referência de navegador](../../.agents/skills/vpn-release/references/browser.md). Preview protegido pode exigir sessão/cookie de automação autorizado; manter a proteção e não colocar segredo em URL. Validar a funcionalidade alterada, não somente título ou status 200. Em produção usar o domínio oficial, não apenas a URL gerada.
 
-Registrar em `docs/validation/`: aplicativo/PR, SHA do código, ID/target/URL, estado/horário, CI e build, prova HTTP/UI, artefatos disponíveis, limitações e ponto de retorno. Fatos operacionais vão no registro de ambientes. Evitar copiar IDs da última entrega para a próxima como se fossem atuais.
+Registrar em `docs/operations/environments.md` somente mudanças duradouras no estado operacional, como configuração de domínio, cron ou credencial por nome. Estado efêmero de deployment, CI, build e prova HTTP/UI fica na saída das ferramentas e na PR, sem criar relatório documental por entrega. Evitar copiar IDs da última entrega para a próxima como se fossem atuais.
 
 Quando a produção vier de uma branch não integrada, preservar o código no Git e registrar essa relação: outro deploy de main usará o estado de main. Produção autorizada não implica merge. Se houver defeito da publicação, usar o ponto de retorno dentro da autorização compatível, consultar a ajuda de `vercel rollback` e verificar o domínio após a reversão; em incidentes/decisões fora do escopo, preparar a ação concreta e pedir autorização.
 
-Histórico que comprovou este fluxo: [splash do Site](../validation/site-splash.md). Referências oficiais: [Vercel monorepos](https://vercel.com/docs/monorepos), [CLI deploy](https://vercel.com/docs/cli/deploy), [CLI inspect](https://vercel.com/docs/cli/inspect).
+Referências oficiais: [Vercel monorepos](https://vercel.com/docs/monorepos), [CLI deploy](https://vercel.com/docs/cli/deploy), [CLI inspect](https://vercel.com/docs/cli/inspect).

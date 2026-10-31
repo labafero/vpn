@@ -60,8 +60,8 @@ INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,cap
   ('20000000-0000-0000-0000-000000000001','OldFailed123','https://clips.twitch.tv/OldFailed123','manual','failed_terminal','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),
   ('20000000-0000-0000-0000-000000000001','OldCancelled123','https://clips.twitch.tv/OldCancelled123','manual','cancelled_consent','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),
   ('20000000-0000-0000-0000-000000000001','RecentTerminal123','https://clips.twitch.tv/RecentTerminal123','manual','failed_terminal','2026-07-01T00:00:00Z','2026-07-21T00:00:00Z'),
-  ('20000000-0000-0000-0000-000000000001','OldPending123','https://clips.twitch.tv/OldPending123','manual','pending_asr','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
-  ('20000000-0000-0000-0000-000000000001','OldProcessing123','https://clips.twitch.tv/OldProcessing123','manual','processing','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z');
+  ('20000000-0000-0000-0000-000000000001','OldPending123','https://clips.twitch.tv/OldPending123','manual','pending_captions','2026-01-01T00:00:00Z',NULL),
+  ('20000000-0000-0000-0000-000000000001','OldProcessing123','https://clips.twitch.tv/OldProcessing123','manual','processing','2026-01-01T00:00:00Z',NULL);
 SELECT is(private.purge_expired_clip_submissions('2026-10-18T00:00:00Z'),5,'cleanup returns the number of expired terminal rows deleted');
 SELECT is((SELECT count(*)::integer FROM private.clip_submissions WHERE twitch_clip_id IN ('OldCompleted123','OldNoMatch123','OldUnavailable123','OldFailed123','OldCancelled123')),0,'all terminal states older than 90 days are removed');
 SELECT is((SELECT count(*)::integer FROM private.clip_submissions WHERE twitch_clip_id='RecentTerminal123'),1,'terminal submission newer than 90 days is retained');

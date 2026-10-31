@@ -74,7 +74,7 @@ test('global configuration and manual mode run everything', () => {
   assert.equal(select([], true).sql, true)
 })
 test('documentation-only changes skip expensive checks', () => {
-  assert.deepEqual(select(['docs/validation/foo.md', 'README.md', 'AGENTS.md']), {
+  assert.deepEqual(select(['docs/notes.md', 'README.md', 'AGENTS.md']), {
     code: false,
     apps: [],
     database: false,

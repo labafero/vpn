@@ -19,3 +19,10 @@ test('missing or short key is rejected', () => {
   for (const bad of ['', Buffer.alloc(16).toString('base64')])
     expect(() => crypto.encryptTokens({ accessToken: 'a', refreshToken: 'b' }, bad, 'v1')).toThrow()
 })
+
+test('user provider secrets are encrypted independently of Twitch token JSON', () => {
+  const output = crypto.encryptSecret('sk-user-owned-secret', key, 'v1')
+  expect(JSON.stringify(output)).not.toContain('sk-user-owned-secret')
+  expect(crypto.decryptSecret(output, key, 'v1')).toBe('sk-user-owned-secret')
+  expect(() => crypto.decryptSecret(output, key, 'v2')).toThrow()
+})

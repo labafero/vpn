@@ -160,9 +160,10 @@ A validação inicial será feita com lives gravadas e clips, antes de exigir
 análise contínua em tempo real.
 
 O produto VPN Monitor tem como núcleo detectar frases-gatilho e apresentar
-ocorrências com timestamp para revisão humana. Quando captions nativas da Twitch
-estiverem disponíveis, o Sentry deve priorizá-las para evitar ASR; Whisper é
-fallback sujeito a consentimento e capacidade, não o objetivo do produto.
+ocorrências com timestamp para revisão humana. Nesta etapa, o Sentry transcreve
+clips pela OpenAI: usa primeiro a chave central e, se ela não estiver configurada,
+a chave individual do dono. A leitura de captions nativas da Twitch poderá ser
+adicionada antes dessa transcrição em uma etapa posterior.
 
 O primeiro protótipo deve priorizar recursos gratuitos e regras simples:
 

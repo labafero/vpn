@@ -19,6 +19,26 @@ export type ClipAccess = {
   credential: Credential | null
   consent: ClipConsent
 }
+export type ClipDetectionRecord = {
+  phraseId: string
+  phraseVersion: number
+  phrase: string
+  source: 'captions' | 'openai'
+  startMs: number
+  endMs: number
+}
+export type ClipSubmissionRecord = {
+  id: string
+  clipId: string
+  canonicalUrl: string
+  videoId: string | null
+  vodOffset: number | null
+  title: string | null
+  state: string
+  failureCode: string | null
+  receivedAt: string
+  detections: ClipDetectionRecord[]
+}
 export type ClipRepository = {
   existing: (
     owner: string,
@@ -33,6 +53,7 @@ export type ClipRepository = {
     metadata: ClipMetadata,
     previous: ClipAccess
   ) => Promise<{ id: string; state: string; duplicate: boolean }>
+  list: (owner: string, channel: string) => Promise<{ items: ClipSubmissionRecord[] }>
 }
 export function createClipRepository(sql: postgres.Sql): ClipRepository {
   async function read(
@@ -92,6 +113,37 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
         return rows[0] ? { id: rows[0].id, state: rows[0].state, duplicate: true } : null
       }),
     read: (owner, channel) => authorized(owner, (tx) => read(tx, owner, channel)),
+    list: (owner, channel) =>
+      authorized(owner, async (tx) => {
+        const owned =
+          await tx`SELECT 1 FROM public.channels WHERE id=${channel} AND owner_id=${owner}`
+        if (!owned[0]) throw new FoundationError(403)
+        const rows =
+          await tx`SELECT s.id,s.twitch_clip_id,s.canonical_url,s.video_id,s.vod_offset,s.title,s.state,s.failure_code,s.received_at,
+          COALESCE(json_agg(json_build_object(
+            'phraseId',d.phrase_id,'phraseVersion',d.phrase_version,'phrase',d.phrase_text,
+            'source',d.source,'startMs',d.start_ms,'endMs',d.end_ms
+          ) ORDER BY d.start_ms) FILTER (WHERE d.id IS NOT NULL),'[]'::json) AS detections
+          FROM private.clip_submissions s
+          JOIN public.channels c ON c.id=s.channel_id
+          LEFT JOIN private.clip_detections d ON d.submission_id=s.id
+          WHERE s.channel_id=${channel} AND c.owner_id=${owner}
+          GROUP BY s.id ORDER BY s.received_at DESC LIMIT 50`
+        return {
+          items: rows.map((row) => ({
+            id: row.id,
+            clipId: row.twitch_clip_id,
+            canonicalUrl: row.canonical_url,
+            videoId: row.video_id ?? null,
+            vodOffset: row.vod_offset === null ? null : Number(row.vod_offset),
+            title: row.title ?? null,
+            state: row.state,
+            failureCode: row.failure_code ?? null,
+            receivedAt: row.received_at.toISOString(),
+            detections: row.detections ?? []
+          }))
+        }
+      }),
     setConsent: (owner, channel, enabled) =>
       authorized(owner, async (tx) => {
         const access = await read(tx, owner, channel)

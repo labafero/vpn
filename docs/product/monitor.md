@@ -24,6 +24,9 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
   e ao período autorizado pelo dono.
 - Submeter manualmente URL de clip do canal vinculado, com autorização
   incremental `clip_download` e apresentação clara de finalidade e consentimento.
+- Consultar clips numa tela própria e configurar uma chave OpenAI por usuário;
+  o sistema usa primeiro a chave central, depois a chave pessoal, e apresenta
+  somente gatilhos, origem e timestamp.
 - Revisar detecções candidatas por frase, origem, timestamp e estado; oferecer
   correção humana quando o fluxo de eventos estiver disponível.
 
@@ -37,10 +40,11 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
   ponto correspondente e identifica a regra que disparou.
 - Como dono, quero compartilhar somente uma sessão; convite vencido, revogado,
   resgatado ou associado a outra sessão não concede acesso adicional.
-- Quando captions Twitch estiverem acessíveis, elas são a fonte preferida para
-  detectar gatilhos e evitar ASR. Whisper é fallback quando captions faltarem,
-  sujeito às regras de consentimento e capacidade do piloto registradas nos
-  ADRs.
+- O processamento envia a mídia temporariamente para transcrição OpenAI usando
+  primeiro a chave central e depois a chave pessoal do dono. Sem nenhuma chave,
+  não produz resultado.
+- A tela atualiza estados manualmente e mostra resultados mínimos; não oferece
+  confirmação ou edição humana de detecções nesta fase.
 - Eventos são sinais candidatos, não vereditos; o usuário pode confirmar,
   corrigir ou descartar uma detecção quando a revisão for implementada.
 - Respostas privadas não ficam em cache público e erros não expõem credenciais,
@@ -51,7 +55,7 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 - Exibir ou retransmitir uma live continuamente.
 - Tratar uma detecção automática como prova de infração.
 - Publicar alertas em Discord externo ou matérias automaticamente.
-- Executar workers, chamar Whisper ou acessar tokens de provedor no navegador.
+- Executar workers, chamar provedores ou acessar credenciais no navegador.
 
 ## Integrações e limites
 
@@ -64,6 +68,5 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 
 ## Resultado esperado
 
-O dono compreende e controla consentimentos; pode consultar sessões e submeter
-clips autorizados; quando a revisão de detecções estiver entregue, consegue
-inspecionar cada gatilho com timestamp e evidência.
+O dono compreende e controla consentimentos, configura a própria chave OpenAI,
+consulta clips autorizados e inspeciona gatilhos com origem e timestamp.

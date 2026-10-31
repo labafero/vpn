@@ -16,12 +16,10 @@ resultado esperado de cada subapp.
   silêncio.
 - **`docs/architecture/foundation.md`** mantém os detalhes correntes de acesso,
   consentimento, dados e retenção.
-- **`docs/validation/`** mantém evidências operacionais ainda úteis: testes de
-  integração, estado de ambiente, publicação e pendências verificáveis.
-- Planos de execução são temporários. Ao entregar uma mudança, atualizar PRD,
-  ADR ou validação conforme o tipo de fato e remover o plano concluído. Plano
-  antigo não é fonte de requisitos.
+- Planos de execução são temporários. Ao entregar uma mudança, atualizar PRD ou
+  ADR conforme o tipo de fato e remover o plano concluído. Plano antigo não é
+  fonte de requisitos.
 
 Atualizar os PRDs quando mudar comportamento, público ou escopo de produto.
-Não copiar neles comandos de operação, checklists de implementação ou histórico
-de cada PR.
+Não copiar neles comandos de operação, checklists de implementação, resultados
+de testes ou histórico de cada PR.

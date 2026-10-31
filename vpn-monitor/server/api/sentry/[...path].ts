@@ -104,7 +104,7 @@ export default defineEventHandler(async (event) => {
         })
         return sendRedirect(event, `${origin}/conexao`, 303)
       }
-      const status = [400, 401, 403, 404, 409, 410, 503].includes(response.status)
+      const status = [400, 401, 403, 404, 409, 410, 429, 503].includes(response.status)
         ? response.status
         : 503
       const errors: Record<number, [string, string]> = {
@@ -117,6 +117,10 @@ export default defineEventHandler(async (event) => {
           'Desconecte o vínculo existente antes de conectar outro canal.'
         ],
         410: ['GONE', 'Este convite expirou ou já foi utilizado.'],
+        429: [
+          'RATE_LIMITED',
+          'A fila de transcrição atingiu o limite. Aguarde uma vaga e tente novamente.'
+        ],
         503: ['SERVICE_UNAVAILABLE', 'Serviço temporariamente indisponível.']
       }
       const [code, message] = errors[status]!

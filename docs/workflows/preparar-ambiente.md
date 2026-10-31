@@ -60,4 +60,4 @@ Executar os checks pertinentes ao objetivo e registrar os resultados: `pnpm lint
 
 Distinguir instalação, sessão, vínculo e integração funcional. Não declarar sucesso de um check não executado. Erros de sandbox/DNS ou `listen EPERM` requerem o caminho de execução permitido pelo ambiente; não alterar testes ou dependências para ocultar a restrição.
 
-Atualizar evidências em `docs/validation/` e fatos de conta/versões em `docs/operations/environments.md`. Próxima ação de publicação: [workflow de publicação](publicacao.md).
+Atualizar apenas fatos operacionais ainda atuais em `docs/operations/environments.md`. Checks pertencem à CI; não manter resultados de testes em documentos. Próxima ação de publicação: [workflow de publicação](publicacao.md).

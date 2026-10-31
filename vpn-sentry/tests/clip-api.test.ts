@@ -4,9 +4,15 @@ import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 import consentGet from '../server/api/v1/channels/[id]/clip-consent.get'
 import consentPatch from '../server/api/v1/channels/[id]/clip-consent.patch'
 import submit from '../server/api/v1/channels/[id]/clips.post'
+import listClips from '../server/api/v1/channels/[id]/clips.get'
 import callback from '../server/api/v1/provider-connections/twitch/callback.get'
 import { FoundationError } from '../server/utils/api-error'
-const fixture = vi.hoisted(() => ({ signedIn: true, fail: false, cancelled: false }))
+const fixture = vi.hoisted(() => ({
+  signedIn: true,
+  fail: false,
+  cancelled: false,
+  listClips: vi.fn()
+}))
 vi.mock('../server/utils/auth', () => ({
   requireVpnUser: async () => {
     if (!fixture.signedIn) throw new FoundationError(401)
@@ -20,7 +26,12 @@ vi.mock('../server/utils/clip-runtime', () => ({
       return { manualEnabled: false }
     },
     setConsent: async () => ({ manualEnabled: false }),
-    submit: async () => ({ id: 'submission', state: 'pending_captions', duplicate: false })
+    submit: async () => ({
+      id: 'submission',
+      state: 'pending_captions',
+      duplicate: false
+    }),
+    list: fixture.listClips
   })
 }))
 vi.mock('../server/utils/twitch-oauth', () => ({
@@ -41,6 +52,7 @@ beforeAll(async () => {
     .get('/channels/:id/clip-consent', consentGet)
     .patch('/channels/:id/clip-consent', consentPatch)
     .post('/channels/:id/clips', submit)
+    .get('/channels/:id/clips', listClips)
     .get('/callback', callback)
   server = createServer(toNodeListener(createApp().use(router)))
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
@@ -55,7 +67,8 @@ test('clip endpoints authenticate before accessing data and never cache', async 
   for (const [route, method] of [
     ['clip-consent', 'GET'],
     ['clip-consent', 'PATCH'],
-    ['clips', 'POST']
+    ['clips', 'POST'],
+    ['clips', 'GET']
   ]) {
     const response = await fetch(`${address}${path}/${route}`, { method })
     expect(response.status).toBe(401)
@@ -67,6 +80,14 @@ test('clip endpoints authenticate before accessing data and never cache', async 
   expect(response.status).toBe(503)
   expect(await response.text()).not.toMatch(/provider|secret/)
   fixture.fail = false
+})
+test('clip history delegates to the owner-scoped service', async () => {
+  fixture.signedIn = true
+  fixture.listClips.mockResolvedValue({ items: [] })
+  const list = await fetch(`${address}${path}/clips`)
+  expect(list.status).toBe(200)
+  expect(list.headers.get('cache-control')).toBe('no-store')
+  expect(await list.json()).toEqual({ items: [] })
 })
 test('OAuth refusal redirects with a fixed result and never reflects provider query', async () => {
   const response = await fetch(

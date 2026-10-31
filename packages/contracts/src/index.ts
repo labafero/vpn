@@ -19,3 +19,6 @@ export type ContractsApi = {
 
 export type ClipConsent = components['schemas']['ClipConsent']
 export type ClipSubmission = components['schemas']['ClipSubmission']
+export type ClipDetection = components['schemas']['ClipDetection']
+export type ClipSubmissionRecord = components['schemas']['ClipSubmissionRecord']
+export type ClipSubmissionList = components['schemas']['ClipSubmissionList']

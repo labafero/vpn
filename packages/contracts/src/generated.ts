@@ -67,6 +67,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/openai-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getOpenAiCredentialStatus"];
+        put?: never;
+        post: operations["saveOpenAiCredential"];
+        delete: operations["deleteOpenAiCredential"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/provider-connections/twitch/authorize": {
         parameters: {
             query?: never;
@@ -154,7 +170,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["listClips"];
         put?: never;
         post: operations["submitClip"];
         delete?: never;
@@ -297,8 +313,44 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            state: "pending_metadata" | "pending_captions" | "needs_transcription_request" | "pending_asr" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
+            state: "pending_metadata" | "pending_captions" | "needs_openai_key" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
             duplicate: boolean;
+        };
+        ClipDetection: {
+            phraseId: string;
+            phraseVersion: number;
+            phrase: string;
+            /** @enum {string} */
+            source: "captions" | "openai";
+            startMs: number;
+            endMs: number;
+        };
+        ClipSubmissionRecord: {
+            /** Format: uuid */
+            id: string;
+            clipId: string;
+            /** Format: uri */
+            canonicalUrl: string;
+            videoId: string | null;
+            vodOffset: number | null;
+            title: string | null;
+            /** @enum {string} */
+            state: "pending_metadata" | "pending_captions" | "needs_openai_key" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
+            /** @enum {string|null} */
+            failureCode: "clip_unavailable" | "captions_unavailable" | "transcription_failed" | "quota_exceeded" | "unsupported_language" | "invalid_media" | "provider_error" | null;
+            /** Format: date-time */
+            receivedAt: string;
+            detections: components["schemas"]["ClipDetection"][];
+        };
+        ClipSubmissionList: {
+            items: components["schemas"]["ClipSubmissionRecord"][];
+        };
+        OpenAiCredentialStatus: {
+            configured: boolean;
+            systemConfigured: boolean;
+        };
+        OpenAiCredentialUpdate: {
+            apiKey: string;
         };
         ApiError: {
             code: string;
@@ -508,6 +560,106 @@ export interface operations {
             };
             /** @description Solicitação não concluída */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getOpenAiCredentialStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Informa se o usuário configurou uma chave */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenAiCredentialStatus"];
+                };
+            };
+            /** @description Não autenticado */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    saveOpenAiCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenAiCredentialUpdate"];
+            };
+        };
+        responses: {
+            /** @description Chave armazenada de forma criptografada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenAiCredentialStatus"];
+                };
+            };
+            /** @description Chave inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Não autenticado */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteOpenAiCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chave removida */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenAiCredentialStatus"];
+                };
+            };
+            /** @description Não autenticado */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -880,6 +1032,55 @@ export interface operations {
             };
             /** @description Solicitação não concluída */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listClips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Clips e detecções mínimas do canal autorizado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipSubmissionList"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

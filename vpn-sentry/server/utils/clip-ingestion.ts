@@ -41,6 +41,9 @@ export function createClipIngestionService(
   fetchClip: (id: string, access: ClipAccess) => Promise<ClipMetadata>
 ) {
   return {
+    async list(owner: string, channel: string) {
+      return repository.list(owner, channel)
+    },
     async getConsent(owner: string, channel: string) {
       const access = await repository.read(owner, channel)
       if (!access) throw new FoundationError(403)
