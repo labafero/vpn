@@ -1,33 +1,33 @@
 ---
 name: vpn-plan
-description: Use when planning or revisiting work in the VPN monorepo and product requirements, architecture decisions, or official stack documentation must shape the plan.
+description: Usar ao planejar ou retomar trabalho no monorepo VPN quando requisitos do produto, decisões de arquitetura ou documentação oficial da stack precisarem orientar o plano.
 ---
 
-# VPN plan
+# Planejamento VPN
 
-Produce a short, executable plan grounded in the VPN product and the documented APIs of the stack in use.
+Produza um plano curto e executável, baseado no produto VPN e no comportamento documentado da versão da stack em uso.
 
-## Sources to recover
+## Fontes do projeto
 
-- Read the repository instructions and `docs/workflows/entrega.md`.
-- Read the relevant app PRD, accepted ADRs, and `DESIGN.md` for visual work. Read `docs/operations/environments.md` when an environment or external service is involved.
-- Identify the affected app and exact framework/library versions from its `package.json` and `pnpm-lock.yaml`.
+- Leia as instruções do repositório e `docs/workflows/entrega.md`.
+- Consulte o PRD do app afetado, as ADRs aceitas e `DESIGN.md` para mudanças visuais. Leia `docs/operations/environments.md` quando o trabalho envolver ambientes ou serviços externos.
+- Identifique o app afetado e as versões exatas do framework e das bibliotecas em `package.json` e `pnpm-lock.yaml`.
 
-## Official stack documentation
+## Documentação oficial da stack
 
-Before proposing implementation steps that depend on framework, library, API, or configuration behavior, consult the official documentation for the installed version. Use the framework or vendor's documentation as the primary source; include the supporting links in the plan. Do not substitute memory, repository implementation details, package source, blog posts, or examples from unrelated versions for the documented contract.
+Antes de propor etapas que dependam do comportamento de framework, biblioteca, API ou configuração, consulte a documentação oficial correspondente à versão instalada. Use a documentação do framework ou fornecedor como fonte primária e inclua no plano os links que sustentam a proposta. Não substitua o contrato documentado por memória, detalhes da implementação do repositório, código interno do pacote, blogs ou exemplos de versões diferentes.
 
-Connect the documented API to the actual repository structure and requirements. Inspect project code to locate the change and its local constraints, not to reverse-engineer behavior that the official docs specify.
+Relacione a API documentada à estrutura e aos requisitos reais do repositório. Inspecione o código do projeto para localizar a mudança e suas restrições locais, não para fazer engenharia reversa de comportamentos já descritos na documentação oficial.
 
-If the official docs do not establish a viable path, or the documented path conflicts with an accepted ADR or user requirement, state the gap and ask for a decision. Do not silently plan an undocumented workaround or change the architecture.
+Se a documentação oficial não definir um caminho viável, ou se esse caminho entrar em conflito com uma ADR aceita ou com um requisito do usuário, descreva a lacuna e peça uma decisão. Não planeje silenciosamente um workaround não documentado nem uma mudança de arquitetura.
 
-## Plan shape
+## Estrutura do plano
 
-Keep the plan proportional to the change. State:
+Ajuste o nível de detalhe ao tamanho da mudança e informe:
 
-1. Goal and affected apps/packages.
-2. The documented approach, with official sources and version relevance.
-3. Ordered implementation tasks and observable acceptance criteria.
-4. The checks needed for the changed scope, including any environment prerequisites.
+1. Objetivo e apps/pacotes afetados.
+2. Abordagem documentada, com fontes oficiais e relevância para as versões instaladas.
+3. Etapas de implementação em ordem e critérios de aceite observáveis.
+4. Verificações necessárias para o escopo alterado, incluindo pré-requisitos de ambiente.
 
-Plans are temporary execution aids under `docs/workflows/entrega.md`; do not turn them into durable product requirements. Preserve user authorization boundaries for commits, PRs, deploys, database changes, and other external actions.
+Planos são apoios temporários de execução conforme `docs/workflows/entrega.md`; não os transforme em requisitos duráveis do produto. Preserve as autorizações do usuário para commits, PRs, deploys, mudanças no banco e outras ações externas.
