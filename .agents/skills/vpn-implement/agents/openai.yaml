@@ -1,4 +1,4 @@
 interface:
-  display_name: "VPN: implementar"
-  short_description: "Implementar com docs oficiais e sem contornos"
-  default_prompt: "Use $vpn-implement para implementar este plano com as docs oficiais da versão instalada."
+  display_name: 'VPN: implementar'
+  short_description: 'Implementar com docs oficiais e sem contornos'
+  default_prompt: 'Use $vpn-implement para implementar este plano com as docs oficiais da versão instalada.'
