@@ -5,8 +5,8 @@
 O Sentry é o backend privado que valida identidade e consentimento, integra-se
 com provedores, persiste estado privado e executa processamento assíncrono.
 Para clips, sua função de produto é detectar gatilhos com evidência e timestamps.
-No fluxo atual, o worker transcreve o áudio pela OpenAI; a integração com
-captions da Twitch não está implementada.
+A transcrição de áudio usa OpenAI. Captions da Twitch não são uma fonte de texto
+para a detecção de clips.
 
 ## Usuários e necessidades
 
@@ -45,16 +45,16 @@ captions da Twitch não está implementada.
   resultado.
 - Reentrega ou retry não duplica detecções; erros são sanitizados, estados são
   observáveis e arquivos temporários são removidos em sucesso ou falha.
-- O piloto processa apenas uso pessoal dentro dos limites do plano Vercel ativo;
-  se o limite impedir execução, o job permanece recuperável/pausado. Não se exige
-  dimensionamento multiusuário nesta entrega.
+- O Sentry processa somente clips do canal conectado pelo próprio usuário. Jobs
+  respeitam os limites da implantação Vercel e permanecem recuperáveis quando
+  esses limites impedem a execução; não há capacidade multiusuário.
 
 ## Não objetivos
 
 - Servir UI rica ou expor credenciais ao Monitor.
 - Armazenar a chave OpenAI fora do schema privado ou expô-la ao navegador.
 - Interpretar intenção ou decidir infrações; gatilhos são candidatos à revisão.
-- Definir agora a hospedagem multiusuário futura.
+- Hospedar processamento para contas de terceiros.
 
 ## Integrações e privacidade
 
@@ -62,8 +62,8 @@ captions da Twitch não está implementada.
   endpoints privados/não documentados.
 - Supabase Postgres privado guarda consentimentos, referências, jobs e resultados
   mínimos; nunca persistir mídia ou transcrição integral sem decisão própria.
-- Vercel executa o worker no piloto. Extensão de infraestrutura exige ADR e
-  atualização deste PRD.
+- Vercel executa o worker. Mudanças de infraestrutura exigem ADR e atualização
+  deste PRD.
 
 ## Resultado esperado
 

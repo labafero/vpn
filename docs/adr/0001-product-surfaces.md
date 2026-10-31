@@ -27,6 +27,6 @@ pertencem a outra.
 ## Consequências
 
 Cada subapp tem PRD próprio em `docs/product/`. Dados privados não são expostos
-ao News por associação implícita; integração editorial futura exige contrato e
+ao News por associação implícita; integração editorial exige contrato e
 fluxo de revisão explícitos. A identidade visual compartilhada continua em
 `DESIGN.md`.

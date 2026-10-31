@@ -62,7 +62,7 @@ Leitor consegue navegar pelas notícias públicas; redação autorizada mantém 
 conteúdo sem expor ferramentas administrativas; overlays funcionam em Chromium
 do OBS sem degradar a transmissão.
 
-## Fora do escopo atual
+## Fora do escopo
 
 Integração automática de eventos, clips ou alertas do Monitor com matérias.
-Uma ligação editorial futura deve passar por fluxo de revisão explícito.
+Qualquer ligação editorial exige um fluxo explícito de revisão humana.

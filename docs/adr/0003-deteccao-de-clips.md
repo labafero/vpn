@@ -11,14 +11,13 @@
   não estiver configurada, usar a chave pessoal do dono daquele canal. Se
   nenhuma chave estiver configurada, registrar que falta uma fonte de texto e
   não gerar detecção.
-- A leitura de captions da Twitch fica fora do comportamento atual e poderá ser
-  acrescentada depois, antes da transcrição OpenAI.
+- Captions da Twitch não são uma fonte de texto para detecção de clips.
 - Guardar chaves OpenAI por usuário, criptografadas no schema privado, sem nunca
   retorná-las à interface. O dono pode substituir ou remover a própria chave.
 - Baixar mídia para transcrição OpenAI, processá-la temporariamente e removê-la
   em sucesso ou falha. Não persistir a transcrição completa.
 - Persistir apenas gatilhos, origem e timestamps necessários à revisão humana.
-- O piloto é pessoal e roda dentro dos limites atuais da Vercel. O consumo da
+- A execução é restrita ao dono do canal e aos limites configurados na Vercel. O consumo da
   chave central fica na conta do projeto; o consumo da chave pessoal fica na
   conta do usuário.
 
