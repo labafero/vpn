@@ -67,6 +67,50 @@ export type Database = {
           },
         ];
       };
+      clip_detections: {
+        Row: {
+          created_at: string;
+          end_ms: number;
+          id: string;
+          phrase_id: string;
+          phrase_text: string;
+          phrase_version: number;
+          source: string;
+          start_ms: number;
+          submission_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          end_ms: number;
+          id?: string;
+          phrase_id: string;
+          phrase_text: string;
+          phrase_version: number;
+          source: string;
+          start_ms: number;
+          submission_id: string;
+        };
+        Update: {
+          created_at?: string;
+          end_ms?: number;
+          id?: string;
+          phrase_id?: string;
+          phrase_text?: string;
+          phrase_version?: number;
+          source?: string;
+          start_ms?: number;
+          submission_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clip_detections_submission_id_fkey";
+            columns: ["submission_id"];
+            isOneToOne: false;
+            referencedRelation: "clip_submissions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       clip_processing_consents: {
         Row: {
           channel_id: string;
@@ -110,7 +154,10 @@ export type Database = {
           finished_at: string | null;
           id: string;
           language: string | null;
+          processing_attempts: number;
+          processing_lease_until: string | null;
           received_at: string;
+          retry_after: string | null;
           state: string;
           title: string | null;
           twitch_clip_id: string;
@@ -130,7 +177,10 @@ export type Database = {
           finished_at?: string | null;
           id?: string;
           language?: string | null;
+          processing_attempts?: number;
+          processing_lease_until?: string | null;
           received_at?: string;
+          retry_after?: string | null;
           state?: string;
           title?: string | null;
           twitch_clip_id: string;
@@ -150,7 +200,10 @@ export type Database = {
           finished_at?: string | null;
           id?: string;
           language?: string | null;
+          processing_attempts?: number;
+          processing_lease_until?: string | null;
           received_at?: string;
+          retry_after?: string | null;
           state?: string;
           title?: string | null;
           twitch_clip_id?: string;
@@ -340,6 +393,36 @@ export type Database = {
           status?: string;
           subscription_id?: string | null;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      user_provider_credentials: {
+        Row: {
+          ciphertext: string;
+          iv: string;
+          key_version: string;
+          provider: string;
+          tag: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          ciphertext: string;
+          iv: string;
+          key_version: string;
+          provider: string;
+          tag: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          ciphertext?: string;
+          iv?: string;
+          key_version?: string;
+          provider?: string;
+          tag?: string;
+          updated_at?: string;
+          user_id?: string;
         };
         Relationships: [];
       };

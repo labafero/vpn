@@ -88,7 +88,7 @@ async function submit() {
     })
     message.value = result.duplicate
       ? 'Este clip já foi enviado. A submissão existente foi preservada.'
-      : 'Referência do clip recebida. O envio ainda não realiza download nem análise de mídia.'
+      : 'Referência recebida. O clip aguardará seu pedido antes de iniciar a transcrição.'
     success.value = true
     form.url = ''
   } catch (error) {
@@ -120,10 +120,9 @@ watch(() => props.channelId, refresh, { immediate: true })
       Clips do seu canal
     </h2>
     <p class="text-muted">
-      Envie clips do seu próprio canal para análise privada de GTA RP +18. Configure a classificação
-      +18 e captions na Twitch. VODs e clips têm disponibilidade limitada e podem desaparecer; a VPN
-      não garante recuperação futura. Transcrição por Whisper dependerá de uma solicitação explícita
-      em uma etapa futura.
+      Envie clips do seu próprio canal para análise privada de GTA RP +18. VODs e clips têm
+      disponibilidade limitada e podem desaparecer; a VPN não garante recuperação futura. A
+      transcrição integral e a mídia ficam temporárias durante o processamento.
     </p>
     <p
       v-if="loading"
@@ -211,7 +210,13 @@ watch(() => props.channelId, refresh, { immediate: true })
       :disabled="busy || loading"
       @click="refresh"
     >
-      Atualizar clips
+      Atualizar estado do consentimento
+    </UButton>
+    <UButton
+      to="/clips"
+      variant="outline"
+    >
+      Ver clips e detecções
     </UButton>
   </section>
 </template>

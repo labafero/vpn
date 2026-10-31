@@ -7,11 +7,9 @@ privada de monitoramento de transmissões de roleplay, não uma solução de tú
 de rede ou acesso remoto.
 
 O produto conecta streamers, redação e comunidades de roleplay em torno de
-transmissões autorizadas. O primeiro núcleo é uma central privada que acompanha
-lives publicadas em plataformas externas, começando pela Twitch, detecta sinais
-de interesse e distribui alertas controlados. A publicação jornalística e a
-programação contínua são evoluções construídas sobre essa rede de sinais,
-eventos e evidências.
+transmissões autorizadas. A central privada acompanha lives da Twitch, detecta
+sinais de interesse e distribui alertas controlados. Eventos e evidências
+alimentam fluxos editoriais com revisão humana.
 
 ## Arquitetura do monorepo
 
@@ -42,10 +40,10 @@ editados manualmente.
 
 ## Problema
 
-Lives de roleplay contêm acontecimentos relevantes, mas hoje estão dispersas
-entre canais e comunidades. A redação não possui uma visão central de quem está
-ao vivo, não consegue compartilhar alertas de forma estruturada e precisa
-identificar manualmente os momentos que podem exigir atenção ou virar matéria.
+Lives de roleplay contêm acontecimentos relevantes, mas estão dispersas entre
+canais e comunidades. A redação precisa de uma visão central de transmissões
+autorizadas e de alertas estruturados para identificar momentos que podem
+exigir atenção ou virar matéria.
 
 ## Objetivos
 
@@ -53,20 +51,20 @@ identificar manualmente os momentos que podem exigir atenção ou virar matéria
 - Permitir que cada streamer controle quem pode acompanhar sua transmissão.
 - Detectar sinais de possível risco usando áudio e vídeo.
 - Distribuir notificações dentro da VPN e no Discord.
-- Criar uma base de eventos, clips e evidências para posterior trabalho
-  editorial.
-- Manter a arquitetura aberta para integrações futuras com outros provedores,
-  plugins locais, agentes nativos e mensagens in-game.
+- Associar eventos, clips e evidências a fluxos editoriais revisados.
+- Definir contratos extensíveis para provedores, agentes locais e canais de
+  notificação autorizados.
 
-## Não objetivos do primeiro ciclo
+## Limites e não objetivos
 
 - Substituir Twitch, Kick ou YouTube como plataforma de transmissão.
 - Receber ou retransmitir o sinal de vídeo como um servidor de streaming próprio.
 - Controlar OBS ou operar a produção audiovisual do streamer.
 - Publicar automaticamente matérias sem revisão.
 - Enviar alertas para autoridades reais fora do contexto de roleplay.
-- Interpretar a barra de vida com precisão garantida desde a primeira versão.
-- Criar imediatamente um plugin ou executável local.
+- Interpretar a barra de vida com precisão garantida.
+- Operar por plugin ou executável local.
+- Enviar notificações dentro do jogo.
 
 ## Públicos
 
@@ -77,12 +75,12 @@ identificar manualmente os momentos que podem exigir atenção ou virar matéria
 | Administrador VPN   | Monitorar sinais autorizados e receber todos os alertas                |
 | Contato autorizado  | Receber avisos de transmissão e possíveis riscos                       |
 | Redação             | Revisar eventos, clips e evidências para criar conteúdo                |
-| Comunidade FiveM    | Receber notificações por Discord e, futuramente, dentro do jogo        |
+| Comunidade FiveM    | Receber notificações autorizadas por Discord                           |
 
 ## Privacidade e modelo de acesso
 
-Toda transmissão é privada por padrão. O acesso inicial pertence ao dono da
-transmissão e ao administrador VPN.
+Toda transmissão é privada por padrão. O dono da transmissão e o administrador
+VPN têm acesso conforme suas permissões; outras pessoas precisam de convite.
 
 O dono pode criar convites com:
 
@@ -91,14 +89,13 @@ O dono pode criar convites com:
 - possibilidade de revogação;
 - acesso a uma transmissão ou sessão específica.
 
-Em uma fase posterior, o dono poderá manter uma lista de transmissão
-persistente. Essa lista aceitará usuários da VPN e contatos vinculados ao
-Discord. O dono controlará os destinatários e suas permissões.
+O acesso é concedido por sessão e por convite revogável. O produto não mantém
+uma lista persistente de destinatários VPN ou Discord por canal.
 
 Nenhuma transmissão será indexada publicamente ou exibida no portal público sem
 autorização explícita.
 
-## Escopo do MVP
+## Escopo do produto
 
 ### Conta e Twitch
 
@@ -132,7 +129,7 @@ certeza. Deve incluir, quando disponível:
 - evidência ou referência ao clip;
 - estado: novo, reconhecido, em análise, resolvido ou falso positivo.
 
-### Sinais iniciais
+### Sinais considerados
 
 - Personagem caído.
 - Perseguição.
@@ -142,8 +139,8 @@ certeza. Deve incluir, quando disponível:
 
 ### Notificações
 
-O primeiro canal é o painel da VPN. O segundo é um servidor Discord oficial da
-VPN, com um canal privado por streamer.
+Os canais de notificação são o painel VPN e o servidor Discord oficial, com um
+canal privado por streamer.
 
 O modelo de expansão é:
 
@@ -151,20 +148,18 @@ O modelo de expansão é:
 VPN → Discord oficial da VPN → bot em Discords externos → mensagem in-game
 ```
 
-O bot/app para Discords externos e a integração com FiveM não fazem parte do
-primeiro MVP, mas o modelo de eventos deve permitir esses destinos.
+Bots para Discords externos e integração com FiveM estão fora do escopo. Os
+contratos de eventos não concedem acesso a esses destinos.
 
 ## Estratégia de inteligência
 
-A validação inicial será feita com lives gravadas e clips, antes de exigir
-análise contínua em tempo real.
-
 O produto VPN Monitor tem como núcleo detectar frases-gatilho e apresentar
-ocorrências com timestamp para revisão humana. Quando captions nativas da Twitch
-estiverem disponíveis, o Sentry deve priorizá-las para evitar ASR; Whisper é
-fallback sujeito a consentimento e capacidade, não o objetivo do produto.
+ocorrências com timestamp para revisão humana. O Sentry transcreve clips pela
+OpenAI: usa primeiro a chave central e, se ela não estiver configurada, a chave
+individual do dono. Captions nativas da Twitch não são uma fonte de texto para
+detecção neste escopo.
 
-O primeiro protótipo deve priorizar recursos gratuitos e regras simples:
+O processamento usa regras simples e determinísticas:
 
 - processamento periódico de frames;
 - regiões configuráveis da tela;
@@ -173,17 +168,15 @@ O primeiro protótipo deve priorizar recursos gratuitos e regras simples:
 - transcrição ou busca de frases-chave;
 - combinação de sinais com limiar de confiança.
 
-A visão computacional será considerada experimental até que os testes mostrem
-precisão suficiente. Detecções podem criar alertas, mas não devem executar ações
-irreversíveis automaticamente.
+A visão computacional é experimental. Detecções podem criar alertas, mas não
+executam ações irreversíveis automaticamente.
 
-Clips da Twitch são uma possível fonte de evidência e validação. A estratégia
-exata para obter clips periódicos, analisar o sinal e associá-los à sessão deve
-ser validada tecnicamente antes de virar requisito fechado.
+Clips autorizados da Twitch são uma fonte de evidência. Cada detecção mantém a
+referência temporal e a origem necessárias para revisão.
 
-## Jornalismo e conteúdo futuro
+## Uso editorial de eventos
 
-Eventos e evidências poderão originar:
+Eventos e evidências apoiam fluxos editoriais, como:
 
 - rascunhos de matérias;
 - clips temáticos;
@@ -192,16 +185,15 @@ Eventos e evidências poderão originar:
 - boletins e programas gravados;
 - programação ao vivo em formato jornalístico 24/7.
 
-No primeiro ciclo, a IA apenas sugere eventos, evidências e rascunhos. A
-publicação final permanece sob revisão editorial.
+A IA sugere eventos, evidências e rascunhos. A publicação final sempre exige
+revisão editorial humana.
 
-O `vpn-news` continua responsável pela visualização de matérias com texto,
-imagem e vídeo, incluindo páginas dedicadas por cidade/servidor. A central de
-monitoramento em `vpn-monitor` é uma nova superfície privada sobre essa base
-editorial, integrada ao backend e aos workers de `vpn-sentry` por meio dos
+O `vpn-news` apresenta matérias com texto, imagem e vídeo, incluindo páginas
+dedicadas por cidade/servidor. O `vpn-monitor` é a superfície privada de
+monitoramento, integrada ao backend e aos workers de `vpn-sentry` por meio dos
 contratos compartilhados.
 
-## Entidades iniciais
+## Entidades
 
 - `users`: contas VPN e papéis administrativos.
 - `provider_connections`: OAuth e identidade do provedor, sem armazenar tokens
@@ -213,7 +205,7 @@ contratos compartilhados.
 - `monitoring_events`: sinais detectados, confiança, estado e timestamps.
 - `evidence`: clips, frames, áudio, transcrições e referências temporais.
 - `notification_deliveries`: tentativas e resultados por canal.
-- `editorial_items`: vínculo futuro entre eventos/evidências e matérias.
+- `editorial_items`: vínculo entre eventos/evidências e matérias.
 
 ## Segurança e confiança
 
@@ -224,54 +216,14 @@ contratos compartilhados.
 - Toda detecção precisa registrar origem, versão da regra/modelo e confiança.
 - Alertas devem deixar explícito que são possibilidades, com caminho para
   reconhecer, resolver ou marcar falso positivo.
-- Evidências devem ter política de retenção e exclusão definida antes da escala.
+- Evidências têm política explícita de retenção e exclusão.
 - A VPN deve deixar claro que o monitoramento é autorizado pelo proprietário.
 - `vpn-monitor` não deve conter segredos de provedores ou lógica de workers.
 - `vpn-sentry` deve validar autorização e escopos antes de acessar provedores.
 - APIs entre superfícies devem seguir os contratos publicados em
   `packages/contracts`.
 
-## Fases
-
-### Fase 0 — fundação
-
-- Atualizar o modelo de produto e dados.
-- Definir autenticação, papéis, consentimento e retenção.
-- Validar a integração OAuth Twitch.
-- Consolidar contratos REST/OpenAPI em `packages/contracts`.
-- Definir as fronteiras entre `vpn-monitor`, `vpn-sentry` e `vpn-news`.
-
-### Fase 1 — monitoramento privado
-
-- Conectar canal Twitch.
-- Detectar sessões online.
-- Criar painel privado de canais e sessões em `vpn-monitor`.
-- Implementar convites temporários.
-- Expor no `vpn-sentry` a API necessária para a central privada.
-
-### Fase 2 — evidências e alertas
-
-- Processar clips ou gravações de teste em workers do `vpn-sentry`.
-- Criar eventos de possível risco.
-- Entregar notificações no painel e no Discord oficial.
-- Criar histórico e estados de reconhecimento/resolução.
-
-### Fase 3 — inteligência experimental
-
-- Frases-chave configuráveis.
-- Detecção de personagem caído e perseguição.
-- Análise temporal de regiões da tela.
-- Avaliação de precisão e falsos positivos.
-
-### Fase 4 — rede e editorial
-
-- Listas de transmissão persistentes.
-- Bot para Discords externos.
-- Vínculo entre eventos, evidências e matérias do `vpn-news`.
-- Plugins/agentes locais para telemetria adicional.
-- Integração futura com FiveM e programação 24/7.
-
-## Critérios de sucesso iniciais
+## Critérios de sucesso
 
 - Um usuário consegue conectar e revogar sua Twitch.
 - Uma sessão monitorada permanece privada e acessível apenas aos autorizados.
@@ -281,22 +233,12 @@ contratos compartilhados.
 - O alerta contém evidência e confiança quando disponíveis.
 - O usuário consegue reconhecer e resolver um alerta.
 - Nenhum token ou conteúdo privado aparece em logs ou superfícies públicas.
-- O fluxo atual de matérias, imagens, vídeos e páginas por cidade continua
+- O fluxo de matérias, imagens, vídeos e páginas por cidade continua
   funcionando.
 - Os consumidores usam os contratos compartilhados sem divergência de payload.
 
-## Decisões adiadas
-
-- Estratégia final de acesso ao áudio e vídeo da live em tempo real.
-- Processamento de clips periódicos versus outra fonte de frames.
-- Provedor de visão computacional e transcrição.
-- Retenção e custo de evidências.
-- Sistema operacional e empacotamento de plugin/executável.
-- Integração técnica com Discords externos e FiveM.
-- Formato do canal jornalístico 24/7.
-- Modelo final de hospedagem e execução dos workers.
-- Limites de retenção e compartilhamento entre monitoramento e redação.
-
 ## Fundação detalhada
 
-Decisões de acesso, consentimento e retenção: [fundação](docs/architecture/foundation.md). Twitch vincula um canal à conta VPN, mantendo monitoramento desabilitado na Fase 0.
+Regras de acesso, consentimento e retenção: [fundação](docs/architecture/foundation.md).
+Vincular uma conta Twitch não habilita coleta; o monitoramento exige consentimento
+separado do dono.

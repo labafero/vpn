@@ -4,6 +4,7 @@ import type postgres from 'postgres'
 import { expect, test } from 'vitest'
 import { createClipIngestionService } from '../server/utils/clip-ingestion'
 import { createClipRepository } from '../server/utils/clip-repository'
+import { createClipProcessingRepository } from '../server/utils/clip-processing-repository'
 
 const owner = '00000000-0000-0000-0000-000000000001'
 const channel = '20000000-0000-0000-0000-000000000001'
@@ -11,13 +12,15 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
   const db = new PGlite()
   try {
     await db.exec(
-      `CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY); CREATE TABLE auth.sessions(id uuid,user_id uuid,not_after timestamptz); CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT NULL::uuid $$; INSERT INTO auth.users VALUES ('${owner}');`
+      `CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY); CREATE TABLE auth.sessions(id uuid,user_id uuid,not_after timestamptz); CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT NULL::uuid $$; INSERT INTO auth.users VALUES ('${owner}');`
     )
     for (const suffix of [
       '_foundation_access.sql',
       '_fase_1_monitoramento_privado.sql',
       '_phase2_clip_persistence.sql',
-      '_clip_ingestion_oauth.sql'
+      '_clip_ingestion_oauth.sql',
+      '_clip_processing_worker.sql',
+      '_per_user_openai_transcription_credentials.sql'
     ]) {
       const name = readdirSync('supabase/migrations').find((name) => name.endsWith(suffix))!
       await db.exec(readFileSync(`supabase/migrations/${name}`, 'utf8'))
@@ -64,6 +67,48 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
     const first = parallel.find((row) => !row.duplicate)!
     expect(first.state).toBe('pending_captions')
     expect(await repo.insert(owner, channel, clip, active)).toEqual({ ...first, duplicate: true })
+    expect(await repo.list(owner, channel)).toMatchObject({
+      items: [{ id: first.id, state: 'pending_captions', detections: [] }]
+    })
+    const processing = createClipProcessingRepository(adapter(db) as unknown as postgres.Sql)
+    const queued = await repo.insert(owner, channel, { ...clip, id: 'QueuedClip' }, active)
+    const job = await processing.claimNext()
+    expect(job).toMatchObject({
+      id: first.id,
+      clipId: 'ClipId',
+      ownerId: owner,
+      channelId: channel
+    })
+    await expect(processing.claimNext()).resolves.toBeNull()
+    expect(await processing.stillAuthorized(job!)).toBe(true)
+    await expect(
+      processing.finish(job!, [
+        {
+          phraseId: 'phrase-v1-01',
+          phraseVersion: 1,
+          phrase: 'você é um inútil',
+          source: 'openai',
+          startMs: 100,
+          endMs: 900
+        }
+      ])
+    ).resolves.toBe(true)
+    const listed = await repo.list(owner, channel)
+    expect(listed.items.find((item) => item.id === first.id)).toMatchObject({
+      state: 'completed',
+      detections: [
+        {
+          phraseId: 'phrase-v1-01',
+          phrase: 'você é um inútil',
+          source: 'openai',
+          startMs: 100,
+          endMs: 900
+        }
+      ]
+    })
+    const nextJob = await processing.claimNext()
+    expect(nextJob).toMatchObject({ id: queued.id, clipId: 'QueuedClip' })
+    await processing.cancel(nextJob!)
     let release!: () => void
     const gate = new Promise<void>((resolve) => {
       release = resolve
@@ -89,8 +134,23 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
       repo.insert(owner, channel, { ...clip, id: 'AfterRevocation' }, active)
     ).rejects.toMatchObject({ statusCode: 403 })
     const renewed = await repo.setConsent(owner, channel, true)
-    const duplicate = await repo.insert(owner, channel, clip, renewed)
-    expect(duplicate).toEqual({ id: first.id, state: 'cancelled_consent', duplicate: true })
+    const pendingClip = await repo.insert(
+      owner,
+      channel,
+      { ...clip, id: 'PendingAtRevocation' },
+      renewed
+    )
+    await repo.setConsent(owner, channel, false)
+    const reenabled = await repo.setConsent(owner, channel, true)
+    const duplicate = await repo.insert(
+      owner,
+      channel,
+      { ...clip, id: 'PendingAtRevocation' },
+      reenabled
+    )
+    expect(duplicate).toEqual({ ...pendingClip, state: 'cancelled_consent', duplicate: true })
+    const completedDuplicate = await repo.insert(owner, channel, clip, reenabled)
+    expect(completedDuplicate).toEqual({ id: first.id, state: 'completed', duplicate: true })
     await expect(
       repo.insert(owner, channel, { ...clip, id: 'OldConsent' }, active)
     ).rejects.toMatchObject({ statusCode: 403 })

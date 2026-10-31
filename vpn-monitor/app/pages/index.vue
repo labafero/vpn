@@ -133,6 +133,12 @@ onMounted(load)
       >
         Conexão Twitch e consentimento
       </UButton>
+      <UButton
+        to="/clips"
+        variant="outline"
+      >
+        Clips e detecções
+      </UButton>
     </div>
   </main>
 </template>

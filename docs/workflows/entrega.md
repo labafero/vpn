@@ -4,9 +4,9 @@ Rotina para agentes trabalhando neste repositório. Preservar o objetivo e as au
 
 ## Retomar e planejar
 
-Ler AGENTS.md, o PRD do app em `docs/product/`, ADRs relevantes em `docs/adr/`, `PRD.md` geral quando o escopo cruzar apps, `DESIGN.md` para mudanças visuais e evidências atuais em `docs/validation/`. Consultar branch, worktree, diff, PR e CI. Identificar a primeira etapa incompleta. Não refazer decisões ou implementação já aprovadas. Aplicar skills relevantes e usar planejamento proporcional à mudança.
+Ler AGENTS.md, o PRD do app em `docs/product/`, ADRs relevantes em `docs/adr/`, `PRD.md` geral quando o escopo cruzar apps, `DESIGN.md` para mudanças visuais e o estado operacional atual em `docs/operations/`. Consultar branch, worktree, diff, PR e CI. Identificar a primeira etapa incompleta. Não refazer decisões ou implementação já aprovadas. Aplicar skills relevantes e usar planejamento proporcional à mudança.
 
-Mudanças complexas podem usar um plano de execução curto com resultado observável, limites, dependências, critérios e destino. Plano não é fonte durável de produto ou arquitetura: ao concluir a entrega, atualizar PRD/ADR/evidência correspondente e remover o plano. Distinguir aprovação de código, push, preview, merge e produção; uma autorização não implica as demais.
+Mudanças complexas podem usar um plano de execução curto com resultado observável, limites, dependências, critérios e destino. Plano não é fonte durável de produto ou arquitetura: ao concluir a entrega, atualizar PRD/ADR para comportamento e decisões; verificações ficam nos testes, CI e PR. Remover o plano concluído. Distinguir aprovação de código, push, preview, merge e produção; uma autorização não implica as demais.
 
 Para preparar máquina/acessos, usar [preparar ambiente](preparar-ambiente.md) via `vpn-environment`. Para preview em PR, produção ou acompanhamento de deploy existente, usar [publicação](publicacao.md) via `vpn-release`. Esses procedimentos detalham a execução sem substituir as autorizações e evidências deste fluxo.
 
@@ -47,7 +47,7 @@ Atualizar a PR em torno da implementação final e anexá-la à tarefa. Não mes
 
 ## Deixar continuidade e fechar
 
-Em `docs/validation/`, manter somente evidências úteis para reproduzir ou auditar integração, publicação, ambiente e pendências. Registrar objetivo, PR/commit, autorização, ambiente confirmado, resultado e próxima ação; remover detalhes transitórios quando deixarem de orientar uma operação. Guardar somente metadados operacionais necessários, nunca credenciais, URLs com códigos OAuth ou dados pessoais de testes.
+Os testes automatizados e seus resultados pertencem aos testes e à CI; não manter uma cópia documental paralela. PRDs e ADRs descrevem comportamento e decisões duráveis. `docs/operations/environments.md` mantém somente o estado atual necessário para operar e descobrir ambientes, sem histórico de testes ou de cada publicação. Nunca registrar credenciais, URLs com códigos OAuth ou dados pessoais de testes.
 
 Na entrega ao usuário, informar o que mudou, o que passou, o que permanece aberto e a ação que depende dele. Marcar uma fase concluída apenas quando seus critérios estiverem atendidos. Se depender de login ou decisão externa, preservar o resultado revisável e o ponto de retomada.
 

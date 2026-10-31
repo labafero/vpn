@@ -1,9 +1,7 @@
 # Architecture Decision Records
 
-ADRs guardam escolhas duradouras, contexto e consequências. Não são diários de
-execução. Para mudar uma decisão aceita, criar novo ADR que a substitua e manter
-o anterior como histórico.
+ADRs guardam escolhas duradouras, contexto e consequências.
 
 - [ADR-0001 — Fronteiras das superfícies](0001-product-surfaces.md)
 - [ADR-0002 — Identidade, consentimento e dados privados](0002-identidade-consentimento-e-dados-privados.md)
-- [ADR-0003 — Captions Twitch e fallback Whisper](0003-deteccao-de-clips.md)
+- [ADR-0003 — Fontes para detecção em clips](0003-deteccao-de-clips.md)

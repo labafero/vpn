@@ -6,6 +6,14 @@ const origin = 'https://monitor.test'
 test('proxy allows only contracted routes and methods', () => {
   expect(proxy.allowSentryRequest('me', 'GET', undefined, undefined, origin)).toBe(true)
   expect(
+    proxy.allowSentryRequest('me/openai-credential', 'GET', undefined, undefined, origin)
+  ).toBe(true)
+  expect(proxy.allowSentryRequest('me/openai-credential', 'POST', origin, '1', origin)).toBe(true)
+  expect(proxy.allowSentryRequest('me/openai-credential', 'DELETE', origin, '1', origin)).toBe(true)
+  expect(
+    proxy.allowSentryRequest('me/openai-credential', 'DELETE', origin, undefined, origin)
+  ).toBe(false)
+  expect(
     proxy.allowSentryRequest(
       'provider-connections/twitch/callback',
       'GET',
@@ -87,6 +95,9 @@ test('clip routes require strict UUID, method and CSRF', () => {
   const base = 'channels/00000000-0000-0000-0000-000000000001'
   expect(
     allowSentryRequest(`${base}/clips`, 'POST', 'https://monitor.test', '1', 'https://monitor.test')
+  ).toBe(true)
+  expect(
+    allowSentryRequest(`${base}/clips`, 'GET', undefined, undefined, 'https://monitor.test')
   ).toBe(true)
   expect(
     allowSentryRequest(`${base}/clip-consent`, 'GET', undefined, undefined, 'https://monitor.test')

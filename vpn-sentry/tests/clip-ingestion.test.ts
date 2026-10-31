@@ -43,7 +43,8 @@ beforeEach(() => {
       const result = { id: 'submission', state: 'pending_captions' }
       saved.set(metadata.id, result)
       return { ...result, duplicate: false }
-    }
+    },
+    list: async () => ({ items: [] })
   }
   service = createClipIngestionService(repo, async (id) => {
     if (revokeDuringFetch) access.consent.manualEnabled = false
@@ -139,4 +140,8 @@ test('duplicate URL is available even when the source clip has disappeared', asy
   expect(
     await service.submit('owner', 'channel', { url: 'https://clips.twitch.tv/Id' })
   ).toMatchObject({ id: 'submission', duplicate: true })
+})
+
+test('clip history is available independently of clip intake', async () => {
+  await expect(service.list('owner', 'channel')).resolves.toEqual({ items: [] })
 })

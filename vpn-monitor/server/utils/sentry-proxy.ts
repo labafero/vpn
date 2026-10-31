@@ -7,6 +7,7 @@ export function allowSentryRequest(
 ): boolean {
   const allowed: Record<string, string[]> = {
     me: ['GET'],
+    'me/openai-credential': ['GET', 'POST', 'DELETE'],
     'provider-connections/twitch': ['GET', 'DELETE'],
     'provider-connections/twitch/authorize': ['POST'],
     'provider-connections/twitch/callback': ['GET']
@@ -14,7 +15,7 @@ export function allowSentryRequest(
   const dynamic: Record<string, string[]> = {
     'channels/[uuid]/monitoring': ['PATCH'],
     'channels/[uuid]/clip-consent': ['GET', 'PATCH'],
-    'channels/[uuid]/clips': ['POST'],
+    'channels/[uuid]/clips': ['GET', 'POST'],
     'sessions/[uuid]': ['GET'],
     'sessions/[uuid]/invites': ['GET', 'POST'],
     'invites/[uuid]': ['DELETE']

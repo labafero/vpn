@@ -35,6 +35,14 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
       name.endsWith('_clip_ingestion_oauth.sql')
     )!
     await db.exec(readFileSync(`supabase/migrations/${ingestionMigration}`, 'utf8'))
+    const clipWorkerMigration = readdirSync('supabase/migrations').find((name) =>
+      name.endsWith('_clip_processing_worker.sql')
+    )!
+    await db.exec(readFileSync(`supabase/migrations/${clipWorkerMigration}`, 'utf8'))
+    const userProviderCredentialMigration = readdirSync('supabase/migrations').find((name) =>
+      name.endsWith('_per_user_openai_transcription_credentials.sql')
+    )!
+    await db.exec(readFileSync(`supabase/migrations/${userProviderCredentialMigration}`, 'utf8'))
     await db.exec(`
       INSERT INTO public.user_roles VALUES ('00000000-0000-0000-0000-000000000003', 'vpn_admin');
       INSERT INTO public.provider_connections(id,user_id,provider_user_id,login,consent_version,consented_at) VALUES
@@ -74,6 +82,8 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
       for (const statement of [
         'SELECT * FROM private.clip_processing_consents',
         'SELECT * FROM private.clip_submissions',
+        'SELECT * FROM private.clip_detections',
+        'SELECT * FROM private.user_provider_credentials',
         `INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at)
           VALUES ('20000000-0000-0000-0000-000000000001','clip-processing-v1',now())`,
         `INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
@@ -81,7 +91,8 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
         'UPDATE private.clip_processing_consents SET manual_enabled=false',
         "UPDATE private.clip_submissions SET state='processing'",
         'DELETE FROM private.clip_processing_consents',
-        'DELETE FROM private.clip_submissions'
+        'DELETE FROM private.clip_submissions',
+        'DELETE FROM private.clip_detections'
       ]) {
         await expect(db.query(statement)).rejects.toThrow(/permission denied/)
       }
@@ -116,6 +127,9 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
       /permission denied/
     )
     await expect(db.query('SELECT * FROM private.clip_processing_consents')).rejects.toThrow(
+      /permission denied/
+    )
+    await expect(db.query('SELECT * FROM private.clip_detections')).rejects.toThrow(
       /permission denied/
     )
     await expect(db.query('SELECT * FROM private.clip_submissions')).rejects.toThrow(
@@ -185,7 +199,7 @@ test('foundation RLS isolates owners and immediately reflects admin removal', as
       ('20000000-0000-0000-0000-000000000001','OldFailed123','https://clips.twitch.tv/OldFailed123','manual','failed_terminal','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),
       ('20000000-0000-0000-0000-000000000001','OldCancelled123','https://clips.twitch.tv/OldCancelled123','manual','cancelled_consent','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),
       ('20000000-0000-0000-0000-000000000001','RecentTerminal123','https://clips.twitch.tv/RecentTerminal123','manual','failed_terminal','2026-07-01T00:00:00Z','2026-07-21T00:00:00Z'),
-      ('20000000-0000-0000-0000-000000000001','OldPending123','https://clips.twitch.tv/OldPending123','manual','pending_asr','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
+      ('20000000-0000-0000-0000-000000000001','OldPending123','https://clips.twitch.tv/OldPending123','manual','pending_captions','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z'),
       ('20000000-0000-0000-0000-000000000001','OldProcessing123','https://clips.twitch.tv/OldProcessing123','manual','processing','2026-01-01T00:00:00Z','2026-01-01T00:00:00Z');
     `)
     const purged = await db.query<{ purged: number }>(

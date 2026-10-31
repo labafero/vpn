@@ -1,57 +1,64 @@
-# Ambientes e descoberta
+# Ambientes e serviços
 
-## Revalidação local em 24 de outubro de 2026
+Estado revalidado em 31 de outubro de 2026. Conta, vínculo e saúde remota
+mudam; consulte Vercel e Supabase CLI antes de operar e nunca registre valores
+de credenciais.
 
-Máquina WSL2 em `/home/anils/labafero/vpn`, branch `main`, commit base `0c44318`. Node Linux 24.21.0 já instalado via NVM e pnpm 11.1.3 disponíveis. Dependências instaladas com lockfile congelado. Vercel CLI 64.5.0 e Supabase CLI 2.119.0 instaladas nesta máquina; binário Supabase Linux amd64 conferido com checksum oficial. GitHub CLI autenticado como `anilsonlopes`.
+## Local
 
-Após login humano, Vercel autenticada como `quila`, equipe `anilson-lopes-projects`; os quatro projetos foram conferidos e vinculados por aplicativo, com root directories correspondentes e Node 24.x. Supabase autenticado com acesso ao projeto `VPN_RP`, ref `zxzigoaddoslkokbzmyc`; vínculo local criado e 27 migrations locais/remotas alinhadas confirmadas, sem aplicação de migrations. Configuração pública versionada do Supabase respondeu HTTP 200 em Auth settings e leitura de `city_config`. Em 24/10, login real validado pelo Site local, retorno ao Monitor e News locais e `/api/v1/me` do Sentry de produção.
-
-Checks locais passaram: lint, typecheck, contratos OpenAPI, formatação, 205 testes em 38 arquivos e build dos quatro aplicativos. `.env` por aplicativo criado com valores públicos e campos privados vazios, ignorado pelo Git e com permissão `600`; diretório `~/.config/vpn` com `700`. Pendências e evidências: [ambiente local em 24/10](../validation/ambiente-local-2026-10-24.md).
-
-## Revalidação em 17 de outubro de 2026
-
-Nova máquina WSL preparada com NVM/Node 24.22.0, pnpm 11.1.3, Vercel CLI 64.5.0 e Supabase CLI 2.119.0. Vercel autenticada como quila na equipe anilson-lopes-projects; os quatro projetos abaixo foram revalidados e vinculados localmente, com root directories correspondentes e Node 24.x. Supabase autenticado no projeto VPN_RP, ref zxzigoaddoslkokbzmyc; vínculo e 25 migrations alinhadas confirmados, sem aplicar mudanças.
-
-Fluxo Git/Vercel comprovado pela PR #21 (`feat/site-splash`): commit a064a16, deployment Preview dpl_2ZJTf7W4j8cyMoiGh6Z1KHCzqJbY READY, CI passou e navegador validado. A integração disparou os quatro aplicativos mesmo com mudança somente no Site. Proteção dos previews mantida; CLI gerou credencial de automação para testar Site. Site publicado em produção após aprovação explícita do usuário: commit f15a8e9, deployment dpl_DJcRKgt4s8XKS3E2qsKLymvryfK5 READY e domínio vpn.labafero.com verificados no Chromium. Publicação direcionada pela CLI, sem merge em main e sem alterar outros aplicativos ou banco. Guia: [preparação](development-setup.md); evidências: [splash](../validation/site-splash.md).
-
-O restante deste documento registra a verificação histórica de 10 de outubro; não tratar seus números de migrations, versões de ferramentas ou estado de PRs como atuais.
-
-Estado verificado em 10 de outubro de 2026. Revalidar destino, conta e projeto antes de alterar configurações. Nunca imprimir credenciais ou respostas completas de variáveis privadas.
+- Repositório: `/home/anils/labafero/vpn`, WSL2, Node 24.21.0 e pnpm 11.1.3.
+- Vercel CLI 64.5.0 e Supabase CLI 2.119.0 disponíveis.
+- Arquivos `.env` são locais, ignorados pelo Git e com permissão restrita. Os
+  nomes de variáveis esperados estão nos `.env.example` de cada aplicativo.
 
 ## Vercel
 
-CLI 62.7.0 autenticada como quila; equipe anilson-lopes-projects, plano Hobby, Fluid Compute ativo. Todos os projetos ligados a labafero/vpn, produção main.
+Equipe `anilson-lopes-projects`; os projetos estão vinculados ao repositório
+`labafero/vpn` com raiz correspondente ao aplicativo.
 
-| Aplicativo | Projeto / Root Directory | Domínio |
-|---|---|---|
-| News | vpn-news | vpn-news.labafero.com |
-| Site | vpn-site | vpn.labafero.com |
-| Monitor | vpn-monitor | vpn-monitor.labafero.com |
-| Sentry | vpn-sentry | vpn-sentry.labafero.com |
+| Aplicativo | Projeto       | Domínio                    |
+| ---------- | ------------- | -------------------------- |
+| News       | `vpn-news`    | `vpn-news.labafero.com`    |
+| Site       | `vpn-site`    | `vpn.labafero.com`         |
+| Monitor    | `vpn-monitor` | `vpn-monitor.labafero.com` |
+| Sentry     | `vpn-sentry`  | `vpn-sentry.labafero.com`  |
 
-Monitor e Sentry têm domínios verificados, associados à produção por solicitação explícita do usuário. A associação anterior à branch de preview foi removida. Ambos os previews estão READY. Monitor: dpl_46KjxWu47XxUxesGC89gFQeD7WAN; Sentry: dpl_HF9HvtJZz2MAJT77m1njsSATvwuv. Produção publicada a partir do código validado da fundação, sem merge de main. Variáveis de produção provisionadas. Deployments de produção READY: Monitor dpl_2SULH45mVne1w4CynZhot6KjkGP8; Sentry dpl_CvRmLfoyZnZdVy5bQcxyvzL6hnLG. Os primeiros deploys dos projetos novos foram classificados como produção pela Vercel apesar da opção preview e foram cancelados antes de servir.
+Os domínios de produção usam autenticação VPN própria; a proteção dos previews
+permanece ativa. Em 31/10, Monitor e Sentry estavam READY. A interface do
+Monitor exige autenticação. Deployments de produção são direcionados por app;
+publicar um deles não autoriza publicar os demais.
 
-A proteção de previews permanece ativa. Monitor usa uma credencial privada de automação para acessar Sentry; Cron usa uma credencial separada, além do segredo próprio do endpoint. Não enviar esses valores ao browser nem em query strings. Os domínios personalizados de produção usam a autenticação própria VPN; a proteção dos previews permanece ativa.
+Deployments Git automáticos estão desativados nos quatro projetos Vercel.
+Publicações, inclusive em produção, são iniciadas explicitamente pela CLI.
 
-Para a Fase 1, Sentry também requer `NUXT_TWITCH_EVENTSUB_SECRET` e `NUXT_TWITCH_EVENTSUB_CALLBACK=https://vpn-sentry.labafero.com/api/eventsub/twitch`. Armazenar apenas no projeto Sentry; nunca no Monitor/browser. O endpoint Cron usa `NUXT_TWITCH_CRON_SECRET` e a proteção Vercel configurada para o domínio de produção.
+Variáveis privadas ficam somente no projeto Sentry:
+
+- `NUXT_TWITCH_EVENTSUB_SECRET` e `NUXT_TWITCH_EVENTSUB_CALLBACK` para EventSub.
+- `NUXT_TWITCH_CRON_SECRET` para validação agendada de credenciais Twitch.
+- `NUXT_CLIP_WORKER_SECRET` para autenticar o worker de clips.
+- `NUXT_OPENAI_API_KEY` é opcional e central. Quando configurada, é usada antes
+  da chave OpenAI individual do dono; a chave individual é cifrada no schema
+  `private` e não é devolvida pela API.
 
 ## Supabase
 
-CLI 2.119.0 autenticada e worktree vinculado ao projeto vpn, ref zxzigoaddoslkokbzmyc, ACTIVE_HEALTHY, us-east-2, Postgres 17.6.1.155. As 20 migrations estão alinhadas, incluindo foundation_access e twitch_validation_attempts, aplicadas com autorização específica do usuário.
+Projeto `VPN_RP`, ref `zxzigoaddoslkokbzmyc`, região `us-east-2`. Em 31/10, as
+migrations locais e remotas estavam alinhadas, incluindo persistência, chaves
+individuais e processamento de clips. Postgres 17.6.1.155 na última leitura.
 
-A migration da Fase 1 mantém sessões, convites, estado EventSub e deduplicação no schema `private`, fora da Data API; o papel `vpn_sentry` é o único que acessa esses registros. O SQL `supabase/operations/schedule-twitch-reconciliation.sql` é uma operação manual após revisão: agenda chamadas em :15 e :45, intercaladas à validação OAuth. As chaves exigidas em Vault e os passos de observação/remoção estão no próprio SQL. Não executar no banco remoto até revisão e autorização de implantação.
+O cron `vpn-clip-processing` está ativo a cada 30 minutos (`7,37 * * * *`). A
+URL do worker, seu segredo e o bypass de proteção Vercel ficam no Vault sob os
+nomes `vpn_clip_worker_url`, `vpn_clip_worker_secret` e
+`vpn_vercel_cron_bypass`. A limpeza automática de submissões vencidas ainda não
+está agendada; a operação está descrita em
+[`schedule-clip-retention.sql`](../../supabase/operations/schedule-clip-retention.sql).
 
-RLS ativa nas três tabelas públicas da fundação. Credenciais privadas sem acesso SELECT para authenticated. Papel vpn_sentry LOGIN NOINHERIT, conexão TLS pelo pooler, permissões restritas verificadas. Criptografia e segredos remotos armazenados fora do Git. Advisors sem ERROR; dois WARN preexistentes: search_path de set_updated_at e proteção de senhas vazadas no Auth.
+O cron de validação Twitch é separado do processamento de clips. A última
+observação em 31/10 retornou 503; isso não bloqueia o worker de clips.
 
-Cron vpn-twitch-validation ativo a cada 30 minutos; URL no Vault atualizada para https://vpn-sentry.labafero.com/api/internal/twitch/validate. Prova agendada temporária executou o mesmo comando com HTTP 200; job temporário removido. Endpoint personalizado também respondeu 200 com credenciais corretas, checked=0, failed=0, deferred=0, expired=0; vínculo remoto posteriormente confirmado com credencial criptografada e monitoramento desativado.
+## Twitch
 
-Supabase gerencia grants de pg_net e postgres não consegue revogá-los. net está excluído da Data API (406 PGRST106), anon/authenticated são NOLOGIN e todos os papéis LOGIN foram auditados como confiáveis. Não declarar que as filas são inacessíveis a outros logins SQL confiáveis. Consultar docs/validation/twitch-scheduler.md.
-
-## Twitch e entrega
-
-Conta VPN_RP e Client ID conferidos contra o .env antes da alteração. Callback configurado para https://vpn-monitor.labafero.com/api/sentry/provider-connections/twitch/callback. Conta quilamcz contém outro aplicativo e não deve ser usada para gerenciar esta aplicação.
-
-PR #4: fundação, codex/fase-0-fundacao. PR #5: correção separada do Site, codex/vpn-site-checks. Nenhum merge realizado. Workflow obrigatório: docs/workflows/entrega.md. Evidências: docs/validation/fase-0-oauth.md.
-
-OAuth local completo já comprovado. OAuth remoto comprovado com callback 303 e vínculo persistido; CLI de logs retornou requestPath sem query, sem assegurar outras superfícies da plataforma. Não declarar Fase 0 concluída antes de registrar os resultados. Login VPN no domínio personalizado confirmado pelo usuário; estado de conexão carregado corretamente.
-
+Callback OAuth do Sentry: `https://vpn-monitor.labafero.com/api/sentry/provider-connections/twitch/callback`.
+EventSub aponta para `https://vpn-sentry.labafero.com/api/eventsub/twitch`.
+Client IDs, tokens e segredos não devem ser copiados para documentação ou
+mensagens.
