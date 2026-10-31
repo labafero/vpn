@@ -6,13 +6,13 @@ Procedimento da skill [vpn-release](../../.agents/skills/vpn-release/SKILL.md). 
 
 Recuperar aplicativo/projeto, equipe, branch, SHA completo, PR, ambiente, domínio e autorização existente. Revalidar o projeto/root directory na conta. Ler o diff e executar os checks pertinentes antes de publicar. Não repetir aprovação compatível já dada; não inferir merge, produção dos outros aplicativos ou mudança no banco.
 
-| Pedido                                   | Caminho                                                              |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| Preview de uma PR                        | Push autorizado na branch e integração Git existente                 |
-| Produção aprovada de um aplicativo       | Publicação direcionada por CLI, ou fluxo Git expressamente escolhido |
-| Acompanhar/status/abrir deploy existente | Consultar o deployment; não criar outro                              |
+| Pedido                                   | Caminho                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------- |
+| Preview de uma PR                        | Desativado nos projetos VPN; habilitar explicitamente se necessário |
+| Produção aprovada de um aplicativo       | Publicação direcionada por CLI                                      |
+| Acompanhar/status/abrir deploy existente | Consultar o deployment; não criar outro                             |
 
-Não exigir preview adicional quando a versão local já foi aprovada e o usuário pediu produção. Git e CLI são alternativas para a publicação escolhida; evitar publicar a mesma versão duas vezes sem necessidade. Um push no monorepo pode disparar todos os projetos conectados; isso não é evidência de que todos precisavam de deploy.
+Os quatro arquivos `vercel.json` desativam deployments automáticos originados do Git. Use a CLI para publicar explicitamente apenas o aplicativo autorizado. A configuração não bloqueia `vercel deploy --prod`. Se for necessário preview no futuro, reabilitar deployments Git conscientemente antes de abrir/atualizar a PR.
 
 ## Preview associado à PR
 

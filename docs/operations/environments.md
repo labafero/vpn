@@ -28,6 +28,9 @@ permanece ativa. Em 31/10, Monitor e Sentry estavam READY. A interface do
 Monitor exige autenticação. Deployments de produção são direcionados por app;
 publicar um deles não autoriza publicar os demais.
 
+Deployments Git automáticos estão desativados nos quatro projetos Vercel.
+Publicações, inclusive em produção, são iniciadas explicitamente pela CLI.
+
 Variáveis privadas ficam somente no projeto Sentry:
 
 - `NUXT_TWITCH_EVENTSUB_SECRET` e `NUXT_TWITCH_EVENTSUB_CALLBACK` para EventSub.
