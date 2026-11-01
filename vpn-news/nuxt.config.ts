@@ -70,12 +70,6 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css'],
-  runtimeConfig: {
-    public: {
-      vpnAuthUrl: process.env.NUXT_PUBLIC_VPN_AUTH_URL || 'https://vpn.labafero.com',
-      vpnAppUrls
-    }
-  },
   site: {
     url: vpnAppUrls.news,
     name: 'VPN News',
@@ -84,6 +78,13 @@ export default defineNuxtConfig({
     defaultLocale: 'pt_BR',
     env: process.env.VERCEL_ENV || process.env.NODE_ENV
   },
+  runtimeConfig: {
+    public: {
+      vpnAuthUrl: process.env.NUXT_PUBLIC_VPN_AUTH_URL || 'https://vpn.labafero.com',
+      vpnAppUrls
+    }
+  },
+  build: { transpile: ['@vpn/ui'] },
   routeRules: {
     '/auth/callback': { ssr: false, robots: 'noindex, nofollow' },
     '/login': { robots: 'noindex, nofollow' },
@@ -92,7 +93,6 @@ export default defineNuxtConfig({
     '/overlay': { robots: 'noindex, nofollow' },
     '/overlay/**': { robots: 'noindex, nofollow' }
   },
-  build: { transpile: ['@vpn/ui'] },
 
   compatibilityDate: '2026-06-07',
 
