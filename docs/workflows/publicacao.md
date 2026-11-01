@@ -8,14 +8,18 @@ Recuperar aplicativo/projeto, equipe, branch, SHA completo, PR, ambiente, domín
 
 | Pedido                                   | Caminho                                                             |
 | ---------------------------------------- | ------------------------------------------------------------------- |
-| Preview de uma PR                        | Desativado nos quatro projetos VPN                                  |
+| Preview de uma PR                        | Build ignorado nos quatro projetos VPN; deployment fica cancelado   |
 | Merge/push em `main`                     | Deploy de produção automático pelo Git nos quatro projetos          |
 | Publicação manual de um aplicativo      | Publicação direcionada por CLI                                      |
 | Acompanhar/status/abrir deploy existente | Consultar o deployment; não criar outro                             |
 
-Os quatro arquivos `vercel.json` habilitam deployments Git somente para `main` e os desabilitam para todas as outras branches. A Vercel usa padrões minimatch e, se uma branch corresponder a mais de uma regra, qualquer regra `true` habilita o deployment; por isso, `main` é a única exceção ao bloqueio `*`. A branch de produção configurada em cada projeto Vercel deve permanecer `main`. Assim, merges em `main` publicam automaticamente; branches de PR não geram preview. A CLI continua disponível para uma publicação manual direcionada quando essa operação for solicitada. Para voltar a gerar previews, alterar conscientemente a regra de branches antes de abrir/atualizar a PR. Consulte a [documentação oficial de configuração Git da Vercel](https://vercel.com/docs/project-configuration/git-configuration).
+Os quatro arquivos `vercel.json` permitem deployments Git para `main` e bloqueiam as outras branches. A Vercel usa padrões minimatch e, se uma branch corresponder a mais de uma regra, qualquer regra `true` habilita o deployment; por isso, `main` é a única exceção ao bloqueio `*`. A branch de produção configurada em cada projeto deve permanecer `main`. O `ignoreCommand` mantém builds apenas para `VERCEL_ENV=production`; o evento de PR ainda pode gerar um registro de deployment, mas o build é ignorado e fica `CANCELED`, sem preview pronto. Assim, merges em `main` publicam automaticamente. A CLI continua disponível para uma publicação manual direcionada quando essa operação for solicitada. Para voltar a gerar previews, alterar conscientemente as regras de branches e o `ignoreCommand` antes de abrir/atualizar a PR. Consulte a [documentação oficial de configuração Git](https://vercel.com/docs/project-configuration/git-configuration) e do [`ignoreCommand`](https://vercel.com/docs/project-configuration/vercel-json#ignorecommand) da Vercel.
 
 ## Preview associado à PR
+
+O fluxo de preview está desativado por padrão. Se o usuário pedir um preview,
+habilite conscientemente as regras de branches e remova o `ignoreCommand` de
+produção exclusiva antes de seguir os passos abaixo.
 
 1. Conferir a PR, branch e head SHA, por exemplo `gh pr view <numero> --json headRefName,headRefOid,url`. Se ainda não existir PR, preparar diff/descrição e criá-la dentro do escopo da tarefa; não incluir arquivos privados ou mudanças alheias.
 2. Commit/push da branch dentro da autorização existente. `main` é produção nos projetos atuais e publica automaticamente; não fazer push em `main` para criar preview. Uma autorização ausente deve ser solicitada com o commit/destino já preparados.

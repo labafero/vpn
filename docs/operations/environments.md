@@ -29,9 +29,11 @@ Monitor exige autenticação. Deployments de produção são direcionados por ap
 publicar um deles não autoriza publicar os demais.
 
 Deployments Git automáticos estão habilitados somente para `main` nos quatro
-projetos Vercel; previews de branches e PRs ficam desativados. A produção de
-cada projeto acompanha `main`, e merges nessa branch publicam automaticamente.
-Publicações manuais direcionadas continuam disponíveis pela CLI.
+projetos Vercel; o `ignoreCommand` cancela builds de preview e deixa a produção
+ser construída normalmente. Um evento de PR pode aparecer como deployment
+cancelado, sem URL de preview pronta. A produção de cada projeto acompanha
+`main`, e merges nessa branch publicam automaticamente. Publicações manuais
+direcionadas continuam disponíveis pela CLI.
 
 Variáveis privadas ficam somente no projeto Sentry:
 
