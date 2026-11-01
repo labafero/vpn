@@ -1,3 +1,7 @@
+catalog:
+  '@nuxt/ui': '^4.7.1'
+  tailwindcss: '^4.3.0'
+
 packages:
   - 'vpn-site'
   - 'vpn-news'

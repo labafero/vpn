@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">VPN</title>
-  <desc id="desc">V branco formado por conexões de uma rede virtual em fundo vermelho</desc>
+  <title id="title">VPN Site</title>
+  <desc id="desc">Letra V branca com sinal ciano sobre fundo vermelho</desc>
   <rect width="512" height="512" rx="112" fill="#ed1c24"/>
-  <path d="M112 128 256 384 400 128" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="58"/>
-  <circle cx="112" cy="128" r="30" fill="#fff"/>
-  <circle cx="256" cy="384" r="30" fill="#fff"/>
-  <circle cx="400" cy="128" r="30" fill="#fff"/>
+  <path d="M94 112h103l59 155 59-155h103L291 400l-35-82-35 82z" fill="#fff"/>
+  <path d="M238 304q18-17 36 0M226 288q30-29 60 0" fill="none" stroke="#67e8f9" stroke-linecap="round" stroke-width="14"/>
+  <circle cx="256" cy="326" r="10" fill="#67e8f9"/>
 </svg>

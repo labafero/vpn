@@ -14,12 +14,11 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.108",
     "@nuxt/fonts": "0.14.0",
-    "@nuxt/ui": "^4.7.1",
+    "@nuxt/ui": "catalog:",
     "@nuxtjs/supabase": "2.0.9",
     "@vpn/auth": "workspace:*",
     "@vpn/ui": "workspace:*",
     "nuxt": "^4.4.6",
-    "tailwindcss": "^4.3.0",
     "valibot": "1.4.1"
   },
   "devDependencies": {

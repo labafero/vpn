@@ -13,7 +13,7 @@
   "dependencies": {
     "@nuxt/fonts": "0.14.0",
     "@nuxt/icon": "2.2.2",
-    "@nuxt/ui": "^4.7.1",
+    "@nuxt/ui": "catalog:",
     "@nuxtjs/supabase": "2.0.9",
     "@vpn/auth": "workspace:*",
     "@vpn/contracts": "workspace:*",

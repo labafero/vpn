@@ -62,7 +62,8 @@ async function fetchStaticCityRoutes() {
 }
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/icon', '@nuxtjs/supabase'],
+  extends: ['../packages/ui'],
+  modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/supabase'],
 
   devtools: {
     enabled: false

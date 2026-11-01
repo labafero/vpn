@@ -1,0 +1,4 @@
+interface:
+  display_name: 'VPN: planejar'
+  short_description: 'Planos VPN com PRDs, ADRs e docs oficiais'
+  default_prompt: 'Use $vpn-plan para planejar a mudança com as fontes do projeto e docs oficiais da stack.'

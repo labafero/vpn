@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">VPN Monitor</title>
+  <desc id="desc">Radar ciano com varredura sobre fundo escuro</desc>
+  <rect width="512" height="512" rx="112" fill="#05090c"/>
+  <circle cx="256" cy="256" r="174" fill="none" stroke="#67e8f9" stroke-width="20"/>
+  <circle cx="256" cy="256" r="116" fill="none" stroke="#67e8f9" stroke-opacity=".7" stroke-width="14"/>
+  <circle cx="256" cy="256" r="58" fill="none" stroke="#67e8f9" stroke-opacity=".5" stroke-width="12"/>
+  <path d="M256 82v348M82 256h348" stroke="#67e8f9" stroke-opacity=".45" stroke-width="12"/>
+  <path d="M256 256 382 135a174 174 0 0 1 48 121z" fill="#67e8f9" fill-opacity=".35"/>
+  <circle cx="338" cy="207" r="17" fill="#fff"/>
+  <circle cx="256" cy="256" r="16" fill="#ed1c24" stroke="#fff" stroke-width="8"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">VPN Sentry</title>
+  <desc id="desc">Escudo vermelho com um nó de rede branco</desc>
+  <rect width="512" height="512" rx="112" fill="#18181b"/>
+  <path d="M256 70 408 127v113c0 99-61 166-152 202-91-36-152-103-152-202V127z" fill="#ed1c24" stroke="#fff" stroke-linejoin="round" stroke-width="20"/>
+  <path d="M190 268h132M256 202v132" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="18"/>
+  <circle cx="190" cy="268" r="29" fill="#fff"/>
+  <circle cx="322" cy="268" r="29" fill="#fff"/>
+  <circle cx="256" cy="202" r="29" fill="#fff"/>
+  <circle cx="256" cy="334" r="29" fill="#fff"/>
+</svg>
