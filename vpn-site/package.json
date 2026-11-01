@@ -6,7 +6,7 @@
     "dev": "nuxt dev --port 3000 --dotenv .env",
     "build": "nuxt build",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare --dotenv false",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "test:e2e:auth": "node --test tests/central-auth-browser-guards.test.cjs && node tests/central-auth-browser.cjs"

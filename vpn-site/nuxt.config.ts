@@ -26,10 +26,18 @@ const authCookieEnvironment =
       : 'development'
 
 export default defineNuxtConfig({
-  extends: ['../packages/ui'],
+  extends: ['../packages/ui', '../packages/seo'],
   modules: ['@nuxt/eslint', '@nuxtjs/supabase'],
   devtools: { enabled: false },
   css: ['~/assets/css/main.css'],
+  site: {
+    url: vpnAppUrls.site,
+    name: 'VPN Roleplay',
+    description:
+      'Entre no universo da VPN Roleplay: histórias, notícias e uma cidade viva para jogar.',
+    defaultLocale: 'pt_BR',
+    env: process.env.VERCEL_ENV || process.env.NODE_ENV
+  },
   runtimeConfig: {
     authReturnOrigins: process.env.NUXT_AUTH_RETURN_ORIGINS || '',
     public: {

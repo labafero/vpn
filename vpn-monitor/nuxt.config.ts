@@ -25,7 +25,7 @@ const authCookieEnvironment =
       : 'development'
 
 export default defineNuxtConfig({
-  extends: ['../packages/ui'],
+  extends: ['../packages/ui', '../packages/seo'],
   modules: ['@nuxt/eslint', '@nuxtjs/supabase'],
   compatibilityDate: '2026-06-07',
   supabase: {
@@ -37,6 +37,15 @@ export default defineNuxtConfig({
   },
   colorMode: { preference: 'dark' },
   build: { transpile: ['@vpn/ui'] },
+  site: {
+    url: vpnAppUrls.monitor,
+    name: 'VPN Monitor',
+    description:
+      'Conecte sua Twitch, gerencie seus consentimentos e revise sessões, clips e sinais autorizados da VPN Roleplay.',
+    defaultLocale: 'pt_BR',
+    env: process.env.VERCEL_ENV || process.env.NODE_ENV,
+    indexable: false
+  },
   runtimeConfig: {
     sentryUrl: '',
     sentryProtectionBypassSecret: '',

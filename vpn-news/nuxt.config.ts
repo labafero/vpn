@@ -62,7 +62,7 @@ async function fetchStaticCityRoutes() {
 }
 
 export default defineNuxtConfig({
-  extends: ['../packages/ui'],
+  extends: ['../packages/ui', '../packages/seo'],
   modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/supabase'],
 
   devtools: {
@@ -70,6 +70,14 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css'],
+  site: {
+    url: vpnAppUrls.news,
+    name: 'VPN News',
+    description:
+      'Acompanhe destaques, notícias locais e histórias do universo VPN Roleplay, com cobertura editorial feita pela comunidade.',
+    defaultLocale: 'pt_BR',
+    env: process.env.VERCEL_ENV || process.env.NODE_ENV
+  },
   runtimeConfig: {
     public: {
       vpnAuthUrl: process.env.NUXT_PUBLIC_VPN_AUTH_URL || 'https://vpn.labafero.com',
@@ -77,7 +85,14 @@ export default defineNuxtConfig({
     }
   },
   build: { transpile: ['@vpn/ui'] },
-  routeRules: { '/auth/callback': { ssr: false } },
+  routeRules: {
+    '/auth/callback': { ssr: false, robots: 'noindex, nofollow' },
+    '/login': { robots: 'noindex, nofollow' },
+    '/redacao': { robots: 'noindex, nofollow' },
+    '/redacao/**': { robots: 'noindex, nofollow' },
+    '/overlay': { robots: 'noindex, nofollow' },
+    '/overlay/**': { robots: 'noindex, nofollow' }
+  },
 
   compatibilityDate: '2026-06-07',
 

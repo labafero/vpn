@@ -6,7 +6,7 @@
     "build": "node --max-old-space-size=4096 node_modules/nuxt/bin/nuxt.mjs build",
     "dev": "nuxt dev --port 3001 --dotenv .env",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare --dotenv false",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "typegen": "supabase gen types typescript --linked > ../packages/database/src/database.types.ts"
