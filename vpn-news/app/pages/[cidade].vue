@@ -78,7 +78,9 @@ useSeoMeta({
   title: () => `${nomeJornal.value} · ${nomeCidade.value}`,
   description: () =>
     `As principais notícias de ${nomeCidade.value}, com cobertura local em tempo real.`,
-  ogTitle: () => `${nomeJornal.value} · ${nomeCidade.value}`
+  ogTitle: () => `${nomeJornal.value} · ${nomeCidade.value}`,
+  ogDescription: () =>
+    `As principais notícias de ${nomeCidade.value}, com cobertura local em tempo real.`
 })
 
 const destaques = computed(() => posts.value.filter((p) => p.destaque))

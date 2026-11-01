@@ -13,13 +13,14 @@ useHead({
   }
 })
 
-const title = 'VPN Roleplay'
+const title = 'Notícias da cidade e do roleplay'
+const description =
+  'Acompanhe destaques, notícias locais e histórias do universo VPN Roleplay, com cobertura editorial feita pela comunidade.'
 
-useSeoMeta({
+useVpnSeoDefaults({
+  app: 'news',
   title,
-  ogTitle: title,
-  ogImage: '/vpn-icon.svg',
-  twitterCard: 'summary_large_image'
+  description
 })
 
 const colorMode = useColorMode()

@@ -62,7 +62,7 @@ async function fetchStaticCityRoutes() {
 }
 
 export default defineNuxtConfig({
-  extends: ['../packages/ui'],
+  extends: ['../packages/ui', '../packages/seo'],
   modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/supabase'],
 
   devtools: {
@@ -76,8 +76,23 @@ export default defineNuxtConfig({
       vpnAppUrls
     }
   },
+  site: {
+    url: vpnAppUrls.news,
+    name: 'VPN News',
+    description:
+      'Acompanhe destaques, notícias locais e histórias do universo VPN Roleplay, com cobertura editorial feita pela comunidade.',
+    defaultLocale: 'pt_BR',
+    env: process.env.VERCEL_ENV || process.env.NODE_ENV
+  },
+  routeRules: {
+    '/auth/callback': { ssr: false, robots: 'noindex, nofollow' },
+    '/login': { robots: 'noindex, nofollow' },
+    '/redacao': { robots: 'noindex, nofollow' },
+    '/redacao/**': { robots: 'noindex, nofollow' },
+    '/overlay': { robots: 'noindex, nofollow' },
+    '/overlay/**': { robots: 'noindex, nofollow' }
+  },
   build: { transpile: ['@vpn/ui'] },
-  routeRules: { '/auth/callback': { ssr: false } },
 
   compatibilityDate: '2026-06-07',
 
