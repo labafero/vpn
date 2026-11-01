@@ -28,8 +28,12 @@ permanece ativa. Em 31/10, Monitor e Sentry estavam READY. A interface do
 Monitor exige autenticação. Deployments de produção são direcionados por app;
 publicar um deles não autoriza publicar os demais.
 
-Deployments Git automáticos estão desativados nos quatro projetos Vercel.
-Publicações, inclusive em produção, são iniciadas explicitamente pela CLI.
+Deployments Git automáticos estão habilitados somente para `main` nos quatro
+projetos Vercel; o `ignoreCommand` cancela builds de preview e deixa a produção
+ser construída normalmente. Um evento de PR pode aparecer como deployment
+cancelado, sem URL de preview pronta. A produção de cada projeto acompanha
+`main`, e merges nessa branch publicam automaticamente. Publicações manuais
+direcionadas continuam disponíveis pela CLI.
 
 Variáveis privadas ficam somente no projeto Sentry:
 
