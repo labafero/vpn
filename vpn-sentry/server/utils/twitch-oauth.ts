@@ -32,6 +32,19 @@ export type TwitchGateway = {
   validate: (accessToken: string) => Promise<TwitchIdentity | null>
   revoke: (accessToken: string) => Promise<void>
 }
+export type TwitchOAuthCallbackFailure = {
+  stage:
+    | 'configuration'
+    | 'input'
+    | 'consume_transaction'
+    | 'exchange_code'
+    | 'validate_token'
+    | 'validate_identity'
+    | 'encrypt_credential'
+    | 'persist_connection'
+    | 'persist_upgrade'
+  statusCode: number
+}
 export const clipCapabilityScopes = {
   clip_download: 'channel:manage:clips',
   clip_create: 'clips:edit'
@@ -156,69 +169,94 @@ export function createTwitchOAuthService(
     },
     async completeTwitchAuthorization(
       user: Me,
-      input: { code: string; state: string; browserNonce: string }
+      input: { code: string; state: string; browserNonce: string },
+      reportFailure?: (failure: TwitchOAuthCallbackFailure) => void
     ) {
-      validateConfig()
-      const time = now()
-      if (!input.code || !input.state || !input.browserNonce) throw new FoundationError(400)
-      const authorization = await repository.consumeAuthorization(
-        hash(input.state),
-        hash(input.browserNonce),
-        user.userId,
-        time.toISOString()
-      )
-      if (!authorization) throw new FoundationError(400)
-      const upgrade = authorization.consentVersion === 'clip-processing-v1'
-      const tokens = await gateway.exchange(input.code)
+      let stage: TwitchOAuthCallbackFailure['stage'] = 'configuration'
       try {
-        const identity = await gateway.validate(tokens.accessToken)
-        if (
-          !identity ||
-          identity.clientId !== config.clientId ||
-          !identity.userId ||
-          !identity.login ||
-          (upgrade
-            ? identity.userId !== authorization.providerUserId ||
-              !(authorization.requiredScopes ?? []).every((scope) =>
-                identity.scopes.includes(scope)
-              )
-            : identity.scopes.length !== 0)
+        validateConfig()
+        const time = now()
+        stage = 'input'
+        if (!input.code || !input.state || !input.browserNonce) throw new FoundationError(400)
+        stage = 'consume_transaction'
+        const authorization = await repository.consumeAuthorization(
+          hash(input.state),
+          hash(input.browserNonce),
+          user.userId,
+          time.toISOString()
         )
-          throw new FoundationError(400)
-        const credential = { ...encrypt(tokens, identity.expiresIn, time), scopes: identity.scopes }
-        if (upgrade) {
-          await repository.withConnection(user.userId, async (current, locked) => {
-            if (
-              !current?.credential ||
-              current.connection.status !== 'connected' ||
-              current.connection.id !== authorization.connectionId ||
-              current.connection.providerUserId !== authorization.providerUserId ||
-              hash(current.credential.ciphertext) !== authorization.credentialFingerprint
-            )
-              throw new FoundationError(409)
-            await locked.saveCredential(credential)
-          })
-        } else {
-          await repository.saveConnection(
-            user.userId,
-            { userId: identity.userId, login: identity.login },
-            credential,
-            time.toISOString()
+        if (!authorization) throw new FoundationError(400)
+        const upgrade = authorization.consentVersion === 'clip-processing-v1'
+        stage = 'exchange_code'
+        const tokens = await gateway.exchange(input.code)
+        try {
+          stage = 'validate_token'
+          const identity = await gateway.validate(tokens.accessToken)
+          stage = 'validate_identity'
+          if (
+            !identity ||
+            identity.clientId !== config.clientId ||
+            !identity.userId ||
+            !identity.login ||
+            (upgrade
+              ? identity.userId !== authorization.providerUserId ||
+                !(authorization.requiredScopes ?? []).every((scope) =>
+                  identity.scopes.includes(scope)
+                )
+              : identity.scopes.length !== 0)
           )
+            throw new FoundationError(400)
+          stage = 'encrypt_credential'
+          const credential = {
+            ...encrypt(tokens, identity.expiresIn, time),
+            scopes: identity.scopes
+          }
+          if (upgrade) {
+            stage = 'persist_upgrade'
+            await repository.withConnection(user.userId, async (current, locked) => {
+              if (
+                !current?.credential ||
+                current.connection.status !== 'connected' ||
+                current.connection.id !== authorization.connectionId ||
+                current.connection.providerUserId !== authorization.providerUserId ||
+                hash(current.credential.ciphertext) !== authorization.credentialFingerprint
+              )
+                throw new FoundationError(409)
+              await locked.saveCredential(credential)
+            })
+          } else {
+            stage = 'persist_connection'
+            await repository.saveConnection(
+              user.userId,
+              { userId: identity.userId, login: identity.login },
+              credential,
+              time.toISOString()
+            )
+          }
+        } catch (error) {
+          // A token issued by Twitch must not be left usable after a failed link.
+          try {
+            await repository.withConnection(user.userId, async (current) => {
+              if (
+                current?.credential &&
+                decrypt(current.credential).accessToken === tokens.accessToken
+              )
+                return
+              await gateway.revoke(tokens.accessToken)
+            })
+          } catch {
+            /* No raw provider error is logged. */
+          }
+          throw error instanceof FoundationError ? error : new FoundationError(503)
         }
       } catch (error) {
-        // A token issued by Twitch must not be left usable after a failed link.
         try {
-          await repository.withConnection(user.userId, async (current) => {
-            if (
-              current?.credential &&
-              decrypt(current.credential).accessToken === tokens.accessToken
-            )
-              return
-            await gateway.revoke(tokens.accessToken)
+          reportFailure?.({
+            stage,
+            statusCode: error instanceof FoundationError ? error.statusCode : 503
           })
         } catch {
-          /* No raw provider error is logged. */
+          /* Diagnostics must not change OAuth behavior. */
         }
         throw error instanceof FoundationError ? error : new FoundationError(503)
       }
