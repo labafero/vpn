@@ -16,6 +16,9 @@ export function allowSentryRequest(
     'channels/[uuid]/monitoring': ['PATCH'],
     'channels/[uuid]/clip-consent': ['GET', 'PATCH'],
     'channels/[uuid]/clips': ['GET', 'POST'],
+    'channels/[uuid]/clips/[uuid]': ['GET'],
+    'channels/[uuid]/trigger-phrases': ['GET', 'POST'],
+    'channels/[uuid]/trigger-phrases/[uuid]': ['PATCH', 'DELETE'],
     'sessions/[uuid]': ['GET'],
     'sessions/[uuid]/invites': ['GET', 'POST'],
     'invites/[uuid]': ['DELETE']

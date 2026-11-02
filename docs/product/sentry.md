@@ -19,7 +19,8 @@ para a detecção de clips.
 ## Escopo
 
 - API autenticada para identidade, conexão Twitch, sessões, convites,
-  consentimento e submissão de clips.
+  consentimento, descoberta agendada de clips, configuração de frases e
+  submissão manual.
 - Acesso a dados privados por papéis mínimos; browser nunca recebe tokens de
   provedor nem acesso direto às tabelas privadas.
 - Fila durável para processamento e consumidor Node.js com idempotência,
@@ -29,6 +30,10 @@ para a detecção de clips.
   dono. A mídia é limitada e temporária.
 - Detecção determinística sobre segmentos temporizados e persistência somente de
   gatilhos, origem e timestamps; transcrição integral não é persistida.
+- Descoberta paginada e retomável de clips históricos via Helix, seguida de
+  consultas incrementais. Checkpoints e frases versionadas ficam no schema
+  privado; todos os clips consentidos permanecem listáveis mesmo sem capacidade
+  imediata de análise.
 - Persistir estado e resultados mínimos: fonte do texto, versão das frases,
   IDs das regras, timestamps e evidência necessária à revisão.
 
@@ -38,6 +43,13 @@ para a detecção de clips.
   erros e estados seguem `packages/contracts`.
 - Como dono, quero que consentimento revogado interrompa jobs pendentes e bloqueie
   download/gravação posteriores.
+- Consentimento agendado `clip-scheduled-v1` autoriza consulta e persistência de
+  metadados históricos/futuros, além de download e processamento; ele é
+  independente do consentimento manual e pode ser revogado isoladamente.
+- O backfill começa no início da conta Twitch, persiste cursores e divide janelas
+  perto do limite de resultados da API; falhas retomam sem duplicar clips.
+- A análise usa frases habilitadas do canal, congela ID/versão/texto no job e
+  preserva evidências antigas após edição ou desativação.
 - Como worker, quero receber IDs internos de jobs e revalidar dono, consentimento
   e disponibilidade antes de obter mídia ou salvar resultados.
 - Como sistema de detecção, quero usar a chave central OpenAI ou, quando ela

@@ -27,6 +27,21 @@ export function requireClipAccess(
   )
     throw new FoundationError(403)
 }
+export function requireScheduledClipAccess(
+  access: ClipAccess | null
+): asserts access is ClipAccess {
+  if (
+    !access ||
+    !access.connected ||
+    !access.credential ||
+    Date.parse(access.credential.expiresAt) <= Date.now() ||
+    !access.scopes.includes('channel:manage:clips') ||
+    !access.consent.scheduledEnabled ||
+    access.consent.scheduledConsentVersion !== 'clip-scheduled-v1' ||
+    access.consent.scheduledRevokedAt
+  )
+    throw new FoundationError(403)
+}
 function strictBody(body: unknown, keys: string[]): asserts body is Record<string, unknown> {
   if (
     !body ||
@@ -41,8 +56,13 @@ export function createClipIngestionService(
   fetchClip: (id: string, access: ClipAccess) => Promise<ClipMetadata>
 ) {
   return {
-    async list(owner: string, channel: string) {
-      return repository.list(owner, channel)
+    async list(owner: string, channel: string, cursor?: string | null) {
+      return repository.list(owner, channel, cursor)
+    },
+    async detail(owner: string, channel: string, submissionId: string) {
+      if (!/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(submissionId))
+        throw new FoundationError(400)
+      return repository.detail(owner, channel, submissionId)
     },
     async getConsent(owner: string, channel: string) {
       const access = await repository.read(owner, channel)
@@ -53,16 +73,55 @@ export function createClipIngestionService(
       }
     },
     async setConsent(owner: string, channel: string, body: unknown) {
-      strictBody(body, ['manualEnabled', 'consentVersion', 'consentAccepted'])
-      if (body.manualEnabled === false && Object.keys(body).some((key) => key !== 'manualEnabled'))
-        throw new FoundationError(400)
+      strictBody(body, [
+        'manualEnabled',
+        'consentVersion',
+        'consentAccepted',
+        'scheduledEnabled',
+        'scheduledConsentVersion',
+        'scheduledConsentAccepted'
+      ])
+      const scheduled = 'scheduledEnabled' in body
       if (
-        typeof body.manualEnabled !== 'boolean' ||
-        (body.manualEnabled &&
-          (body.consentVersion !== 'clip-processing-v1' || body.consentAccepted !== true))
+        scheduled &&
+        Object.keys(body).some(
+          (key) =>
+            !['scheduledEnabled', 'scheduledConsentVersion', 'scheduledConsentAccepted'].includes(
+              key
+            )
+        )
       )
         throw new FoundationError(400)
-      const access = await repository.setConsent(owner, channel, body.manualEnabled)
+      if (
+        !scheduled &&
+        Object.keys(body).some(
+          (key) => !['manualEnabled', 'consentVersion', 'consentAccepted'].includes(key)
+        )
+      )
+        throw new FoundationError(400)
+      if (scheduled) {
+        if (typeof body.scheduledEnabled !== 'boolean') throw new FoundationError(400)
+        if (
+          body.scheduledEnabled &&
+          (body.scheduledConsentVersion !== 'clip-scheduled-v1' ||
+            body.scheduledConsentAccepted !== true)
+        )
+          throw new FoundationError(400)
+        if (!body.scheduledEnabled && Object.keys(body).some((key) => key !== 'scheduledEnabled'))
+          throw new FoundationError(400)
+      } else {
+        if (
+          typeof body.manualEnabled !== 'boolean' ||
+          (body.manualEnabled &&
+            (body.consentVersion !== 'clip-processing-v1' || body.consentAccepted !== true))
+        )
+          throw new FoundationError(400)
+        if (!body.manualEnabled && Object.keys(body).some((key) => key !== 'manualEnabled'))
+          throw new FoundationError(400)
+      }
+      const access = scheduled
+        ? await repository.setScheduledConsent(owner, channel, body.scheduledEnabled as boolean)
+        : await repository.setConsent(owner, channel, body.manualEnabled as boolean)
       return {
         ...access.consent,
         canDownload: access.connected && access.scopes.includes('channel:manage:clips')

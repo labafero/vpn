@@ -414,6 +414,7 @@ paths:
       operationId: listClips
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: cursor, in: query, required: false, schema: { type: string, maxLength: 512 } }
       responses:
         '200':
           description: Clips e detecções mínimas do canal autorizado
@@ -476,6 +477,78 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
+  /channels/{id}/clips/{submissionId}:
+    get:
+      security: [{ bearerAuth: [] }]
+      operationId: getClipDetail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: submissionId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Metadados e detecções do clip
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClipDetail' }
+        '403':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+  /channels/{id}/trigger-phrases:
+    get:
+      security: [{ bearerAuth: [] }]
+      operationId: listClipTriggerPhrases
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Frases configuradas para o canal
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ClipTriggerPhrase' } }
+    post:
+      security: [{ bearerAuth: [] }]
+      operationId: createClipTriggerPhrase
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClipTriggerPhraseRequest' }
+      responses:
+        '200':
+          description: Frase configurada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClipTriggerPhrase' }
+  /channels/{id}/trigger-phrases/{phraseId}:
+    patch:
+      security: [{ bearerAuth: [] }]
+      operationId: updateClipTriggerPhrase
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: phraseId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClipTriggerPhraseUpdate' }
+      responses:
+        '200':
+          description: Frase atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClipTriggerPhrase' }
+    delete:
+      security: [{ bearerAuth: [] }]
+      operationId: deactivateClipTriggerPhrase
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: phraseId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Frase desativada }
   /channels/{id}/monitoring:
     patch:
       security: [{ bearerAuth: [] }]
@@ -601,12 +674,27 @@ components:
     ClipConsent:
       type: object
       additionalProperties: false
-      required: [manualEnabled, consentVersion, consentedAt, revokedAt, canDownload]
+      required:
+        [
+          manualEnabled,
+          consentVersion,
+          consentedAt,
+          revokedAt,
+          scheduledEnabled,
+          scheduledConsentVersion,
+          scheduledConsentedAt,
+          scheduledRevokedAt,
+          canDownload
+        ]
       properties:
         manualEnabled: { type: boolean }
         consentVersion: { type: [string, 'null'], enum: [clip-processing-v1, null] }
         consentedAt: { type: [string, 'null'], format: date-time }
         revokedAt: { type: [string, 'null'], format: date-time }
+        scheduledEnabled: { type: boolean }
+        scheduledConsentVersion: { type: [string, 'null'], enum: [clip-scheduled-v1, null] }
+        scheduledConsentedAt: { type: [string, 'null'], format: date-time }
+        scheduledRevokedAt: { type: [string, 'null'], format: date-time }
         canDownload: { type: boolean }
     ClipConsentRequest:
       oneOf:
@@ -622,6 +710,42 @@ components:
           required: [manualEnabled]
           properties:
             manualEnabled: { type: boolean, const: false }
+        - type: object
+          additionalProperties: false
+          required: [scheduledEnabled, scheduledConsentVersion, scheduledConsentAccepted]
+          properties:
+            scheduledEnabled: { type: boolean, const: true }
+            scheduledConsentVersion: { type: string, const: clip-scheduled-v1 }
+            scheduledConsentAccepted: { type: boolean, const: true }
+        - type: object
+          additionalProperties: false
+          required: [scheduledEnabled]
+          properties:
+            scheduledEnabled: { type: boolean, const: false }
+    ClipTriggerPhrase:
+      type: object
+      additionalProperties: false
+      required: [id, text, version, enabled]
+      properties:
+        id: { type: string, format: uuid }
+        text: { type: string, minLength: 1, maxLength: 200 }
+        version: { type: integer, minimum: 1 }
+        enabled: { type: boolean }
+    ClipTriggerPhraseRequest:
+      type: object
+      additionalProperties: false
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1, maxLength: 200 }
+    ClipTriggerPhraseUpdate:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        text: { type: string, minLength: 1, maxLength: 200 }
+        enabled: { type: boolean }
+    ClipDetail:
+      $ref: '#/components/schemas/ClipSubmissionRecord'
     ClipSubmissionRequest:
       type: object
       additionalProperties: false
@@ -640,6 +764,8 @@ components:
             [
               pending_metadata,
               pending_captions,
+              waiting_capacity,
+              needs_trigger_phrases,
               needs_openai_key,
               processing,
               completed,
@@ -672,6 +798,12 @@ components:
           videoId,
           vodOffset,
           title,
+          creatorId,
+          createdAt,
+          durationSeconds,
+          language,
+          viewCount,
+          captureMode,
           state,
           failureCode,
           receivedAt,
@@ -684,12 +816,20 @@ components:
         videoId: { type: [string, 'null'] }
         vodOffset: { type: [integer, 'null'], minimum: 0 }
         title: { type: [string, 'null'] }
+        creatorId: { type: [string, 'null'] }
+        createdAt: { type: [string, 'null'], format: date-time }
+        durationSeconds: { type: [number, 'null'], minimum: 0 }
+        language: { type: [string, 'null'] }
+        viewCount: { type: [integer, 'null'], minimum: 0 }
+        captureMode: { type: string, enum: [manual, scheduled] }
         state:
           type: string
           enum:
             [
               pending_metadata,
               pending_captions,
+              waiting_capacity,
+              needs_trigger_phrases,
               needs_openai_key,
               processing,
               completed,
@@ -719,12 +859,13 @@ components:
     ClipSubmissionList:
       type: object
       additionalProperties: false
-      required: [items]
+      required: [items, nextCursor]
       properties:
         items:
           type: array
           maxItems: 50
           items: { $ref: '#/components/schemas/ClipSubmissionRecord' }
+        nextCursor: { type: [string, 'null'], maxLength: 512 }
     OpenAiCredentialStatus:
       type: object
       additionalProperties: false

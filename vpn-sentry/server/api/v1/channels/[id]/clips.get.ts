@@ -1,4 +1,4 @@
-import { defineEventHandler, getRouterParam } from 'h3'
+import { defineEventHandler, getQuery, getRouterParam } from 'h3'
 import { requireVpnUser } from '../../../../utils/auth'
 import { FoundationError, privateResponse } from '../../../../utils/api-error'
 import { getClipIngestionService } from '../../../../utils/clip-runtime'
@@ -8,6 +8,10 @@ export default defineEventHandler((event) =>
     const user = await requireVpnUser(event)
     const channel = getRouterParam(event, 'id') || ''
     if (!/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(channel)) throw new FoundationError(400)
-    return getClipIngestionService().list(user.userId, channel)
+    const query = getQuery(event)
+    const cursor = query.cursor
+    if (cursor !== undefined && (typeof cursor !== 'string' || cursor.length > 512))
+      throw new FoundationError(400)
+    return getClipIngestionService().list(user.userId, channel, cursor as string | undefined)
   })
 )

@@ -179,6 +179,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/channels/{id}/clips/{submissionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getClipDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/trigger-phrases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listClipTriggerPhrases"];
+        put?: never;
+        post: operations["createClipTriggerPhrase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/trigger-phrases/{phraseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deactivateClipTriggerPhrase"];
+        options?: never;
+        head?: never;
+        patch: operations["updateClipTriggerPhrase"];
+        trace?: never;
+    };
     "/channels/{id}/monitoring": {
         parameters: {
             query?: never;
@@ -292,6 +340,13 @@ export interface components {
             consentedAt: string | null;
             /** Format: date-time */
             revokedAt: string | null;
+            scheduledEnabled: boolean;
+            /** @enum {string|null} */
+            scheduledConsentVersion: "clip-scheduled-v1" | null;
+            /** Format: date-time */
+            scheduledConsentedAt: string | null;
+            /** Format: date-time */
+            scheduledRevokedAt: string | null;
             canDownload: boolean;
         };
         ClipConsentRequest: {
@@ -304,7 +359,32 @@ export interface components {
         } | {
             /** @constant */
             manualEnabled: false;
+        } | {
+            /** @constant */
+            scheduledEnabled: true;
+            /** @constant */
+            scheduledConsentVersion: "clip-scheduled-v1";
+            /** @constant */
+            scheduledConsentAccepted: true;
+        } | {
+            /** @constant */
+            scheduledEnabled: false;
         };
+        ClipTriggerPhrase: {
+            /** Format: uuid */
+            id: string;
+            text: string;
+            version: number;
+            enabled: boolean;
+        };
+        ClipTriggerPhraseRequest: {
+            text: string;
+        };
+        ClipTriggerPhraseUpdate: {
+            text?: string;
+            enabled?: boolean;
+        };
+        ClipDetail: components["schemas"]["ClipSubmissionRecord"];
         ClipSubmissionRequest: {
             /** Format: uri */
             url: string;
@@ -313,7 +393,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            state: "pending_metadata" | "pending_captions" | "needs_openai_key" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
+            state: "pending_metadata" | "pending_captions" | "waiting_capacity" | "needs_trigger_phrases" | "needs_openai_key" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
             duplicate: boolean;
         };
         ClipDetection: {
@@ -334,8 +414,16 @@ export interface components {
             videoId: string | null;
             vodOffset: number | null;
             title: string | null;
+            creatorId: string | null;
+            /** Format: date-time */
+            createdAt: string | null;
+            durationSeconds: number | null;
+            language: string | null;
+            viewCount: number | null;
             /** @enum {string} */
-            state: "pending_metadata" | "pending_captions" | "needs_openai_key" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
+            captureMode: "manual" | "scheduled";
+            /** @enum {string} */
+            state: "pending_metadata" | "pending_captions" | "waiting_capacity" | "needs_trigger_phrases" | "needs_openai_key" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
             /** @enum {string|null} */
             failureCode: "clip_unavailable" | "captions_unavailable" | "transcription_failed" | "quota_exceeded" | "unsupported_language" | "invalid_media" | "provider_error" | null;
             /** Format: date-time */
@@ -344,6 +432,7 @@ export interface components {
         };
         ClipSubmissionList: {
             items: components["schemas"]["ClipSubmissionRecord"][];
+            nextCursor: string | null;
         };
         OpenAiCredentialStatus: {
             configured: boolean;
@@ -1052,7 +1141,9 @@ export interface operations {
     };
     listClips: {
         parameters: {
-            query?: never;
+            query?: {
+                cursor?: string;
+            };
             header?: never;
             path: {
                 id: string;
@@ -1166,6 +1257,134 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getClipDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Metadados e detecções do clip */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipDetail"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listClipTriggerPhrases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Frases configuradas para o canal */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipTriggerPhrase"][];
+                };
+            };
+        };
+    };
+    createClipTriggerPhrase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClipTriggerPhraseRequest"];
+            };
+        };
+        responses: {
+            /** @description Frase configurada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipTriggerPhrase"];
+                };
+            };
+        };
+    };
+    deactivateClipTriggerPhrase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                phraseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Frase desativada */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateClipTriggerPhrase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                phraseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClipTriggerPhraseUpdate"];
+            };
+        };
+        responses: {
+            /** @description Frase atualizada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipTriggerPhrase"];
                 };
             };
         };

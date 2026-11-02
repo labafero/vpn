@@ -5,6 +5,7 @@ import consentGet from '../server/api/v1/channels/[id]/clip-consent.get'
 import consentPatch from '../server/api/v1/channels/[id]/clip-consent.patch'
 import submit from '../server/api/v1/channels/[id]/clips.post'
 import listClips from '../server/api/v1/channels/[id]/clips.get'
+import clipDetail from '../server/api/v1/channels/[id]/clips/[submissionId].get'
 import callback from '../server/api/v1/provider-connections/twitch/callback.get'
 import { FoundationError } from '../server/utils/api-error'
 const fixture = vi.hoisted(() => ({
@@ -31,7 +32,8 @@ vi.mock('../server/utils/clip-runtime', () => ({
       state: 'pending_captions',
       duplicate: false
     }),
-    list: fixture.listClips
+    list: fixture.listClips,
+    detail: vi.fn().mockResolvedValue({ id: 'id' })
   })
 }))
 vi.mock('../server/utils/twitch-oauth', () => ({
@@ -53,6 +55,7 @@ beforeAll(async () => {
     .patch('/channels/:id/clip-consent', consentPatch)
     .post('/channels/:id/clips', submit)
     .get('/channels/:id/clips', listClips)
+    .get('/channels/:id/clips/:submissionId', clipDetail)
     .get('/callback', callback)
   server = createServer(toNodeListener(createApp().use(router)))
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
@@ -83,11 +86,14 @@ test('clip endpoints authenticate before accessing data and never cache', async 
 })
 test('clip history delegates to the owner-scoped service', async () => {
   fixture.signedIn = true
-  fixture.listClips.mockResolvedValue({ items: [] })
+  fixture.listClips.mockResolvedValue({ items: [], nextCursor: null })
   const list = await fetch(`${address}${path}/clips`)
   expect(list.status).toBe(200)
   expect(list.headers.get('cache-control')).toBe('no-store')
-  expect(await list.json()).toEqual({ items: [] })
+  expect(await list.json()).toEqual({ items: [], nextCursor: null })
+  const detail = await fetch(`${address}${path}/clips/20000000-0000-0000-0000-000000000001`)
+  expect(detail.status).toBe(200)
+  expect(detail.headers.get('cache-control')).toBe('no-store')
 })
 test('OAuth refusal redirects with a fixed result and never reflects provider query', async () => {
   const response = await fetch(

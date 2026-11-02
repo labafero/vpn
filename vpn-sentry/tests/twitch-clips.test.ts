@@ -33,7 +33,7 @@ test('Helix request uses fixed official host and returns only allowed metadata',
     expect(options?.redirect).toBe('error')
     return Response.json({ data: [clip] })
   })
-  const result = await gateway('ClipId', access)
+  const result = await gateway.getById('ClipId', access)
   expect(result).toMatchObject({ id: 'ClipId', broadcasterId: '123', vodOffset: null })
   expect(JSON.stringify(result)).not.toMatch(/secret|temporary/)
 })
@@ -42,14 +42,42 @@ test.each([401, 403, 429, 500])('sanitizes Helix HTTP %s', async (status) => {
     config,
     async () => new Response('provider secret', { status })
   )
-  await expect(gateway('ClipId', access)).rejects.toMatchObject({
+  await expect(gateway.getById('ClipId', access)).rejects.toMatchObject({
     statusCode: status < 429 ? 403 : 503
   })
 })
 test('missing clip returns stable 404', async () => {
   await expect(
-    createTwitchClipsGateway(config, async () => Response.json({ data: [] }))('ClipId', access)
+    createTwitchClipsGateway(config, async () => Response.json({ data: [] })).getById(
+      'ClipId',
+      access
+    )
   ).rejects.toMatchObject({ statusCode: 404 })
+})
+test('lists a broadcaster window with bounded cursor pagination and sanitized metadata', async () => {
+  const gateway = createTwitchClipsGateway(config, async (url) => {
+    expect(url).toBe(
+      'https://api.twitch.tv/helix/clips?broadcaster_id=123&first=100&started_at=2026-10-01T00%3A00%3A00.000Z&ended_at=2026-10-02T00%3A00%3A00.000Z&after=page-2'
+    )
+    return Response.json({ data: [clip], pagination: { cursor: 'next-page' } })
+  })
+  await expect(
+    gateway.listByBroadcaster({
+      access: { ...access, broadcasterId: '123' },
+      startedAt: '2026-10-01T00:00:00.000Z',
+      endedAt: '2026-10-02T00:00:00.000Z',
+      after: 'page-2'
+    })
+  ).resolves.toMatchObject({ items: [{ id: 'ClipId' }], cursor: 'next-page' })
+})
+test('reads the connected broadcaster creation date from Get Users', async () => {
+  const gateway = createTwitchClipsGateway(config, async (url) => {
+    expect(url).toBe('https://api.twitch.tv/helix/users?id=123')
+    return Response.json({ data: [{ id: '123', created_at: '2018-01-02T03:04:05Z' }] })
+  })
+  await expect(gateway.getBroadcasterCreatedAt({ ...access, broadcasterId: '123' })).resolves.toBe(
+    '2018-01-02T03:04:05Z'
+  )
 })
 test.each([
   { ...clip, duration: -1 },
@@ -59,7 +87,7 @@ test.each([
   { ...clip, created_at: 'invalid' }
 ])('malformed provider metadata is unavailable', async (invalid) => {
   await expect(
-    createTwitchClipsGateway(config, async () => Response.json({ data: [invalid] }))(
+    createTwitchClipsGateway(config, async () => Response.json({ data: [invalid] })).getById(
       'ClipId',
       access
     )

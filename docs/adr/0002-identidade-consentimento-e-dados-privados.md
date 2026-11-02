@@ -18,6 +18,9 @@ e permissões diferentes.
 - Nunca usar `user_metadata` para promover ou autorizar usuários.
 - Consentimentos são versionados e separados por finalidade. Revogação bloqueia
   imediatamente operações posteriores e cancela trabalho pendente aplicável.
+- Para clips, autorização manual e captura agendada são modos independentes.
+  `clip-scheduled-v1` cobre consultas e persistência do histórico disponível,
+  descoberta futura, download e análise; revogar um modo não retira o outro.
 - OAuth usa escopos mínimos por capacidade. Tokens são cifrados e usados somente
   no Sentry; segredos não chegam ao browser nem a contratos públicos.
 - Dados de monitoramento, consentimentos, credenciais e filas ficam em schema

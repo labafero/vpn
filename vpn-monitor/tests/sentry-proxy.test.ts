@@ -104,6 +104,51 @@ test('clip routes require strict UUID, method and CSRF', () => {
   ).toBe(true)
   expect(
     allowSentryRequest(
+      `${base}/clips/00000000-0000-0000-0000-000000000002`,
+      'GET',
+      undefined,
+      undefined,
+      'https://monitor.test'
+    )
+  ).toBe(true)
+  expect(
+    allowSentryRequest(
+      `${base}/trigger-phrases`,
+      'GET',
+      undefined,
+      undefined,
+      'https://monitor.test'
+    )
+  ).toBe(true)
+  expect(
+    allowSentryRequest(
+      `${base}/trigger-phrases`,
+      'POST',
+      'https://monitor.test',
+      '1',
+      'https://monitor.test'
+    )
+  ).toBe(true)
+  expect(
+    allowSentryRequest(
+      `${base}/trigger-phrases/00000000-0000-0000-0000-000000000002`,
+      'PATCH',
+      'https://monitor.test',
+      '1',
+      'https://monitor.test'
+    )
+  ).toBe(true)
+  expect(
+    allowSentryRequest(
+      `${base}/trigger-phrases/00000000-0000-0000-0000-000000000002`,
+      'DELETE',
+      undefined,
+      '1',
+      'https://monitor.test'
+    )
+  ).toBe(false)
+  expect(
+    allowSentryRequest(
       `${base}/clip-consent`,
       'PATCH',
       'https://monitor.test',

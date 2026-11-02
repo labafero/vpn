@@ -17,6 +17,8 @@ function fixture(authorized = true) {
     videoId: 'video-123',
     vodOffset: 45,
     consentRevision: 'revision-1',
+    captureMode: 'manual',
+    phrases: [{ phraseId: 'phrase-v1-01', phraseVersion: 1, phrase: 'você é um inútil' }],
     credential: {
       ciphertext: 'ciphertext',
       iv: 'iv',

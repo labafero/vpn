@@ -88,7 +88,7 @@ async function submit() {
     })
     message.value = result.duplicate
       ? 'Este clip já foi enviado. A submissão existente foi preservada.'
-      : 'Referência recebida. O clip aguardará seu pedido antes de iniciar a transcrição.'
+      : 'Referência recebida. O clip aguardará capacidade e frases-gatilho configuradas para análise.'
     success.value = true
     form.url = ''
   } catch (error) {
@@ -134,7 +134,8 @@ watch(() => props.channelId, refresh, { immediate: true })
       <p class="text-muted">
         Para permitir o uso de clips, a Twitch solicitará a permissão de gerenciar clips
         (channel:manage:clips), necessária ao download oficial. Esta permissão é separada do
-        monitoramento de sessões. A captura agendada ainda está indisponível.
+        monitoramento de sessões. O consentimento de envio manual permanece separado da captura
+        agendada.
       </p>
       <template v-if="!consent.manualEnabled || !consent.canDownload">
         <UCheckbox
@@ -216,7 +217,7 @@ watch(() => props.channelId, refresh, { immediate: true })
       to="/clips"
       variant="outline"
     >
-      Ver clips e detecções
+      Ver clips, evidências e captura agendada
     </UButton>
   </section>
 </template>

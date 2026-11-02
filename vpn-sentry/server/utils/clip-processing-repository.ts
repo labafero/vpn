@@ -4,18 +4,29 @@ import { getFoundationDatabase, type Credential } from './private-database'
 import type { ClipDetection, ClipProcessingJob, ClipProcessingRepository } from './clip-processing'
 import type { ClipAccess } from './clip-repository'
 
-function hasProcessingAccess(access: ClipAccess | null): access is ClipAccess & {
+function hasProcessingAccess(
+  access: ClipAccess | null,
+  mode: 'manual' | 'scheduled'
+): access is ClipAccess & {
   credential: Credential
   consentRevision: string
+  scheduledRevision: string
 } {
   return Boolean(
     access?.connected &&
     access.credential &&
+    Date.parse(access.credential.expiresAt) > Date.now() &&
     access.scopes.includes('channel:manage:clips') &&
-    access.consent.manualEnabled &&
-    !access.consent.revokedAt &&
-    access.consentRevision
+    (mode === 'manual'
+      ? access.consent.manualEnabled && !access.consent.revokedAt && access.consentRevision
+      : access.consent.scheduledEnabled &&
+        access.consent.scheduledConsentVersion === 'clip-scheduled-v1' &&
+        !access.consent.scheduledRevokedAt &&
+        access.scheduledRevision)
   )
+}
+function accessRevision(access: ClipAccess, mode: 'manual' | 'scheduled') {
+  return mode === 'manual' ? access.consentRevision! : access.scheduledRevision!
 }
 
 export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessingRepository {
@@ -30,8 +41,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
 
   async function readAccess(tx: postgres.TransactionSql, owner: string, channel: string) {
     const rows =
-      await tx`SELECT pc.id,pc.provider_user_id,pc.status,k.*,cc.revision AS consent_revision,
-      cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at
+      await tx`SELECT pc.id,pc.provider_user_id,pc.status,k.*,cc.revision AS consent_revision,cc.scheduled_revision,
+      cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at,cc.scheduled_enabled,cc.scheduled_consent_version,cc.scheduled_consented_at,cc.scheduled_revoked_at
       FROM public.channels c
       JOIN public.provider_connections pc ON pc.id=c.connection_id
       LEFT JOIN private.provider_credentials k ON k.connection_id=pc.id
@@ -41,6 +52,7 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
     if (!row) return null
     return {
       consentRevision: row.consent_revision ?? null,
+      scheduledRevision: row.scheduled_revision ?? null,
       connectionId: row.id,
       broadcasterId: row.provider_user_id,
       connected: row.status === 'connected',
@@ -61,7 +73,11 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
         manualEnabled: row.manual_enabled ?? false,
         consentVersion: row.consent_version ?? null,
         consentedAt: row.consented_at?.toISOString() ?? null,
-        revokedAt: row.revoked_at?.toISOString() ?? null
+        revokedAt: row.revoked_at?.toISOString() ?? null,
+        scheduledEnabled: row.scheduled_enabled ?? false,
+        scheduledConsentVersion: row.scheduled_consent_version ?? null,
+        scheduledConsentedAt: row.scheduled_consented_at?.toISOString() ?? null,
+        scheduledRevokedAt: row.scheduled_revoked_at?.toISOString() ?? null
       }
     } satisfies ClipAccess
   }
@@ -86,42 +102,65 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
               retry_after=CASE WHEN processing_attempts >= 3 THEN NULL ELSE now()+interval '1 minute' END,
               processing_lease_until=NULL
           WHERE state='processing' AND processing_lease_until < now()`
-        const candidates = await tx`SELECT s.id,s.channel_id,c.owner_id
+        while (true) {
+          const candidates = await tx`SELECT s.id,s.channel_id,s.capture_mode,c.owner_id
           FROM private.clip_submissions s
           JOIN public.channels c ON c.id=s.channel_id
-          WHERE s.state IN ('pending_captions','failed_retryable')
+          WHERE s.state IN ('pending_captions','failed_retryable','waiting_capacity')
+            AND s.processing_attempts < 3
             AND (s.retry_after IS NULL OR s.retry_after <= now())
+            AND (s.state<>'waiting_capacity' OR
+              ((SELECT count(*) FROM private.clip_submissions active WHERE active.channel_id=s.channel_id AND active.state IN ('pending_captions','failed_retryable','processing')) < 3
+                AND (SELECT count(*) FROM private.clip_submissions active WHERE active.state IN ('pending_captions','failed_retryable','processing')) < 5))
             AND NOT EXISTS (SELECT 1 FROM private.clip_submissions active WHERE active.state='processing')
           ORDER BY s.received_at ASC,s.id ASC
           FOR UPDATE OF s SKIP LOCKED LIMIT 1`
-        if (!candidates[0]) return null
-        const candidate = candidates[0]
-        await tx`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.owner_id},0))`
-        const access = await readAccess(tx, candidate.owner_id, candidate.channel_id)
-        if (!hasProcessingAccess(access)) {
-          await cancel(tx, candidate.id)
-          return null
-        }
-        const claimed = await tx`UPDATE private.clip_submissions
+          if (!candidates[0]) return null
+          const candidate = candidates[0]
+          await tx`SELECT pg_advisory_xact_lock(hashtextextended(${candidate.owner_id},0))`
+          const access = await readAccess(tx, candidate.owner_id, candidate.channel_id)
+          const captureMode = candidate.capture_mode as 'manual' | 'scheduled'
+          if (!hasProcessingAccess(access, captureMode)) {
+            await tx`UPDATE private.clip_submissions SET state='cancelled_consent',finished_at=now(),processing_lease_until=NULL,retry_after=NULL
+              WHERE channel_id=${candidate.channel_id} AND capture_mode=${captureMode}
+                AND state IN ('pending_captions','failed_retryable','waiting_capacity')`
+            continue
+          }
+          const phraseRows =
+            await tx`SELECT id,text,version FROM private.clip_trigger_phrases WHERE channel_id=${candidate.channel_id} AND enabled ORDER BY created_at,id`
+          if (!phraseRows.length) {
+            await tx`UPDATE private.clip_submissions SET state='needs_trigger_phrases',finished_at=NULL
+              WHERE channel_id=${candidate.channel_id} AND capture_mode=${captureMode}
+                AND state IN ('pending_captions','failed_retryable','waiting_capacity')`
+            continue
+          }
+          const claimed = await tx`UPDATE private.clip_submissions
           SET state='processing',processing_attempts=processing_attempts+1,
               processing_lease_until=now()+interval '250 seconds',retry_after=NULL
           WHERE id=${candidate.id}
-            AND state IN ('pending_captions','failed_retryable')
+            AND state IN ('pending_captions','failed_retryable','waiting_capacity')
             AND processing_attempts < 3
           RETURNING id,twitch_clip_id,canonical_url,broadcaster_id,duration_seconds,video_id,vod_offset`
-        if (!claimed[0]) return null
-        return {
-          id: claimed[0].id,
-          ownerId: candidate.owner_id,
-          channelId: candidate.channel_id,
-          clipId: claimed[0].twitch_clip_id,
-          canonicalUrl: claimed[0].canonical_url,
-          broadcasterId: claimed[0].broadcaster_id,
-          durationSeconds: Number(claimed[0].duration_seconds),
-          videoId: claimed[0].video_id ?? null,
-          vodOffset: claimed[0].vod_offset === null ? null : Number(claimed[0].vod_offset),
-          consentRevision: access.consentRevision,
-          credential: access.credential
+          if (!claimed[0]) continue
+          return {
+            id: claimed[0].id,
+            ownerId: candidate.owner_id,
+            channelId: candidate.channel_id,
+            clipId: claimed[0].twitch_clip_id,
+            canonicalUrl: claimed[0].canonical_url,
+            broadcasterId: claimed[0].broadcaster_id,
+            durationSeconds: Number(claimed[0].duration_seconds),
+            videoId: claimed[0].video_id ?? null,
+            vodOffset: claimed[0].vod_offset === null ? null : Number(claimed[0].vod_offset),
+            consentRevision: accessRevision(access, captureMode),
+            captureMode,
+            phrases: phraseRows.map((phrase) => ({
+              phraseId: phrase.id,
+              phraseVersion: phrase.version,
+              phrase: phrase.text
+            })),
+            credential: access.credential
+          }
         }
       })) as ClipProcessingJob | null
     },
@@ -132,8 +171,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
         const access = await readAccess(tx, job.ownerId, job.channelId)
         return (
           state[0]?.state === 'processing' &&
-          hasProcessingAccess(access) &&
-          access.consentRevision === job.consentRevision
+          hasProcessingAccess(access, job.captureMode) &&
+          accessRevision(access, job.captureMode) === job.consentRevision
         )
       }),
     noProvider: (job: ClipProcessingJob) =>
@@ -143,8 +182,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
           WHERE id=${job.id} AND channel_id=${job.channelId} FOR UPDATE`
         if (
           state[0]?.state !== 'processing' ||
-          !hasProcessingAccess(access) ||
-          access.consentRevision !== job.consentRevision
+          !hasProcessingAccess(access, job.captureMode) ||
+          accessRevision(access, job.captureMode) !== job.consentRevision
         ) {
           await cancel(tx, job.id)
           return
@@ -161,8 +200,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
           WHERE id=${job.id} AND channel_id=${job.channelId} FOR UPDATE`
         if (
           state[0]?.state !== 'processing' ||
-          !hasProcessingAccess(access) ||
-          access.consentRevision !== job.consentRevision
+          !hasProcessingAccess(access, job.captureMode) ||
+          accessRevision(access, job.captureMode) !== job.consentRevision
         ) {
           await cancel(tx, job.id)
           return false
@@ -185,8 +224,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
         const access = await readAccess(tx, job.ownerId, job.channelId)
         if (
           state[0]?.state !== 'processing' ||
-          !hasProcessingAccess(access) ||
-          access.consentRevision !== job.consentRevision
+          !hasProcessingAccess(access, job.captureMode) ||
+          accessRevision(access, job.captureMode) !== job.consentRevision
         ) {
           await cancel(tx, job.id)
           return 'cancelled_consent' as const

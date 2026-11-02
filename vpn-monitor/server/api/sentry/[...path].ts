@@ -54,6 +54,14 @@ export default defineEventHandler(async (event) => {
       for (const key of ['code', 'state', 'error'])
         if (typeof query[key] === 'string') url.searchParams.set(key, query[key])
     }
+    if (method === 'GET' && /^channels\/[\da-f-]+\/clips$/i.test(path)) {
+      const query = getQuery(event)
+      if (query.cursor !== undefined) {
+        if (typeof query.cursor !== 'string' || query.cursor.length > 512)
+          return fail(400, 'INVALID_REQUEST', 'Solicitação inválida.')
+        url.searchParams.set('cursor', query.cursor)
+      }
+    }
     const authorize = path.endsWith('/authorize')
     const nonce = authorize
       ? randomBytes(32).toString('base64url')

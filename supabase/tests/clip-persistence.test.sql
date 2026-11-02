@@ -1,6 +1,6 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(33);
+SELECT plan(47);
 
 INSERT INTO auth.users(id) VALUES
   ('00000000-0000-0000-0000-000000000001'),
@@ -19,6 +19,8 @@ SELECT throws_ok('UPDATE private.clip_processing_consents SET manual_enabled=tru
 SELECT throws_ok('UPDATE private.clip_submissions SET state=''processing''','42501',NULL,'anon cannot update clip submissions');
 SELECT throws_ok('DELETE FROM private.clip_processing_consents','42501',NULL,'anon cannot delete clip consent');
 SELECT throws_ok('DELETE FROM private.clip_submissions','42501',NULL,'anon cannot delete clip submissions');
+SELECT ok(NOT has_table_privilege('anon',(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='private' AND c.relname='clip_discovery_state'),'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'),'anon has no discovery-state privileges');
+SELECT ok(NOT has_table_privilege('anon',(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='private' AND c.relname='clip_trigger_phrases'),'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'),'anon has no trigger-phrase privileges');
 RESET ROLE;
 
 SET LOCAL ROLE authenticated;
@@ -30,9 +32,12 @@ SELECT throws_ok('UPDATE private.clip_processing_consents SET manual_enabled=tru
 SELECT throws_ok('UPDATE private.clip_submissions SET state=''processing''','42501',NULL,'authenticated cannot update clip submissions');
 SELECT throws_ok('DELETE FROM private.clip_processing_consents','42501',NULL,'authenticated cannot delete clip consent');
 SELECT throws_ok('DELETE FROM private.clip_submissions','42501',NULL,'authenticated cannot delete clip submissions');
+SELECT ok(NOT has_table_privilege('authenticated',(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='private' AND c.relname='clip_discovery_state'),'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'),'authenticated has no discovery-state privileges');
+SELECT ok(NOT has_table_privilege('authenticated',(SELECT c.oid FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='private' AND c.relname='clip_trigger_phrases'),'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'),'authenticated has no trigger-phrase privileges');
 RESET ROLE;
 
 SELECT throws_ok($$INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at) VALUES ('20000000-0000-0000-0000-000000000001','monitoring-v2',now())$$,'23514',NULL,'only clip-processing consent version is accepted');
+SELECT throws_ok($$INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at,scheduled_enabled,scheduled_consent_version,scheduled_consented_at) VALUES ('20000000-0000-0000-0000-000000000001','clip-processing-v1',now(),true,'clip-scheduled-v2',now())$$,'23514',NULL,'only clip-scheduled-v1 is accepted');
 SELECT throws_ok($$INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state) VALUES ('20000000-0000-0000-0000-000000000099','UniqueClip123','https://clips.twitch.tv/UniqueClip123','manual','pending_metadata')$$,'23503',NULL,'submission requires an existing channel');
 SELECT throws_ok($$INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state) VALUES ('20000000-0000-0000-0000-000000000001','InvalidState123','https://clips.twitch.tv/InvalidState123','manual','queued')$$,'23514',NULL,'unknown submission state is rejected');
 SELECT throws_ok($$INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state) VALUES ('20000000-0000-0000-0000-000000000001','InvalidMode123','https://clips.twitch.tv/InvalidMode123','automatic','pending_metadata')$$,'23514',NULL,'unknown capture mode is rejected');
@@ -49,9 +54,31 @@ INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,cap
 VALUES ('20000000-0000-0000-0000-000000000001','UniqueClip123','https://clips.twitch.tv/UniqueClip123','manual','pending_metadata');
 SELECT throws_ok($$INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state) VALUES ('20000000-0000-0000-0000-000000000001','UniqueClip123','https://clips.twitch.tv/UniqueClip123','manual','pending_metadata')$$,'23505',NULL,'same channel and clip cannot be submitted twice');
 
+UPDATE private.clip_processing_consents
+  SET scheduled_enabled=true,scheduled_consent_version='clip-scheduled-v1',scheduled_consented_at=now(),
+      scheduled_revoked_at=NULL,scheduled_revision='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+  WHERE channel_id='20000000-0000-0000-0000-000000000001';
+INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state)
+  VALUES ('20000000-0000-0000-0000-000000000001','ScheduledRevoke123','https://clips.twitch.tv/ScheduledRevoke123','scheduled','waiting_capacity');
+INSERT INTO private.clip_discovery_state(channel_id,phase,window_started_at,window_ended_at,pending_windows,pagination_cursor,lease_until,completed_at)
+  VALUES ('20000000-0000-0000-0000-000000000001','incremental',now()-interval '1 day',now(),'[{"startedAt":"2026-10-01T00:00:00Z","endedAt":"2026-10-02T00:00:00Z"}]','cursor',now()+interval '1 minute',now()-interval '1 day');
+UPDATE public.provider_connections SET status='expired'
+  WHERE id='10000000-0000-0000-0000-000000000001';
+UPDATE public.provider_connections SET status='revocation_pending'
+  WHERE id='10000000-0000-0000-0000-000000000001';
+SELECT is((SELECT manual_enabled FROM private.clip_processing_consents WHERE channel_id='20000000-0000-0000-0000-000000000001'),false,'full connection revocation disables manual consent');
+SELECT is((SELECT scheduled_enabled AND scheduled_revoked_at IS NOT NULL FROM private.clip_processing_consents WHERE channel_id='20000000-0000-0000-0000-000000000001'),false,'full connection revocation disables scheduled consent');
+SELECT is((SELECT state FROM private.clip_submissions WHERE twitch_clip_id='UniqueClip123'),'cancelled_consent','full connection revocation cancels manual work');
+SELECT is((SELECT state FROM private.clip_submissions WHERE twitch_clip_id='ScheduledRevoke123'),'cancelled_consent','full connection revocation cancels scheduled work');
+SELECT is((SELECT phase='backfill' AND window_started_at IS NULL AND window_ended_at IS NULL AND pagination_cursor IS NULL AND pending_windows='[]'::jsonb AND lease_until IS NULL AND completed_at IS NULL FROM private.clip_discovery_state WHERE channel_id='20000000-0000-0000-0000-000000000001'),true,'connection revocation resets the discovery checkpoint');
+SELECT ok((SELECT scheduled_revision <> 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid FROM private.clip_processing_consents WHERE channel_id='20000000-0000-0000-0000-000000000001'),'connection revocation invalidates discovery leases');
+SELECT is((SELECT status FROM public.provider_connections WHERE id='10000000-0000-0000-0000-000000000001'),'revocation_pending','connection enters revocation pending state');
+
 SELECT is(has_table_privilege('vpn_sentry','private.clip_submissions','SELECT,INSERT,UPDATE,DELETE'),true,'Sentry has read/write privileges on submissions');
 SELECT is(has_table_privilege('vpn_sentry','private.clip_processing_consents','SELECT,INSERT,UPDATE,DELETE'),true,'Sentry has read/write privileges on consent');
 SELECT is(has_function_privilege('vpn_sentry','private.purge_expired_clip_submissions(timestamptz)','EXECUTE'),true,'Sentry can invoke retention routine');
+SELECT is(has_table_privilege('vpn_sentry','private.clip_discovery_state','SELECT,INSERT,UPDATE,DELETE'),true,'Sentry can operate discovery state');
+SELECT is(has_table_privilege('vpn_sentry','private.clip_trigger_phrases','SELECT,INSERT,UPDATE,DELETE'),true,'Sentry can operate trigger phrases');
 
 INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,capture_mode,state,received_at,finished_at) VALUES
   ('20000000-0000-0000-0000-000000000001','OldCompleted123','https://clips.twitch.tv/OldCompleted123','manual','completed','2026-07-01T00:00:00Z','2026-07-18T00:00:00Z'),

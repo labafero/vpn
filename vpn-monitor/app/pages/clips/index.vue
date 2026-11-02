@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import type { ClipSubmissionList, ClipSubmissionRecord, MonitoringChannel } from '@vpn/contracts'
+import type {
+  ClipConsent,
+  ClipSubmissionList,
+  ClipSubmissionRecord,
+  MonitoringChannel
+} from '@vpn/contracts'
 
 definePageMeta({ middleware: 'auth', colorMode: 'dark' })
 
 const channels = ref<MonitoringChannel[]>([])
 const clips = ref<ClipSubmissionRecord[]>([])
+const clipConsent = ref<ClipConsent | null>(null)
+const scheduledAccepted = ref(false)
+const nextCursor = ref<string | null>(null)
+const loadedCursors = ref<string[]>([])
+const loadingMore = ref(false)
 const loading = ref(true)
+const refreshing = ref(false)
 const openAiConfigured = ref(false)
 const systemOpenAiConfigured = ref(false)
 const openAiApiKey = ref('')
@@ -19,6 +30,8 @@ const statuses: Record<
 > = {
   pending_metadata: { label: 'Recebendo metadados', color: 'neutral' },
   pending_captions: { label: 'Aguardando processamento', color: 'neutral' },
+  waiting_capacity: { label: 'Aguardando vaga de análise', color: 'neutral' },
+  needs_trigger_phrases: { label: 'Configure frases-gatilho', color: 'warning' },
   needs_openai_key: { label: 'Adicione sua chave OpenAI', color: 'warning' },
   processing: { label: 'Analisando clip', color: 'warning' },
   completed: { label: 'Detecções encontradas', color: 'success' },
@@ -38,10 +51,14 @@ function formatTimestamp(milliseconds: number) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 }
 
-async function refresh() {
-  loading.value = true
+let loadedChannelId: string | null = null
+async function refresh(options: { quiet?: boolean } = {}) {
+  if (refreshing.value || loadingMore.value) return
+  const quiet = options.quiet === true || clips.value.length > 0
+  if (quiet) refreshing.value = true
+  else loading.value = true
   errorMessage.value = ''
-  notice.value = ''
+  if (!options.quiet) notice.value = ''
   try {
     channels.value = await $fetch<MonitoringChannel[]>('/api/sentry/channels')
     const credential = await $fetch<{ configured: boolean; systemConfigured: boolean }>(
@@ -50,15 +67,112 @@ async function refresh() {
     openAiConfigured.value = credential.configured
     systemOpenAiConfigured.value = credential.systemConfigured
     const channel = channels.value[0]
-    clips.value = channel
-      ? (await $fetch<ClipSubmissionList>(`/api/sentry/channels/${channel.id}/clips`)).items
-      : []
+    if (channel) {
+      if (loadedChannelId !== channel.id) {
+        loadedChannelId = channel.id
+        loadedCursors.value = []
+        clips.value = []
+        nextCursor.value = null
+      }
+      const [consent, list] = await Promise.all([
+        $fetch<ClipConsent>(`/api/sentry/channels/${channel.id}/clip-consent`),
+        $fetch<ClipSubmissionList>(`/api/sentry/channels/${channel.id}/clips`)
+      ])
+      const pages = [list]
+      const pageCursors: string[] = []
+      const loadedPageCount = loadedCursors.value.length + 1
+      while (pages.length < loadedPageCount) {
+        const cursor = pages.at(-1)?.nextCursor
+        if (!cursor) break
+        pageCursors.push(cursor)
+        pages.push(
+          await $fetch<ClipSubmissionList>(`/api/sentry/channels/${channel.id}/clips`, {
+            query: { cursor }
+          })
+        )
+      }
+      clipConsent.value = consent
+      const loaded = new Map<string, ClipSubmissionRecord>()
+      for (const item of pages.flatMap((page) => page.items))
+        if (!loaded.has(item.id)) loaded.set(item.id, item)
+      clips.value = [...loaded.values()]
+      loadedCursors.value = pageCursors
+      nextCursor.value = pages.at(-1)?.nextCursor ?? null
+    } else {
+      loadedChannelId = null
+      loadedCursors.value = []
+      clipConsent.value = null
+      clips.value = []
+      nextCursor.value = null
+    }
   } catch {
     errorMessage.value = 'Não foi possível carregar seus clips. Tente novamente.'
   } finally {
     loading.value = false
+    refreshing.value = false
   }
 }
+
+async function loadMore() {
+  const channel = channels.value[0]
+  const cursor = nextCursor.value
+  if (!channel || !cursor || loadingMore.value || refreshing.value) return
+  loadingMore.value = true
+  try {
+    const page = await $fetch<ClipSubmissionList>(`/api/sentry/channels/${channel.id}/clips`, {
+      query: { cursor }
+    })
+    loadedCursors.value.push(cursor)
+    clips.value.push(...page.items)
+    nextCursor.value = page.nextCursor
+  } catch {
+    errorMessage.value = 'Não foi possível carregar mais clips. Tente novamente.'
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+async function setScheduledConsent(enabled: boolean) {
+  const channel = channels.value[0]
+  if (!channel || !clipConsent.value || (enabled && !scheduledAccepted.value)) return
+  errorMessage.value = ''
+  notice.value = ''
+  try {
+    clipConsent.value = await $fetch<ClipConsent>(
+      `/api/sentry/channels/${channel.id}/clip-consent`,
+      {
+        method: 'PATCH',
+        headers: { 'X-VPN-CSRF': '1' },
+        body: enabled
+          ? {
+              scheduledEnabled: true,
+              scheduledConsentVersion: 'clip-scheduled-v1',
+              scheduledConsentAccepted: true
+            }
+          : { scheduledEnabled: false }
+      }
+    )
+    scheduledAccepted.value = false
+    await refresh()
+    notice.value = enabled
+      ? 'Captura agendada ativada. A importação do histórico começou e continuará em segundo plano.'
+      : 'Captura agendada desativada. Novas consultas foram interrompidas.'
+  } catch {
+    errorMessage.value =
+      'Não foi possível atualizar a captura agendada. Confira a permissão Twitch e tente novamente.'
+  }
+}
+
+let refreshTimer: ReturnType<typeof setInterval> | undefined
+onMounted(() => {
+  void refresh()
+  refreshTimer = setInterval(() => {
+    if (!loading.value && !refreshing.value && !loadingMore.value) void refresh({ quiet: true })
+  }, 30000)
+})
+onBeforeUnmount(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
+})
 
 async function saveOpenAiKey() {
   if (!openAiApiKey.value.trim() || savingKey.value) return
@@ -100,8 +214,6 @@ async function removeOpenAiKey() {
     savingKey.value = false
   }
 }
-
-onMounted(refresh)
 </script>
 
 <template>
@@ -120,9 +232,15 @@ onMounted(refresh)
           color="neutral"
           variant="outline"
           :disabled="loading"
-          @click="refresh"
+          @click="() => refresh()"
         >
           Atualizar
+        </UButton>
+        <UButton
+          to="/clips/gatilhos"
+          variant="outline"
+        >
+          Configurar frases-gatilho
         </UButton>
       </header>
 
@@ -191,6 +309,64 @@ onMounted(refresh)
           </p>
         </div>
       </UCard>
+      <UCard
+        v-if="clipConsent"
+        class="text-default"
+      >
+        <div class="space-y-4">
+          <div>
+            <h2 class="text-lg font-semibold">Captura agendada e histórico</h2>
+            <p class="mt-1 text-sm text-muted">
+              Com sua autorização, o sistema importa clips já existentes do canal conectado e
+              procura novos clips periodicamente. Os metadados ficam disponíveis para análise; mídia
+              e transcrição integral são temporárias.
+            </p>
+          </div>
+          <UAlert
+            v-if="!clipConsent.canDownload"
+            color="warning"
+            title="Permissão Twitch necessária"
+            description="A captura precisa da permissão channel:manage:clips para consultar e baixar clips do seu canal."
+          />
+          <UCheckbox
+            v-if="!clipConsent.scheduledEnabled"
+            v-model="scheduledAccepted"
+            :disabled="!clipConsent.canDownload"
+            label="Autorizo a consulta automática e importação do histórico de clips (clip-scheduled-v1)."
+            description="Esta autorização inclui clips anteriores e futuros do canal conectado e pode ser revogada a qualquer momento."
+          />
+          <div class="flex flex-wrap gap-3">
+            <UButton
+              v-if="clipConsent.scheduledEnabled"
+              color="error"
+              variant="outline"
+              @click="setScheduledConsent(false)"
+            >
+              Desativar captura agendada
+            </UButton>
+            <UButton
+              v-else-if="clipConsent.canDownload"
+              :disabled="!scheduledAccepted"
+              @click="setScheduledConsent(true)"
+            >
+              Ativar captura e importar histórico
+            </UButton>
+            <UButton
+              v-else
+              to="/conexao"
+              variant="outline"
+            >
+              Revisar conexão Twitch
+            </UButton>
+            <UBadge
+              v-if="clipConsent.scheduledEnabled"
+              color="success"
+            >
+              Captura agendada ativa
+            </UBadge>
+          </div>
+        </div>
+      </UCard>
       <UAlert
         v-if="errorMessage"
         color="error"
@@ -208,8 +384,11 @@ onMounted(refresh)
         v-else-if="!clips.length && !errorMessage"
         class="text-default"
       >
-        <h2 class="text-lg font-semibold">Nenhum clip enviado ainda</h2>
-        <p class="mt-2 text-muted">Envie a URL de um clip do seu canal pela Conexão Twitch.</p>
+        <h2 class="text-lg font-semibold">Nenhum clip importado ainda</h2>
+        <p class="mt-2 text-muted">
+          Ative a captura agendada para importar o histórico ou envie um clip manualmente na Conexão
+          Twitch.
+        </p>
         <UButton
           class="mt-4"
           to="/conexao"
@@ -233,7 +412,23 @@ onMounted(refresh)
                 {{ clip.title || 'Clip Twitch' }}
               </h2>
               <p class="text-sm text-muted">
-                Recebido em {{ new Date(clip.receivedAt).toLocaleString('pt-BR') }}
+                Criado em
+                {{
+                  clip.createdAt
+                    ? new Date(clip.createdAt).toLocaleString('pt-BR')
+                    : 'data indisponível'
+                }}
+                <span aria-hidden="true">·</span>
+                {{ clip.captureMode === 'scheduled' ? 'Captura agendada' : 'Envio manual' }}
+                <span
+                  v-if="clip.viewCount !== null"
+                  aria-hidden="true"
+                >
+                  ·
+                </span>
+                <span v-if="clip.viewCount !== null">
+                  {{ clip.viewCount.toLocaleString('pt-BR') }} visualizações
+                </span>
               </p>
             </div>
             <UBadge :color="statusFor(clip.state).color">
@@ -265,6 +460,12 @@ onMounted(refresh)
           </ul>
 
           <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-default pt-4">
+            <UButton
+              :to="`/clips/${clip.id}`"
+              variant="outline"
+            >
+              Ver informações e evidências
+            </UButton>
             <a
               class="inline-flex min-h-11 items-center underline underline-offset-4"
               :href="clip.canonicalUrl"
@@ -275,6 +476,19 @@ onMounted(refresh)
             </a>
           </div>
         </UCard>
+      </div>
+      <div
+        v-if="nextCursor"
+        class="flex justify-center"
+      >
+        <UButton
+          variant="outline"
+          :loading="loadingMore"
+          :disabled="refreshing"
+          @click="loadMore"
+        >
+          Carregar mais clips
+        </UButton>
       </div>
     </div>
   </main>

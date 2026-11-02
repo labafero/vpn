@@ -28,7 +28,7 @@ BEGIN
 END $check$;
 
 SELECT cron.unschedule(jobid) FROM cron.job WHERE jobname='vpn-clip-processing';
-SELECT cron.schedule('vpn-clip-processing', '7,37 * * * *', $job$
+SELECT cron.schedule('vpn-clip-processing', '*/5 * * * *', $job$
   SELECT net.http_post(
     url := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name='vpn_clip_worker_url'),
     headers := jsonb_strip_nulls(jsonb_build_object(

@@ -5,6 +5,11 @@ import { expect, test } from 'vitest'
 import { createClipIngestionService } from '../server/utils/clip-ingestion'
 import { createClipRepository } from '../server/utils/clip-repository'
 import { createClipProcessingRepository } from '../server/utils/clip-processing-repository'
+import { createClipDiscoveryRepository } from '../server/utils/clip-discovery-repository'
+import {
+  createClipTriggerPhraseRepository,
+  createClipTriggerPhrasesService
+} from '../server/utils/clip-trigger-phrases'
 
 const owner = '00000000-0000-0000-0000-000000000001'
 const channel = '20000000-0000-0000-0000-000000000001'
@@ -20,7 +25,8 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
       '_phase2_clip_persistence.sql',
       '_clip_ingestion_oauth.sql',
       '_clip_processing_worker.sql',
-      '_per_user_openai_transcription_credentials.sql'
+      '_per_user_openai_transcription_credentials.sql',
+      '_scheduled_clip_discovery_and_trigger_phrases.sql'
     ]) {
       const name = readdirSync('supabase/migrations').find((name) => name.endsWith(suffix))!
       await db.exec(readFileSync(`supabase/migrations/${name}`, 'utf8'))
@@ -44,8 +50,99 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
     }
     const repo = createClipRepository(adapter(db) as unknown as postgres.Sql)
     expect(await repo.read('00000000-0000-0000-0000-000000000002', channel)).toBeNull()
+    const consentService = createClipIngestionService(repo, async () => ({
+      id: 'Unused',
+      broadcasterId: '123',
+      creatorId: '456',
+      title: 'Title',
+      videoId: '',
+      vodOffset: null,
+      createdAt: '2026-10-18T00:00:00Z',
+      duration: 12,
+      language: 'pt',
+      viewCount: 1
+    }))
+    await expect(
+      consentService.setConsent(owner, channel, {
+        scheduledEnabled: true,
+        scheduledConsentVersion: 'clip-scheduled-v2',
+        scheduledConsentAccepted: true
+      })
+    ).rejects.toMatchObject({ statusCode: 400 })
+    await expect(
+      consentService.setConsent(owner, channel, {
+        scheduledEnabled: true,
+        scheduledConsentVersion: 'clip-scheduled-v1',
+        scheduledConsentAccepted: true
+      })
+    ).resolves.toMatchObject({ manualEnabled: false, scheduledEnabled: true })
+    const scheduledOnly = await repo.setScheduledConsent(owner, channel, true)
+    expect(scheduledOnly.consent).toMatchObject({
+      manualEnabled: false,
+      scheduledEnabled: true,
+      scheduledConsentVersion: 'clip-scheduled-v1'
+    })
+    const both = await repo.setConsent(owner, channel, true)
+    expect(both.consent).toMatchObject({ manualEnabled: true, scheduledEnabled: true })
+    const manualOnly = await repo.setScheduledConsent(owner, channel, false)
+    expect(manualOnly.consent).toMatchObject({ manualEnabled: true, scheduledEnabled: false })
+    const scheduledAgain = await repo.setScheduledConsent(owner, channel, true)
+    expect(scheduledAgain.consent.manualEnabled).toBe(true)
+    const revokedManual = await repo.setConsent(owner, channel, false)
+    expect(revokedManual.consent).toMatchObject({ manualEnabled: false, scheduledEnabled: true })
+    await db.exec(`UPDATE private.provider_credentials SET scopes=ARRAY[]::text[]`)
+    await expect(repo.setScheduledConsent(owner, channel, true)).rejects.toMatchObject({
+      statusCode: 403
+    })
+    await db.exec(`UPDATE private.provider_credentials SET scopes=ARRAY['channel:manage:clips']`)
+    await expect(
+      repo.setScheduledConsent('00000000-0000-0000-0000-000000000002', channel, true)
+    ).rejects.toMatchObject({ statusCode: 403 })
     const active = await repo.setConsent(owner, channel, true)
+    expect(active.consent.scheduledEnabled).toBe(true)
+    const phrases = createClipTriggerPhrasesService(
+      createClipTriggerPhraseRepository(adapter(db) as unknown as postgres.Sql)
+    )
+    const phrase = await phrases.create(owner, channel, { text: ' Você é um inútil! ' })
+    expect(phrase).toMatchObject({ text: 'Você é um inútil!', version: 1, enabled: true })
+    await expect(
+      phrases.create(owner, channel, { text: 'você é um inútil' })
+    ).rejects.toMatchObject({ statusCode: 400 })
+    const edited = await phrases.update(owner, channel, phrase.id, { text: 'Chega de mentir' })
+    expect(edited).toMatchObject({ version: 2, text: 'Chega de mentir' })
+    await phrases.deactivate(owner, channel, phrase.id)
+    const reenabledPhrase = await phrases.create(owner, channel, { text: 'Chega de mentir' })
+    expect(reenabledPhrase).toMatchObject({ id: phrase.id, version: 3, enabled: true })
     expect(active.consent.manualEnabled).toBe(true)
+    const unconfiguredOwner = '00000000-0000-0000-0000-000000000003'
+    const unconfiguredConnection = '10000000-0000-0000-0000-000000000003'
+    const unconfiguredChannel = '20000000-0000-0000-0000-000000000003'
+    await db.exec(`RESET ROLE;
+      INSERT INTO auth.users(id) VALUES ('${unconfiguredOwner}');
+      INSERT INTO public.provider_connections(id,user_id,provider_user_id,login,consent_version,consented_at)
+        VALUES ('${unconfiguredConnection}','${unconfiguredOwner}','789','unconfigured','monitoring-v1',now());
+      INSERT INTO public.channels(id,connection_id,owner_id)
+        VALUES ('${unconfiguredChannel}','${unconfiguredConnection}','${unconfiguredOwner}');
+      INSERT INTO private.provider_credentials(connection_id,ciphertext,iv,tag,key_version,expires_at,validated_at,scopes)
+        VALUES ('${unconfiguredConnection}','cipher','iv','tag','v1',now()+interval '1 hour',now(),ARRAY['channel:manage:clips']);
+      SET ROLE vpn_sentry;`)
+    const unconfiguredConsent = await repo.setScheduledConsent(
+      unconfiguredOwner,
+      unconfiguredChannel,
+      true
+    )
+    expect(unconfiguredConsent.consent.scheduledEnabled).toBe(true)
+    const discovery = createClipDiscoveryRepository(adapter(db) as unknown as postgres.Sql)
+    const firstDiscovery = await discovery.claimNext()
+    expect(firstDiscovery?.channelId).toBe(channel)
+    await db.query(
+      `UPDATE private.clip_discovery_state SET lease_until=now()-interval '1 second' WHERE channel_id='${channel}'`
+    )
+    const nextDiscovery = await discovery.claimNext()
+    expect(nextDiscovery?.channelId).toBe(unconfiguredChannel)
+    await db.exec(`INSERT INTO private.clip_submissions(channel_id,twitch_clip_id,canonical_url,broadcaster_id,capture_mode,state,received_at) VALUES
+      ('${unconfiguredChannel}','OldUnconfigured1','https://clips.twitch.tv/OldUnconfigured1','789','scheduled','waiting_capacity',now()-interval '1 hour'),
+      ('${unconfiguredChannel}','OldUnconfigured2','https://clips.twitch.tv/OldUnconfigured2','789','scheduled','waiting_capacity',now()-interval '59 minutes')`)
     const clip = {
       id: 'ClipId',
       broadcasterId: '123',
@@ -79,14 +176,21 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
       ownerId: owner,
       channelId: channel
     })
+    const unconfigured = await db.query(
+      `SELECT state FROM private.clip_submissions WHERE channel_id='${unconfiguredChannel}' ORDER BY twitch_clip_id`
+    )
+    expect(unconfigured.rows).toEqual([
+      { state: 'needs_trigger_phrases' },
+      { state: 'needs_trigger_phrases' }
+    ])
     await expect(processing.claimNext()).resolves.toBeNull()
     expect(await processing.stillAuthorized(job!)).toBe(true)
     await expect(
       processing.finish(job!, [
         {
-          phraseId: 'phrase-v1-01',
-          phraseVersion: 1,
-          phrase: 'você é um inútil',
+          phraseId: phrase.id,
+          phraseVersion: 3,
+          phrase: 'Chega de mentir',
           source: 'openai',
           startMs: 100,
           endMs: 900
@@ -98,8 +202,9 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
       state: 'completed',
       detections: [
         {
-          phraseId: 'phrase-v1-01',
-          phrase: 'você é um inútil',
+          phraseId: phrase.id,
+          phraseVersion: 3,
+          phrase: 'Chega de mentir',
           source: 'openai',
           startMs: 100,
           endMs: 900
@@ -164,7 +269,11 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
     ).rejects.toMatchObject({ statusCode: 403 })
     await db.exec(`RESET ROLE`)
     expect(
-      (await db.query('SELECT finished_at FROM private.clip_submissions')).rows[0]
+      (
+        await db.query(
+          `SELECT finished_at FROM private.clip_submissions WHERE id='${pendingClip.id}'`
+        )
+      ).rows[0]
     ).toHaveProperty('finished_at', expect.any(Date))
   } finally {
     await db.close()

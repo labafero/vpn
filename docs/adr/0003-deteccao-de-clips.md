@@ -17,6 +17,11 @@
 - Baixar mídia para transcrição OpenAI, processá-la temporariamente e removê-la
   em sucesso ou falha. Não persistir a transcrição completa.
 - Persistir apenas gatilhos, origem e timestamps necessários à revisão humana.
+- O dono configura frases-gatilho por canal; não há frases padrão. Cada job usa
+  um snapshot das frases habilitadas e cada detecção preserva o ID, a versão e o
+  texto daquela configuração, sem reescrever evidências após edições.
+- A descoberta consulta periodicamente clips históricos e novos com consentimento
+  `clip-scheduled-v1`; o backfill é retomável e separado da fila de análise.
 - A execução é restrita ao dono do canal e aos limites configurados na Vercel. O consumo da
   chave central fica na conta do projeto; o consumo da chave pessoal fica na
   conta do usuário.
@@ -28,3 +33,8 @@ Quando ela não estiver configurada, a chave pessoal é usada e o consumo fica n
 conta OpenAI do usuário. Sem chave, o Sentry conserva os metadados e informa que
 não há fonte de transcrição. As detecções permanecem candidatas para revisão,
 não conclusões sobre intenção.
+
+Clips descobertos permanecem listados enquanto aguardam capacidade, frases ou
+uma chave OpenAI. A importação não depende da criação de um novo clip. Jobs de
+descoberta e análise têm agendas independentes; consentimento agendado revogado
+impede consultas, download e resultados posteriores.

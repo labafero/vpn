@@ -56,3 +56,21 @@ test('defines the private monitoring and invitation contract', () => {
   expect(document).toContain('additionalProperties: false')
   expect(document).not.toContain('token_hash')
 })
+test('defines scheduled clip consent, detail, pagination, and trigger phrases', () => {
+  expect(check(document).status).toBe(0)
+  for (const operation of [
+    '/channels/{id}/clips/{submissionId}:',
+    '/channels/{id}/trigger-phrases:',
+    '/channels/{id}/trigger-phrases/{phraseId}:'
+  ])
+    expect(document).toContain(operation)
+  for (const field of [
+    'scheduledConsentVersion',
+    'scheduledConsentedAt',
+    'scheduledRevokedAt',
+    'nextCursor',
+    'ClipTriggerPhrase:',
+    'ClipDetail:'
+  ])
+    expect(document).toContain(field)
+})

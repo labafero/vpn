@@ -1,26 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: { extensions?: Json; operationName?: string; query?: string; variables?: Json };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
   private: {
     Tables: {
       access_invites: {
@@ -111,6 +91,48 @@ export type Database = {
           },
         ];
       };
+      clip_discovery_state: {
+        Row: {
+          channel_id: string;
+          completed_at: string | null;
+          items_in_window: number;
+          last_checked_at: string | null;
+          lease_until: string | null;
+          pagination_cursor: string | null;
+          pending_windows: NonNullable<Json>;
+          phase: string;
+          updated_at: string;
+          window_ended_at: string | null;
+          window_started_at: string | null;
+        };
+        Insert: {
+          channel_id: string;
+          completed_at?: string | null;
+          items_in_window?: number;
+          last_checked_at?: string | null;
+          lease_until?: string | null;
+          pagination_cursor?: string | null;
+          pending_windows?: NonNullable<Json>;
+          phase?: string;
+          updated_at?: string;
+          window_ended_at?: string | null;
+          window_started_at?: string | null;
+        };
+        Update: {
+          channel_id?: string;
+          completed_at?: string | null;
+          items_in_window?: number;
+          last_checked_at?: string | null;
+          lease_until?: string | null;
+          pagination_cursor?: string | null;
+          pending_windows?: NonNullable<Json>;
+          phase?: string;
+          updated_at?: string;
+          window_ended_at?: string | null;
+          window_started_at?: string | null;
+        };
+        Relationships: [];
+      };
       clip_processing_consents: {
         Row: {
           channel_id: string;
@@ -119,7 +141,11 @@ export type Database = {
           manual_enabled: boolean;
           revision: string;
           revoked_at: string | null;
+          scheduled_consent_version: string | null;
+          scheduled_consented_at: string | null;
           scheduled_enabled: boolean;
+          scheduled_revision: string;
+          scheduled_revoked_at: string | null;
         };
         Insert: {
           channel_id: string;
@@ -128,7 +154,11 @@ export type Database = {
           manual_enabled?: boolean;
           revision?: string;
           revoked_at?: string | null;
+          scheduled_consent_version?: string | null;
+          scheduled_consented_at?: string | null;
           scheduled_enabled?: boolean;
+          scheduled_revision?: string;
+          scheduled_revoked_at?: string | null;
         };
         Update: {
           channel_id?: string;
@@ -137,7 +167,11 @@ export type Database = {
           manual_enabled?: boolean;
           revision?: string;
           revoked_at?: string | null;
+          scheduled_consent_version?: string | null;
+          scheduled_consented_at?: string | null;
           scheduled_enabled?: boolean;
+          scheduled_revision?: string;
+          scheduled_revoked_at?: string | null;
         };
         Relationships: [];
       };
@@ -210,6 +244,39 @@ export type Database = {
           video_id?: string | null;
           view_count?: number | null;
           vod_offset?: number | null;
+        };
+        Relationships: [];
+      };
+      clip_trigger_phrases: {
+        Row: {
+          channel_id: string;
+          created_at: string;
+          enabled: boolean;
+          id: string;
+          normalized_text: string;
+          text: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          channel_id: string;
+          created_at?: string;
+          enabled?: boolean;
+          id?: string;
+          normalized_text: string;
+          text: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          channel_id?: string;
+          created_at?: string;
+          enabled?: boolean;
+          id?: string;
+          normalized_text?: string;
+          text?: string;
+          updated_at?: string;
+          version?: number;
         };
         Relationships: [];
       };
@@ -1128,9 +1195,6 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   private: {
     Enums: {},
   },

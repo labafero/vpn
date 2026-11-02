@@ -1,4 +1,5 @@
 import type { Credential } from './private-database'
+import type { ClipPhraseSnapshot } from './clip-detection'
 
 export type ClipProcessingJob = {
   id: string
@@ -11,6 +12,8 @@ export type ClipProcessingJob = {
   videoId: string | null
   vodOffset: number | null
   consentRevision: string
+  captureMode: 'manual' | 'scheduled'
+  phrases: ClipPhraseSnapshot
   credential: Credential
 }
 
@@ -64,7 +67,10 @@ export function createClipProcessingService(deps: {
     clipId: string
     apiKey: string
   }) => Promise<ClipTranscriptSegment[]>
-  detect: (segments: ClipTranscriptSegment[]) => Omit<ClipDetection, 'source'>[]
+  detect: (
+    segments: ClipTranscriptSegment[],
+    phrases: ClipPhraseSnapshot
+  ) => Omit<ClipDetection, 'source'>[]
   maxAttempts?: number
 }) {
   const maxAttempts = deps.maxAttempts ?? 3
@@ -99,7 +105,7 @@ export function createClipProcessingService(deps: {
           return { state: 'cancelled_consent' }
         }
         const segments = await deps.transcribe({ path: media.path, clipId: job.clipId, apiKey })
-        const detections = deps.detect(segments).map((detection) => ({
+        const detections = deps.detect(segments, job.phrases).map((detection) => ({
           ...detection,
           source: 'openai' as const
         }))

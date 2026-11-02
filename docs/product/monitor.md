@@ -23,7 +23,13 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
   e ao período autorizado pelo dono.
 - Submeter manualmente URL de clip do canal vinculado, com autorização
   incremental `clip_download` e apresentação clara de finalidade e consentimento.
-- Consultar clips numa tela própria e configurar uma chave OpenAI por usuário;
+- Ativar consentimento agendado `clip-scheduled-v1`, separado do envio manual,
+  para importar clips históricos disponíveis e descobrir novos clips do canal
+  conectado. A tela de clips apresenta estado, modo de captura e paginação.
+- Configurar frases-gatilho por canal, ativar/desativar e editar regras. A página
+  de detalhe do clip apresenta metadados, origem e timestamps das evidências;
+  cada detecção preserva a versão da frase usada.
+- Configurar uma chave OpenAI por usuário;
   o sistema usa primeiro a chave central, depois a chave pessoal, e apresenta
   somente gatilhos, origem e timestamp.
 - Revisar detecções candidatas por frase, origem, timestamp e estado. A revisão
@@ -35,6 +41,11 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
   distingue vínculo Twitch, monitoramento de live e processamento de clips.
 - Como streamer, quero enviar um clip do meu canal; o Monitor mostra estado de
   recebimento, duplicata e erro sem afirmar que já foi processado.
+- Como streamer, quero ativar a consulta agendada para ver clips antigos e
+  futuros sem esperar uma nova criação; metadados e análise dependem de
+  consentimento e autorização Twitch vigentes.
+- Como streamer, quero configurar frases-gatilho e ver no detalhe do clip a
+  frase, versão, origem e timestamp que sustentam cada detecção.
 - Como revisor, quero abrir uma evidência no timestamp detectado; a ação leva ao
   ponto correspondente e identifica a regra que disparou.
 - Como dono, quero compartilhar somente uma sessão; convite vencido, revogado,
@@ -42,8 +53,8 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 - O processamento envia a mídia temporariamente para transcrição OpenAI usando
   primeiro a chave central e depois a chave pessoal do dono. Sem nenhuma chave,
   não produz resultado.
-- A tela atualiza estados manualmente e mostra resultados mínimos; não permite
-  editar detecções.
+- A tela atualiza estados periodicamente e permite carregar páginas de 50 clips;
+  a configuração de frases não altera detecções já armazenadas.
 - Eventos são sinais candidatos, nunca vereditos sobre intenção ou infração.
 - Respostas privadas não ficam em cache público e erros não expõem credenciais,
   códigos OAuth, transcrições integrais ou URLs temporárias.
@@ -66,5 +77,6 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 
 ## Resultado esperado
 
-O dono compreende e controla consentimentos, configura a própria chave OpenAI,
-consulta clips autorizados e inspeciona gatilhos com origem e timestamp.
+O dono controla consentimentos independentes, importa o histórico disponível,
+configura frases-gatilho e inspeciona clips e evidências com origem, versão e
+timestamp.
