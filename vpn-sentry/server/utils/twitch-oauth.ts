@@ -44,6 +44,17 @@ export type TwitchOAuthCallbackFailure = {
     | 'persist_connection'
     | 'persist_upgrade'
   statusCode: number
+  providerFailure?: 'network' | 'http' | 'invalid_response'
+  providerStatus?: number
+}
+type TwitchProviderFailure = NonNullable<TwitchOAuthCallbackFailure['providerFailure']>
+class TwitchProviderError extends FoundationError {
+  constructor(
+    readonly providerFailure: TwitchProviderFailure,
+    readonly providerStatus?: number
+  ) {
+    super(503)
+  }
 }
 export const clipCapabilityScopes = {
   clip_download: 'channel:manage:clips',
@@ -253,7 +264,13 @@ export function createTwitchOAuthService(
         try {
           reportFailure?.({
             stage,
-            statusCode: error instanceof FoundationError ? error.statusCode : 503
+            statusCode: error instanceof FoundationError ? error.statusCode : 503,
+            ...(error instanceof TwitchProviderError
+              ? {
+                  providerFailure: error.providerFailure,
+                  providerStatus: error.providerStatus
+                }
+              : {})
           })
         } catch {
           /* Diagnostics must not change OAuth behavior. */
@@ -383,7 +400,7 @@ export function createTwitchGateway(config: TwitchConfig, fetcher = fetch): Twit
         signal: AbortSignal.timeout(10000)
       })
     } catch {
-      throw new FoundationError(503)
+      throw new TwitchProviderError('network')
     }
   }
   async function token(params: Record<string, string>) {
@@ -400,11 +417,16 @@ export function createTwitchGateway(config: TwitchConfig, fetcher = fetch): Twit
       (response.status === 400 || response.status === 401)
     )
       throw new FoundationError(401)
-    if (!response.ok) throw new FoundationError(503)
-    const value = (await response.json()) as {
+    if (!response.ok) throw new TwitchProviderError('http', response.status)
+    let value: {
       access_token: string
       refresh_token: string
       expires_in: number
+    }
+    try {
+      value = (await response.json()) as typeof value
+    } catch {
+      throw new TwitchProviderError('invalid_response')
     }
     if (
       !value.access_token ||
@@ -412,7 +434,7 @@ export function createTwitchGateway(config: TwitchConfig, fetcher = fetch): Twit
       !Number.isFinite(value.expires_in) ||
       value.expires_in <= 0
     )
-      throw new FoundationError(503)
+      throw new TwitchProviderError('invalid_response')
     return {
       accessToken: value.access_token,
       refreshToken: value.refresh_token,
@@ -428,13 +450,18 @@ export function createTwitchGateway(config: TwitchConfig, fetcher = fetch): Twit
         headers: { Authorization: `OAuth ${accessToken}` }
       })
       if (response.status === 401) return null
-      if (!response.ok) throw new FoundationError(503)
-      const value = (await response.json()) as {
+      if (!response.ok) throw new TwitchProviderError('http', response.status)
+      let value: {
         client_id: string
         user_id: string
         login: string
         scopes: string[] | null
         expires_in: number
+      }
+      try {
+        value = (await response.json()) as typeof value
+      } catch {
+        throw new TwitchProviderError('invalid_response')
       }
       // Twitch represents no granted scopes as null in real validate responses.
       const scopes = value.scopes === null ? [] : value.scopes
@@ -447,7 +474,7 @@ export function createTwitchGateway(config: TwitchConfig, fetcher = fetch): Twit
         !Number.isFinite(value.expires_in) ||
         value.expires_in < 0
       )
-        throw new FoundationError(503)
+        throw new TwitchProviderError('invalid_response')
       return {
         clientId: value.client_id,
         userId: value.user_id,

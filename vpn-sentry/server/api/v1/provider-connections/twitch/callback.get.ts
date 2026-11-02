@@ -31,8 +31,13 @@ export default defineEventHandler((event) =>
           state: query.state,
           browserNonce: getHeader(event, 'x-oauth-nonce') || ''
         },
-        ({ stage, statusCode }) => {
-          console.error('[twitch_oauth_callback_failed]', { stage, statusCode })
+        ({ stage, statusCode, providerFailure, providerStatus }) => {
+          console.error('[twitch_oauth_callback_failed]', {
+            stage,
+            statusCode,
+            ...(providerFailure ? { providerFailure } : {}),
+            ...(providerStatus ? { providerStatus } : {})
+          })
         }
       )
       return sendRedirect(event, `${process.env.NUXT_MONITOR_ORIGIN}/conexao`, 303)
