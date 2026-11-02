@@ -50,10 +50,11 @@ Projeto `VPN_RP`, ref `zxzigoaddoslkokbzmyc`, região `us-east-2`. Em 31/10, as
 migrations locais e remotas estavam alinhadas, incluindo persistência, chaves
 individuais e processamento de clips. Postgres 17.6.1.155 na última leitura.
 
-Na última consulta operacional (31/10), o cron `vpn-clip-processing` estava
-ativo a cada 30 minutos (`7,37 * * * *`). O SQL local prepara a execução a cada
-5 minutos e adiciona `vpn-clip-discovery`, também a cada 5 minutos. Esses SQLs
-e a nova migration não foram aplicados ao projeto remoto nesta implementação.
+O cron `vpn-clip-processing` está ativo a cada minuto (`* * * * *`); cada
+chamada processa no máximo um clip e o worker mantém apenas uma análise ativa
+globalmente. O cron `vpn-clip-discovery` consulta clips a cada 5 minutos
+(`*/5 * * * *`). Os agendamentos podem ser conferidos com `SELECT jobid,jobname,
+schedule,active FROM cron.job` no projeto vinculado.
 A URL do worker, seu segredo e o bypass de proteção Vercel ficam no Vault sob os
 nomes `vpn_clip_worker_url`, `vpn_clip_worker_secret` e
 `vpn_vercel_cron_bypass`. A limpeza automática de submissões vencidas ainda não
