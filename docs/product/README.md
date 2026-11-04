@@ -4,6 +4,9 @@ Este diretório contém requisitos duráveis por superfície. O [PRD geral](../.
 define a visão e as fronteiras do ecossistema; os documentos abaixo definem o
 resultado esperado de cada subapp.
 
+Consulte o [roadmap de fases](../../ROADMAP.md) para a sequência de evolução do
+produto.
+
 - [News](news.md): portal público, redação e overlays.
 - [Monitor](monitor.md): experiência privada do streamer e revisão de sinais.
 - [Sentry](sentry.md): API privada, integrações e processamento assíncrono.
