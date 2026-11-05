@@ -49,6 +49,7 @@ beforeEach(() => {
   fixture.user = { userId: ownerId, role: 'member' }
   fixture.service = {
     getSession: vi.fn(async () => session),
+    sharedEvidence: vi.fn(async () => []),
     canReadSession: vi.fn(async (_id, userId) => userId === ownerId),
     listSessions: vi.fn(async () => ({ items: [session], nextCursor: null }))
   }
@@ -58,14 +59,33 @@ test('session API sanitizes internal owner IDs and keeps responses private', asy
   expect(response.status).toBe(200)
   expect(response.headers.get('cache-control')).toBe('no-store')
   const data = (await response.json()) as Record<string, unknown>
-  expect(data).toMatchObject({ id: sessionId, canManageInvites: true })
+  expect(data).toMatchObject({ id: sessionId, canManageInvites: true, evidence: [] })
   expect(data).not.toHaveProperty('ownerId')
+})
+test('session API returns evidence supplied by the authorized service', async () => {
+  const evidence = [
+    {
+      id: 'clip-1',
+      title: 'Clip',
+      canonicalUrl: 'https://clips.twitch.tv/clip-1',
+      createdAt: new Date().toISOString(),
+      detections: []
+    }
+  ]
+  fixture.service!.sharedEvidence = vi.fn(async () => evidence)
+
+  const response = await fetch(`${address}/api/v1/sessions/${sessionId}`)
+
+  expect(response.status).toBe(200)
+  expect(await response.json()).toMatchObject({ evidence })
+  expect(fixture.service!.sharedEvidence).toHaveBeenCalledWith(sessionId, ownerId, false)
 })
 test('uninvited users cannot read a session and failures do not reveal session metadata', async () => {
   fixture.user = { userId: guestId, role: 'member' }
   const response = await fetch(`${address}/api/v1/sessions/${sessionId}`)
   expect(response.status).toBe(404)
   expect(await response.text()).not.toContain('stream-1')
+  expect(fixture.service!.sharedEvidence).not.toHaveBeenCalled()
 })
 test('anonymous API requests are rejected and history uses bounded pagination', async () => {
   fixture.user = null
