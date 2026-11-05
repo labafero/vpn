@@ -119,6 +119,50 @@ onMounted(load)
           color="neutral"
           description="Esta central exibe apenas metadados da transmissão. Não há player de áudio ou vídeo."
         />
+        <UCard
+          v-if="session.evidence.length"
+          class="text-default"
+        >
+          <h2 class="text-xl font-semibold">Clips da sessão</h2>
+          <ul class="mt-3 divide-y divide-default">
+            <li
+              v-for="clip in session.evidence"
+              :key="clip.id"
+              class="py-4"
+            >
+              <a
+                class="font-semibold underline underline-offset-4"
+                :href="clip.canonicalUrl"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {{ clip.title || 'Clip Twitch' }}
+              </a>
+              <p class="mt-1 text-sm text-muted">
+                {{ new Date(clip.createdAt).toLocaleString('pt-BR') }}
+              </p>
+              <ul
+                v-if="clip.detections.length"
+                class="mt-3 space-y-2"
+              >
+                <li
+                  v-for="(detection, index) in clip.detections"
+                  :key="`${detection.phraseId}-${detection.startMs}-${index}`"
+                  class="flex flex-wrap gap-x-3 text-sm"
+                >
+                  <span>{{ detection.phrase }}</span>
+                  <span class="font-mono text-muted">
+                    {{ Math.floor(detection.startMs / 60000) }}:{{
+                      String(Math.floor(detection.startMs / 1000) % 60).padStart(2, '0')
+                    }}–{{ Math.floor(detection.endMs / 60000) }}:{{
+                      String(Math.floor(detection.endMs / 1000) % 60).padStart(2, '0')
+                    }}
+                  </span>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </UCard>
       </div>
       <UAlert
         v-if="message"

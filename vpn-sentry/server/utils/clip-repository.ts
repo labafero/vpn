@@ -48,6 +48,7 @@ export type ClipSubmissionRecord = {
   state: string
   failureCode: string | null
   receivedAt: string
+  approvedAt: string | null
   detections: ClipDetectionRecord[]
 }
 export type ClipRepository = {
@@ -77,6 +78,12 @@ export type ClipRepository = {
     cursor?: string | null
   ) => Promise<{ items: ClipSubmissionRecord[]; nextCursor: string | null }>
   detail: (owner: string, channel: string, submissionId: string) => Promise<ClipSubmissionRecord>
+  setEvidenceApproval: (
+    owner: string,
+    channel: string,
+    submissionId: string,
+    approved: boolean
+  ) => Promise<{ approvedAt: string | null }>
 }
 export function createClipRepository(sql: postgres.Sql): ClipRepository {
   function encodeCursor(createdAt: string, id: string) {
@@ -166,7 +173,7 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
         if (!owned[0]) throw new FoundationError(403)
         const decoded = decodeCursor(cursor)
         const rows =
-          await tx`SELECT s.id,s.twitch_clip_id,s.canonical_url,s.video_id,s.vod_offset,s.title,s.state,s.failure_code,s.received_at,s.creator_id,s.created_at,s.duration_seconds,s.language,s.view_count,s.capture_mode,
+          await tx`SELECT s.id,s.twitch_clip_id,s.canonical_url,s.video_id,s.vod_offset,s.title,s.state,s.failure_code,s.received_at,s.approved_at,s.creator_id,s.created_at,s.duration_seconds,s.language,s.view_count,s.capture_mode,
           COALESCE(json_agg(json_build_object(
             'phraseId',d.phrase_id,'phraseVersion',d.phrase_version,'phrase',d.phrase_text,
             'source',d.source,'startMs',d.start_ms,'endMs',d.end_ms
@@ -197,6 +204,7 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
             state: row.state,
             failureCode: row.failure_code ?? null,
             receivedAt: row.received_at.toISOString(),
+            approvedAt: row.approved_at?.toISOString() ?? null,
             detections: row.detections ?? []
           })),
           nextCursor:
@@ -208,7 +216,7 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
     detail: (owner, channel, submissionId) =>
       authorized(owner, async (tx) => {
         const rows =
-          await tx`SELECT s.id,s.twitch_clip_id,s.canonical_url,s.video_id,s.vod_offset,s.title,s.state,s.failure_code,s.received_at,s.creator_id,s.created_at,s.duration_seconds,s.language,s.view_count,s.capture_mode,
+          await tx`SELECT s.id,s.twitch_clip_id,s.canonical_url,s.video_id,s.vod_offset,s.title,s.state,s.failure_code,s.received_at,s.approved_at,s.creator_id,s.created_at,s.duration_seconds,s.language,s.view_count,s.capture_mode,
           COALESCE(json_agg(json_build_object('phraseId',d.phrase_id,'phraseVersion',d.phrase_version,'phrase',d.phrase_text,'source',d.source,'startMs',d.start_ms,'endMs',d.end_ms) ORDER BY d.start_ms) FILTER (WHERE d.id IS NOT NULL),'[]'::json) AS detections
           FROM private.clip_submissions s JOIN public.channels c ON c.id=s.channel_id
           LEFT JOIN private.clip_detections d ON d.submission_id=s.id
@@ -231,8 +239,28 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
           state: row.state,
           failureCode: row.failure_code ?? null,
           receivedAt: row.received_at.toISOString(),
+          approvedAt: row.approved_at?.toISOString() ?? null,
           detections: row.detections ?? []
         }
+      }),
+    setEvidenceApproval: (owner, channel, submissionId, approved) =>
+      authorized(owner, async (tx) => {
+        const rows = await tx`
+          UPDATE private.clip_submissions s
+          SET approved_at=CASE WHEN ${approved} THEN COALESCE(s.approved_at,now()) ELSE NULL END,
+              approved_by=CASE WHEN ${approved} THEN COALESCE(s.approved_by,${owner}::uuid) ELSE NULL END
+          FROM public.channels c
+          WHERE s.id=${submissionId} AND s.channel_id=${channel}
+            AND c.id=s.channel_id AND c.owner_id=${owner}
+            AND s.state='completed'
+          RETURNING s.approved_at`
+        if (!rows[0]) {
+          const owned =
+            await tx`SELECT 1 FROM public.channels WHERE id=${channel} AND owner_id=${owner}`
+          if (!owned[0]) throw new FoundationError(403)
+          throw new FoundationError(404)
+        }
+        return { approvedAt: rows[0].approved_at?.toISOString() ?? null }
       }),
     setConsent: (owner, channel, enabled) =>
       authorized(owner, async (tx) => {

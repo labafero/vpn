@@ -35,7 +35,7 @@ Twitch é uma vinculação a uma conta VPN autenticada por Supabase, não um mé
 - `private.provider_credentials`: tokens cifrados AES-256-GCM, IV/tag, versão da chave, validade, última validação e prazo de revogação. Schema fora da Data API.
 - `private.oauth_transactions`: hashes de state/nonce, dono, consentimento, validade de dez minutos e consumo atômico.
 - `private.clip_processing_consents`: consentimentos `clip-processing-v1` para envio manual e `clip-scheduled-v1` para consulta/importação histórica e futura, download e análise. Revisões e revogações são independentes.
-- `private.clip_submissions`: URL canônica, ID e metadados permitidos da Twitch, canal dono, modo de captura, estado, tentativas e lease do worker; somente `vpn_sentry` lê ou escreve. Não armazena áudio, vídeo ou transcrição integral.
+- `private.clip_submissions`: URL canônica, ID e metadados permitidos da Twitch, canal dono, modo de captura, estado, tentativas e lease do worker; aprovação de evidência registra horário e autor. Somente `vpn_sentry` lê ou escreve. Não armazena áudio, vídeo ou transcrição integral.
 - `private.clip_detections`: frase/versionamento, origem e timestamps mínimos por submissão; somente `vpn_sentry` lê ou escreve.
 - `private.clip_discovery_state`: fase backfill/incremental, janelas, cursor de página, lease e conclusão para retomada idempotente. `private.clip_trigger_phrases` guarda regras configuráveis e versões por canal. Ambas são inacessíveis aos papéis de browser.
 - `private.user_provider_credentials`: chave OpenAI cifrada por usuário, usada se a chave central do Sentry não estiver configurada; somente `vpn_sentry` lê ou escreve.
@@ -69,6 +69,11 @@ Após o prazo de revogação, `canReconnect=true` permite nova autorização com
 Consentimento de clip não decorre de `monitoring-v1` ou `monitoring-v2`. O streamer autoriza separadamente o envio manual e/ou a captura agendada. Cada submissão aponta para `public.channels`; o Sentry deriva o dono por essa relação, sem confiar em um `owner_id` recebido do cliente. A chave `(channel_id, twitch_clip_id)` impede duplicatas. A ordem de fonte e os limites de execução estão no ADR-0003.
 
 Uma referência entra na fila durável e é transcrita pela OpenAI com a chave central do Sentry; se ela não estiver configurada, usa a chave pessoal do dono. Sem ambas, fica em `needs_openai_key` até haver uma chave. A fila é limitada a três pendências por canal e cinco globalmente; um clip é processado por vez, com até três tentativas. Não guardar MP4, áudio, transcrição ou URL temporária da Twitch. Detecções mantêm somente frase, origem e timestamps. Estados terminais mantêm metadados mínimos por 90 dias depois de `finished_at`; a rotina `private.purge_expired_clip_submissions` remove submissões vencidas em cascade. Agendamento da limpeza e do worker requer ativação operacional separada.
+
+Somente o dono aprova clips no estado `completed`. A API de sessão retorna ao
+dono, administrador ou convidado autorizado apenas os clips aprovados do mesmo
+canal dentro do intervalo da sessão; clips sem `created_at` ficam excluídos.
+Essa aprovação não altera a retenção de 90 dias.
 
 ### Monitoramento privado
 

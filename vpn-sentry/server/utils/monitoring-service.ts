@@ -21,6 +21,20 @@ export type MonitoringSession = {
   startedAt: string
   endedAt: string | null
 }
+export type SharedEvidenceClip = {
+  id: string
+  title: string | null
+  canonicalUrl: string
+  createdAt: string
+  detections: Array<{
+    phraseId: string
+    phraseVersion: number
+    phrase: string
+    source: 'captions' | 'openai'
+    startMs: number
+    endMs: number
+  }>
+}
 export type Invite = {
   id: string
   sessionId: string
@@ -69,6 +83,11 @@ export type MonitoringRepository = {
     limit: number
   ) => Promise<{ items: MonitoringSession[]; nextCursor: string | null }>
   session: (id: string) => Promise<MonitoringSession | null>
+  sharedEvidence: (
+    sessionId: string,
+    userId: string,
+    admin: boolean
+  ) => Promise<SharedEvidenceClip[]>
   applyEvent: (
     event: EventSubNotification,
     owner: { channelId: string; ownerId: string } | null
@@ -196,6 +215,8 @@ export function createMonitoringService(
       limit = 25
     ) => repository.sessions(userId, admin, channelId, cursor, limit),
     getSession: (id: string) => repository.session(id),
+    sharedEvidence: (sessionId: string, userId: string, admin: boolean) =>
+      repository.sharedEvidence(sessionId, userId, admin),
     async createInvite(sessionId: string, ownerId: string) {
       const session = await repository.session(sessionId)
       if (!session || session.ownerId !== ownerId || session.endedAt) throw new FoundationError(404)

@@ -29,6 +29,12 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 - Configurar frases-gatilho por canal, ativar/desativar e editar regras. A página
   de detalhe do clip apresenta metadados, origem e timestamps das evidências;
   cada detecção preserva a versão da frase usada.
+- Após o processamento, o dono pode aprovar ou retirar a aprovação do clip como
+  evidência. Clips aprovados são incluídos na sessão compartilhada quando
+  pertencem ao canal da sessão e foram criados entre o início e o fim dela;
+  sessões ativas usam o horário de início como limite inferior. Clips sem data
+  de criação não são incluídos. A página compartilhada não indica o estado de
+  aprovação.
 - Configurar uma chave OpenAI por usuário;
   o sistema usa primeiro a chave central, depois a chave pessoal, e apresenta
   somente gatilhos, origem e timestamp.
@@ -48,6 +54,9 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
   frase, versão, origem e timestamp que sustentam cada detecção.
 - Como revisor, quero abrir uma evidência no timestamp detectado; a ação leva ao
   ponto correspondente e identifica a regra que disparou.
+- Como dono, quero aprovar ou retirar a aprovação de um clip processado como
+  evidência; somente clips aprovados do intervalo da sessão aparecem para quem
+  tem acesso compartilhado àquela sessão.
 - Como dono, quero compartilhar somente uma sessão; convite vencido, revogado,
   resgatado ou associado a outra sessão não concede acesso adicional.
 - O processamento envia a mídia temporariamente para transcrição OpenAI usando

@@ -15,7 +15,8 @@ export default defineEventHandler((event) =>
     const { ownerId, ...visibleSession } = session
     return {
       ...visibleSession,
-      canManageInvites: ownerId === user.userId && user.role !== 'vpn_admin'
+      canManageInvites: ownerId === user.userId && user.role !== 'vpn_admin',
+      evidence: await service.sharedEvidence(id, user.userId, user.role === 'vpn_admin')
     }
   })
 )

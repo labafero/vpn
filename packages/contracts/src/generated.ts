@@ -192,7 +192,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        patch: operations["setClipEvidenceApproval"];
         trace?: never;
     };
     "/channels/{id}/trigger-phrases": {
@@ -385,6 +385,13 @@ export interface components {
             enabled?: boolean;
         };
         ClipDetail: components["schemas"]["ClipSubmissionRecord"];
+        ClipEvidenceApprovalRequest: {
+            approved: boolean;
+        };
+        ClipEvidenceApproval: {
+            /** Format: date-time */
+            approvedAt: string | null;
+        };
         ClipSubmissionRequest: {
             /** Format: uri */
             url: string;
@@ -428,6 +435,8 @@ export interface components {
             failureCode: "clip_unavailable" | "captions_unavailable" | "transcription_failed" | "quota_exceeded" | "unsupported_language" | "invalid_media" | "provider_error" | null;
             /** Format: date-time */
             receivedAt: string;
+            /** Format: date-time */
+            approvedAt: string | null;
             detections: components["schemas"]["ClipDetection"][];
         };
         ClipSubmissionList: {
@@ -499,6 +508,17 @@ export interface components {
             /** Format: date-time */
             endedAt: string | null;
             canManageInvites: boolean;
+            evidence: components["schemas"]["SharedEvidenceClip"][];
+        };
+        SharedEvidenceClip: {
+            /** Format: uuid */
+            id: string;
+            title: string | null;
+            /** Format: uri */
+            canonicalUrl: string;
+            /** Format: date-time */
+            createdAt: string;
+            detections: components["schemas"]["ClipDetection"][];
         };
         MonitoringSessionPage: {
             items: components["schemas"]["MonitoringSession"][];
@@ -1284,6 +1304,60 @@ export interface operations {
             };
             /** @description Solicitação não concluída */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    setClipEvidenceApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClipEvidenceApprovalRequest"];
+            };
+        };
+        responses: {
+            /** @description Aprovação atualizada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipEvidenceApproval"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Solicitação não concluída */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
