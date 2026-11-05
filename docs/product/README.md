@@ -14,9 +14,14 @@ produto.
 ## Fonte de verdade
 
 - **PRDs** descrevem usuários, comportamento, limites e critérios de produto.
+  Eles registram o escopo definido para uma superfície/fase, não vetos
+  permanentes à evolução. O **ROADMAP** mostra capacidades previstas e sua
+  sequência; um pedido alinhado a uma fase futura é antecipação/reordenação a
+  planejar, não mudança do objetivo do produto.
 - **ADRs** em `docs/adr/` registram decisões transversais aceitas e suas
   consequências. Uma decisão substituída recebe novo ADR; não é reescrita em
-  silêncio.
+  silêncio. ADRs e fundação orientam a implementação atual, mas podem evoluir
+  por decisão explícita e documentação dos novos controles.
 - **`docs/architecture/foundation.md`** mantém os detalhes correntes de acesso,
   consentimento, dados e retenção.
 - Planos de execução são temporários. Ao entregar uma mudança, atualizar PRD ou
