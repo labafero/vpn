@@ -26,7 +26,8 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
       '_clip_ingestion_oauth.sql',
       '_clip_processing_worker.sql',
       '_per_user_openai_transcription_credentials.sql',
-      '_scheduled_clip_discovery_and_trigger_phrases.sql'
+      '_scheduled_clip_discovery_and_trigger_phrases.sql',
+      '_clip_evidence_approval.sql'
     ]) {
       const name = readdirSync('supabase/migrations').find((name) => name.endsWith(suffix))!
       await db.exec(readFileSync(`supabase/migrations/${name}`, 'utf8'))
@@ -169,6 +170,9 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
     })
     const processing = createClipProcessingRepository(adapter(db) as unknown as postgres.Sql)
     const queued = await repo.insert(owner, channel, { ...clip, id: 'QueuedClip' }, active)
+    await expect(repo.setEvidenceApproval(owner, channel, queued.id, true)).rejects.toMatchObject({
+      statusCode: 404
+    })
     const job = await processing.claimNext()
     expect(job).toMatchObject({
       id: first.id,
@@ -210,6 +214,14 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
           endMs: 900
         }
       ]
+    })
+    await expect(repo.setEvidenceApproval(owner, channel, first.id, true)).resolves.toMatchObject({
+      approvedAt: expect.any(String)
+    })
+    expect(
+      (await repo.list(owner, channel)).items.find((item) => item.id === first.id)
+    ).toMatchObject({
+      approvedAt: expect.any(String)
     })
     const nextJob = await processing.claimNext()
     expect(nextJob).toMatchObject({ id: queued.id, clipId: 'QueuedClip' })

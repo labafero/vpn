@@ -6,6 +6,7 @@ const route = useRoute()
 const loading = ref(true)
 const errorMessage = ref('')
 const clip = ref<ClipDetail | null>(null)
+const updatingApproval = ref(false)
 const statusLabels: Record<string, string> = {
   pending_metadata: 'Recebendo metadados',
   pending_captions: 'Aguardando processamento',
@@ -39,6 +40,29 @@ async function refresh() {
     errorMessage.value = 'Não foi possível carregar as informações deste clip.'
   } finally {
     loading.value = false
+  }
+}
+
+async function toggleApproval() {
+  if (!clip.value || updatingApproval.value) return
+  updatingApproval.value = true
+  errorMessage.value = ''
+  try {
+    const channel = (await $fetch<MonitoringChannel[]>('/api/sentry/channels'))[0]
+    if (!channel) throw new Error('Canal ausente')
+    const result = await $fetch<{ approvedAt: string | null }>(
+      `/api/sentry/channels/${channel.id}/clips/${route.params.id}`,
+      {
+        method: 'PATCH',
+        headers: { 'X-VPN-CSRF': '1' },
+        body: { approved: !clip.value.approvedAt }
+      }
+    )
+    clip.value.approvedAt = result.approvedAt
+  } catch {
+    errorMessage.value = 'Não foi possível atualizar esta evidência.'
+  } finally {
+    updatingApproval.value = false
   }
 }
 
@@ -143,6 +167,26 @@ onMounted(refresh)
           >
             Abrir clip na Twitch
           </a>
+          <div
+            v-if="clip.state === 'completed'"
+            class="mt-5 border-t border-default pt-4"
+          >
+            <p class="mb-3 text-sm text-muted">
+              {{
+                clip.approvedAt
+                  ? 'Este clip está aprovado como evidência.'
+                  : 'Aprove este clip para incluí-lo na sessão compartilhada.'
+              }}
+            </p>
+            <UButton
+              :loading="updatingApproval"
+              :color="clip.approvedAt ? 'neutral' : 'primary'"
+              :variant="clip.approvedAt ? 'outline' : 'solid'"
+              @click="toggleApproval"
+            >
+              {{ clip.approvedAt ? 'Remover aprovação' : 'Aprovar como evidência' }}
+            </UButton>
+          </div>
         </UCard>
 
         <UCard class="text-default">

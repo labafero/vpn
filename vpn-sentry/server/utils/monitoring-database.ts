@@ -4,7 +4,8 @@ import type {
   Invite,
   MonitoringChannel,
   MonitoringRepository,
-  MonitoringSession
+  MonitoringSession,
+  SharedEvidenceClip
 } from './monitoring-service'
 
 let instance: MonitoringRepository | undefined
@@ -184,6 +185,37 @@ export function getMonitoringRepository(): MonitoringRepository {
       await requireRole()
       const rows = await sql<SessionRow[]>`SELECT * FROM private.monitoring_sessions WHERE id=${id}`
       return rows[0] ? mapSession(rows[0]) : null
+    },
+    async sharedEvidence(sessionId, userId, admin) {
+      await requireRole()
+      const rows = await sql`
+        SELECT s.id,s.title,s.canonical_url,s.created_at,
+          COALESCE(json_agg(json_build_object(
+            'phraseId',d.phrase_id,'phraseVersion',d.phrase_version,'phrase',d.phrase_text,
+            'source',d.source,'startMs',d.start_ms,'endMs',d.end_ms
+          ) ORDER BY d.start_ms) FILTER (WHERE d.id IS NOT NULL),'[]'::json) AS detections
+        FROM private.monitoring_sessions ms
+        JOIN public.channels c ON c.id=ms.channel_id
+        JOIN private.clip_submissions s ON s.channel_id=ms.channel_id
+        LEFT JOIN private.clip_detections d ON d.submission_id=s.id
+        WHERE ms.id=${sessionId}
+          AND (${admin} OR ms.owner_id=${userId} OR EXISTS (
+            SELECT 1 FROM private.access_invites ai
+            WHERE ai.session_id=ms.id AND ai.accepted_by=${userId}
+              AND ai.accepted_at IS NOT NULL AND ai.revoked_at IS NULL
+              AND ai.expires_at>now() AND ms.ended_at IS NULL
+          ))
+          AND s.approved_at IS NOT NULL AND s.created_at IS NOT NULL
+          AND s.created_at>=ms.started_at
+          AND (ms.ended_at IS NULL OR s.created_at<=ms.ended_at)
+        GROUP BY s.id ORDER BY s.created_at DESC,s.id DESC`
+      return rows.map((row) => ({
+        id: row.id as string,
+        title: row.title as string | null,
+        canonicalUrl: row.canonical_url as string,
+        createdAt: new Date(row.created_at as Date | string).toISOString(),
+        detections: (row.detections ?? []) as SharedEvidenceClip['detections']
+      }))
     },
     async ownerForSubscription(subscriptionId) {
       const sub = await this.subscriptionChannel(subscriptionId)

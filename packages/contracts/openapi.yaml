@@ -495,6 +495,38 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
+    patch:
+      security: [{ bearerAuth: [] }]
+      operationId: setClipEvidenceApproval
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: submissionId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClipEvidenceApprovalRequest' }
+      responses:
+        '200':
+          description: Aprovação atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClipEvidenceApproval' }
+        '400':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '403':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Solicitação não concluída
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
   /channels/{id}/trigger-phrases:
     get:
       security: [{ bearerAuth: [] }]
@@ -746,6 +778,18 @@ components:
         enabled: { type: boolean }
     ClipDetail:
       $ref: '#/components/schemas/ClipSubmissionRecord'
+    ClipEvidenceApprovalRequest:
+      type: object
+      additionalProperties: false
+      required: [approved]
+      properties:
+        approved: { type: boolean }
+    ClipEvidenceApproval:
+      type: object
+      additionalProperties: false
+      required: [approvedAt]
+      properties:
+        approvedAt: { type: [string, 'null'], format: date-time }
     ClipSubmissionRequest:
       type: object
       additionalProperties: false
@@ -807,6 +851,7 @@ components:
           state,
           failureCode,
           receivedAt,
+          approvedAt,
           detections
         ]
       properties:
@@ -855,6 +900,7 @@ components:
               ]
           }
         receivedAt: { type: string, format: date-time }
+        approvedAt: { type: [string, 'null'], format: date-time }
         detections: { type: array, items: { $ref: '#/components/schemas/ClipDetection' } }
     ClipSubmissionList:
       type: object
@@ -986,7 +1032,8 @@ components:
     MonitoringSession:
       type: object
       additionalProperties: false
-      required: [id, channelId, streamId, title, category, startedAt, endedAt, canManageInvites]
+      required:
+        [id, channelId, streamId, title, category, startedAt, endedAt, canManageInvites, evidence]
       properties:
         id: { type: string, format: uuid }
         channelId: { type: string, format: uuid }
@@ -996,6 +1043,17 @@ components:
         startedAt: { type: string, format: date-time }
         endedAt: { type: [string, 'null'], format: date-time }
         canManageInvites: { type: boolean }
+        evidence: { type: array, items: { $ref: '#/components/schemas/SharedEvidenceClip' } }
+    SharedEvidenceClip:
+      type: object
+      additionalProperties: false
+      required: [id, title, canonicalUrl, createdAt, detections]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: [string, 'null'] }
+        canonicalUrl: { type: string, format: uri }
+        createdAt: { type: string, format: date-time }
+        detections: { type: array, items: { $ref: '#/components/schemas/ClipDetection' } }
     MonitoringSessionPage:
       type: object
       additionalProperties: false

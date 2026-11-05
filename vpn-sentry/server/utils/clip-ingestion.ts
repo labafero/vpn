@@ -64,6 +64,13 @@ export function createClipIngestionService(
         throw new FoundationError(400)
       return repository.detail(owner, channel, submissionId)
     },
+    async setEvidenceApproval(owner: string, channel: string, submissionId: string, body: unknown) {
+      strictBody(body, ['approved'])
+      if (typeof body.approved !== 'boolean') throw new FoundationError(400)
+      if (!/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(submissionId))
+        throw new FoundationError(400)
+      return repository.setEvidenceApproval(owner, channel, submissionId, body.approved)
+    },
     async getConsent(owner: string, channel: string) {
       const access = await repository.read(owner, channel)
       if (!access) throw new FoundationError(403)
