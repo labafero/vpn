@@ -27,7 +27,8 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
       '_clip_processing_worker.sql',
       '_per_user_openai_transcription_credentials.sql',
       '_scheduled_clip_discovery_and_trigger_phrases.sql',
-      '_clip_evidence_approval.sql'
+      '_clip_evidence_approval.sql',
+      '_clip_manual_retry_observability.sql'
     ]) {
       const name = readdirSync('supabase/migrations').find((name) => name.endsWith(suffix))!
       await db.exec(readFileSync(`supabase/migrations/${name}`, 'utf8'))
@@ -278,6 +279,116 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
         { ...clip, id: 'StaleRevision' },
         { ...renewed, consentRevision: 'old' }
       )
+    ).rejects.toMatchObject({ statusCode: 403 })
+    const retryableWithVod = await repo.insert(
+      owner,
+      channel,
+      { ...clip, id: 'RetryWithVod', videoId: 'vod-123', vodOffset: 40 },
+      reenabled
+    )
+    await db.exec(
+      `UPDATE private.clip_submissions SET state='source_unavailable',failure_code='clip_unavailable',processing_attempts=3,finished_at=now() WHERE id='${retryableWithVod.id}'`
+    )
+    await expect(
+      processing.beginManualRetry(
+        '00000000-0000-0000-0000-000000000002',
+        channel,
+        retryableWithVod.id
+      )
+    ).rejects.toMatchObject({ statusCode: 404 })
+    const twitchRetry = await processing.beginManualRetry(owner, channel, retryableWithVod.id)
+    expect(twitchRetry).toMatchObject({
+      state: 'processing',
+      mode: 'captions',
+      videoId: 'vod-123',
+      vodOffset: 40,
+      retryToken: expect.any(String)
+    })
+    await expect(
+      processing.completeManualRetryWithCaptions(
+        owner,
+        channel,
+        retryableWithVod.id,
+        '00000000-0000-0000-0000-000000000000',
+        [{ startMs: 0, endMs: 1000, text: 'Chega de mentir; trecho integral sensível' }]
+      )
+    ).rejects.toMatchObject({ statusCode: 409 })
+    await expect(
+      processing.completeManualRetryWithCaptions(
+        owner,
+        channel,
+        retryableWithVod.id,
+        twitchRetry.retryToken!,
+        [{ startMs: 0, endMs: 1000, text: 'Chega de mentir; trecho integral sensível' }]
+      )
+    ).resolves.toMatchObject({ state: 'completed', matches: 1 })
+    expect(await repo.detail(owner, channel, retryableWithVod.id)).toMatchObject({
+      state: 'completed',
+      detections: [{ source: 'captions', phrase: 'Chega de mentir', startMs: 0, endMs: 1000 }]
+    })
+    const savedTranscript = await db.query(
+      `SELECT phrase_text FROM private.clip_detections WHERE submission_id='${retryableWithVod.id}'`
+    )
+    expect(savedTranscript.rows).not.toContainEqual({
+      phrase_text: 'Chega de mentir; trecho integral sensível'
+    })
+
+    const autoQueued = await repo.insert(
+      owner,
+      channel,
+      { ...clip, id: 'AutoQueuedOld' },
+      reenabled
+    )
+    await db.exec(
+      `UPDATE private.clip_submissions SET received_at=now()-interval '2 hours' WHERE id='${autoQueued.id}'`
+    )
+    const retryWithoutVod = await repo.insert(
+      owner,
+      channel,
+      { ...clip, id: 'RetryWithoutVod', videoId: '', vodOffset: null },
+      reenabled
+    )
+    await db.exec(
+      `UPDATE private.clip_submissions SET state='source_unavailable',failure_code='clip_unavailable',processing_attempts=3,finished_at=now() WHERE id='${retryWithoutVod.id}'`
+    )
+    await expect(
+      processing.beginManualRetry(owner, channel, retryWithoutVod.id)
+    ).resolves.toMatchObject({
+      state: 'pending_captions',
+      mode: 'openai',
+      retryToken: null
+    })
+    const prioritized = await processing.claimNext()
+    expect(prioritized).toMatchObject({ id: retryWithoutVod.id, clipId: 'RetryWithoutVod' })
+    await processing.cancel(prioritized!)
+    const fallbackClip = await repo.insert(
+      owner,
+      channel,
+      { ...clip, id: 'RetryFallbackVod', videoId: 'vod-456', vodOffset: 90 },
+      reenabled
+    )
+    await db.exec(
+      `UPDATE private.clip_submissions SET state='source_unavailable',failure_code='clip_unavailable',processing_attempts=3,finished_at=now() WHERE id='${fallbackClip.id}'`
+    )
+    const fallbackSession = await processing.beginManualRetry(owner, channel, fallbackClip.id)
+    expect(fallbackSession).toMatchObject({ mode: 'captions', state: 'processing' })
+    await expect(
+      processing.fallbackManualRetryToOpenAi(
+        owner,
+        channel,
+        fallbackClip.id,
+        fallbackSession.retryToken!
+      )
+    ).resolves.toEqual({ state: 'pending_captions' })
+    const fallbackJob = await processing.claimNext()
+    expect(fallbackJob).toMatchObject({ id: fallbackClip.id, clipId: 'RetryFallbackVod' })
+    await processing.cancel(fallbackJob!)
+    await repo.setConsent(owner, channel, false)
+    await db.exec(
+      `UPDATE private.clip_submissions SET state='source_unavailable',failure_code='clip_unavailable',finished_at=now() WHERE id='${retryableWithVod.id}'`
+    )
+    await expect(
+      processing.beginManualRetry(owner, channel, retryableWithVod.id)
     ).rejects.toMatchObject({ statusCode: 403 })
     await db.exec(`RESET ROLE`)
     expect(

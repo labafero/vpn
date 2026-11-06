@@ -11,7 +11,20 @@
   não estiver configurada, usar a chave pessoal do dono daquele canal. Se
   nenhuma chave estiver configurada, registrar que falta uma fonte de texto e
   não gerar detecção.
-- Captions da Twitch não são uma fonte de texto para detecção de clips.
+- O processamento automático continua usando a transcrição OpenAI. Em uma nova
+  tentativa manual, o Sentry procura primeiro captions do VOD associado ao clip
+  pelo player interativo oficial da Twitch; só quando o VOD ou as captions não
+  estiverem disponíveis, envia o job à fila de transcrição OpenAI.
+- Se captions disponíveis não contiverem frase-gatilho, concluir sem detecção e
+  sem chamar OpenAI. A transcrição integral fica apenas em memória durante a
+  análise e nunca é persistida nem incluída em logs.
+- O dono pode solicitar nova tentativa individual para clips com falha ou fonte
+  indisponível. O pedido respeita consentimento vigente, usa prioridade na fila
+  e não cria duplicatas de detecções.
+- Logs estruturados registram etapa, resultado, código/tipo HTTP seguro, ID de
+  requisição do provedor e origem da chave, sem credenciais, URL assinada,
+  legenda ou mensagem bruta do provedor. Erros de crédito OpenAI ficam
+  identificados como `quota_exceeded`.
 - Guardar chaves OpenAI por usuário, criptografadas no schema privado, sem nunca
   retorná-las à interface. O dono pode substituir ou remover a própria chave.
 - Baixar mídia para transcrição OpenAI, processá-la temporariamente e removê-la

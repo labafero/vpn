@@ -29,6 +29,9 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 - Configurar frases-gatilho por canal, ativar/desativar e editar regras. A página
   de detalhe do clip apresenta metadados, origem e timestamps das evidências;
   cada detecção preserva a versão da frase usada.
+- O detalhe do clip permite retry individual para falhas elegíveis, mostra o
+  player VOD durante a busca por captions e usa OpenAI como fallback; erros de
+  quota/crédito indicam que o dono deve verificar o faturamento OpenAI.
 - Após o processamento, o dono pode aprovar ou retirar a aprovação do clip como
   evidência. Clips aprovados são incluídos na sessão compartilhada quando
   pertencem ao canal da sessão e foram criados entre o início e o fim dela;

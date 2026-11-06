@@ -527,6 +527,105 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
+  /channels/{id}/clips/{submissionId}/retry:
+    post:
+      security: [{ bearerAuth: [] }]
+      operationId: beginClipManualRetry
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: submissionId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Tentativa individual iniciada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClipManualRetry' }
+        '403':
+          description: Consentimento ou acesso indisponível
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Clip não encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '409':
+          description: Clip não elegível para retry
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '429':
+          description: Outro clip está em processamento
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+  /channels/{id}/clips/{submissionId}/retry/captions:
+    post:
+      security: [{ bearerAuth: [] }]
+      operationId: completeClipManualRetryWithCaptions
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: submissionId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClipManualRetryCaptionsRequest' }
+      responses:
+        '200':
+          description: Captions analisadas sem persistir o texto integral
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClipManualRetryResult' }
+        '400':
+          description: Captions inválidas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '403':
+          description: Consentimento ou acesso indisponível
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '409':
+          description: Tentativa inválida ou expirada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+  /channels/{id}/clips/{submissionId}/retry/openai:
+    post:
+      security: [{ bearerAuth: [] }]
+      operationId: fallbackClipManualRetryToOpenAi
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: submissionId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClipManualRetryTokenRequest' }
+      responses:
+        '200':
+          description: Clip enfileirado para a transcrição OpenAI
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClipManualRetryResult' }
+        '400':
+          description: Solicitação inválida
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '403':
+          description: Consentimento ou acesso indisponível
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '409':
+          description: Tentativa inválida ou expirada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
   /channels/{id}/trigger-phrases:
     get:
       security: [{ bearerAuth: [] }]
@@ -790,6 +889,53 @@ components:
       required: [approvedAt]
       properties:
         approvedAt: { type: [string, 'null'], format: date-time }
+    ClipManualRetry:
+      type: object
+      additionalProperties: false
+      required: [state, mode, retryToken, videoId, vodOffset, durationSeconds]
+      properties:
+        state: { type: string, enum: [processing, pending_captions, needs_trigger_phrases] }
+        mode: { type: string, enum: [captions, openai, none] }
+        retryToken: { type: [string, 'null'], format: uuid }
+        videoId: { type: [string, 'null'] }
+        vodOffset: { type: [integer, 'null'], minimum: 0 }
+        durationSeconds: { type: [number, 'null'], minimum: 0 }
+    ClipManualRetryTokenRequest:
+      type: object
+      additionalProperties: false
+      required: [retryToken]
+      properties:
+        retryToken: { type: string, format: uuid }
+    ClipManualRetrySegment:
+      type: object
+      additionalProperties: false
+      required: [startMs, endMs, text]
+      properties:
+        startMs: { type: integer, minimum: 0, maximum: 180000 }
+        endMs: { type: integer, minimum: 0, maximum: 180000 }
+        text: { type: string, minLength: 1, maxLength: 1000 }
+    ClipManualRetryCaptionsRequest:
+      type: object
+      additionalProperties: false
+      required: [retryToken, segments]
+      properties:
+        retryToken: { type: string, format: uuid }
+        segments:
+          type: array
+          minItems: 1
+          maxItems: 300
+          items: { $ref: '#/components/schemas/ClipManualRetrySegment' }
+    ClipManualRetryResult:
+      type: object
+      additionalProperties: false
+      required: [state, matches]
+      properties:
+        state:
+          {
+            type: string,
+            enum: [completed, no_match, needs_trigger_phrases, cancelled_consent, pending_captions]
+          }
+        matches: { type: integer, minimum: 0 }
     ClipSubmissionRequest:
       type: object
       additionalProperties: false

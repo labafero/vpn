@@ -65,7 +65,7 @@ test('local PostgreSQL imports historical clips, applies versioned phrases and r
     const processing = createClipProcessingService({
       repository: createClipProcessingRepository(sentry),
       download: async () => ({ path: '/tmp/synthetic-clip.mp4', cleanup: temporaryCleanup }),
-      getOpenAiKey: async () => 'synthetic-openai-key',
+      getOpenAiKey: async () => ({ apiKey: 'synthetic-openai-key', source: 'system' }),
       transcribe: async () => [{ startMs: 1400, endMs: 2300, text: 'Chega de mentir!' }],
       detect: detectClipPhrases
     })

@@ -32,3 +32,58 @@ test('does not call OpenAI when the user has no key', async () => {
   })
   expect(fetcher).not.toHaveBeenCalled()
 })
+
+test('classifies exhausted OpenAI credits without logging the provider message or secret key', async () => {
+  const events: unknown[] = []
+  const fetcher = vi.fn(async () =>
+    Response.json(
+      {
+        error: {
+          type: 'insufficient_quota',
+          code: 'credit_balance_exhausted',
+          message: 'private provider detail'
+        }
+      },
+      { status: 429, headers: { 'x-request-id': 'req-safe-id' } }
+    )
+  )
+  const transcribe = createOpenAiTranscriber(fetcher as typeof fetch, (event) => events.push(event))
+
+  await expect(
+    transcribe(new Uint8Array([1, 2, 3]), 'sk-do-not-log', {
+      submissionId: 'submission-safe-id',
+      clipId: 'clip-safe-id'
+    })
+  ).rejects.toMatchObject({
+    code: 'quota_exceeded',
+    retryable: false
+  })
+  expect(events).toContainEqual(
+    expect.objectContaining({
+      stage: 'openai_transcription',
+      outcome: 'failed',
+      httpStatus: 429,
+      providerCode: 'credit_balance_exhausted',
+      providerRequestId: 'req-safe-id',
+      submissionId: 'submission-safe-id',
+      clipId: 'clip-safe-id'
+    })
+  )
+  expect(JSON.stringify(events)).not.toContain('sk-do-not-log')
+  expect(JSON.stringify(events)).not.toContain('private provider detail')
+})
+
+test('keeps OpenAI rate limit responses retryable', async () => {
+  const fetcher = vi.fn(async () =>
+    Response.json(
+      { error: { type: 'rate_limit_error', code: 'rate_limit_exceeded', message: 'try later' } },
+      { status: 429 }
+    )
+  )
+  const transcribe = createOpenAiTranscriber(fetcher as typeof fetch, () => {})
+
+  await expect(transcribe(new Uint8Array([1]), 'sk-key')).rejects.toMatchObject({
+    code: 'provider_error',
+    retryable: true
+  })
+})
