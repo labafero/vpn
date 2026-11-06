@@ -1,8 +1,10 @@
+import { randomUUID } from 'node:crypto'
 import type postgres from 'postgres'
 import { FoundationError } from './api-error'
 import { getFoundationDatabase, type Credential } from './private-database'
 import type { ClipDetection, ClipProcessingJob, ClipProcessingRepository } from './clip-processing'
 import type { ClipAccess } from './clip-repository'
+import { detectClipPhrases } from './clip-detection'
 
 function hasProcessingAccess(
   access: ClipAccess | null,
@@ -34,6 +36,19 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
     const role = await sql`SELECT current_user AS role`
     if (role[0]?.role !== 'vpn_sentry') throw new FoundationError(503)
     return (await sql.begin(async (tx) => {
+      await tx`SELECT pg_advisory_xact_lock(hashtextextended(${owner},0))`
+      return work(tx)
+    })) as T
+  }
+
+  async function processingAuthorized<T>(
+    owner: string,
+    work: (tx: postgres.TransactionSql) => Promise<T>
+  ) {
+    const role = await sql`SELECT current_user AS role`
+    if (role[0]?.role !== 'vpn_sentry') throw new FoundationError(503)
+    return (await sql.begin(async (tx) => {
+      await tx`SELECT pg_advisory_xact_lock(271016,1)`
       await tx`SELECT pg_advisory_xact_lock(hashtextextended(${owner},0))`
       return work(tx)
     })) as T
@@ -84,7 +99,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
 
   async function cancel(tx: postgres.TransactionSql, id: string) {
     await tx`UPDATE private.clip_submissions
-      SET state='cancelled_consent',finished_at=now(),processing_lease_until=NULL,retry_after=NULL
+      SET state='cancelled_consent',finished_at=now(),processing_lease_until=NULL,retry_after=NULL,
+          manual_retry_token=NULL,manual_retry_consent_revision=NULL,manual_retry_requested_at=NULL
       WHERE id=${id} AND state NOT IN ('completed','no_match','source_unavailable','failed_terminal','cancelled_consent')`
   }
 
@@ -113,7 +129,7 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
               ((SELECT count(*) FROM private.clip_submissions active WHERE active.channel_id=s.channel_id AND active.state IN ('pending_captions','failed_retryable','processing')) < 3
                 AND (SELECT count(*) FROM private.clip_submissions active WHERE active.state IN ('pending_captions','failed_retryable','processing')) < 5))
             AND NOT EXISTS (SELECT 1 FROM private.clip_submissions active WHERE active.state='processing')
-          ORDER BY s.received_at ASC,s.id ASC
+          ORDER BY s.manual_retry_requested_at ASC NULLS LAST,s.received_at ASC,s.id ASC
           FOR UPDATE OF s SKIP LOCKED LIMIT 1`
           if (!candidates[0]) return null
           const candidate = candidates[0]
@@ -136,14 +152,16 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
           }
           const claimed = await tx`UPDATE private.clip_submissions
           SET state='processing',processing_attempts=processing_attempts+1,
-              processing_lease_until=now()+interval '250 seconds',retry_after=NULL
+              processing_lease_until=now()+interval '250 seconds',retry_after=NULL,
+              manual_retry_token=NULL,manual_retry_consent_revision=NULL
           WHERE id=${candidate.id}
             AND state IN ('pending_captions','failed_retryable','waiting_capacity')
             AND processing_attempts < 3
-          RETURNING id,twitch_clip_id,canonical_url,broadcaster_id,duration_seconds,video_id,vod_offset`
+          RETURNING id,twitch_clip_id,canonical_url,broadcaster_id,duration_seconds,video_id,vod_offset,processing_attempts`
           if (!claimed[0]) continue
           return {
             id: claimed[0].id,
+            attempt: Number(claimed[0].processing_attempts),
             ownerId: candidate.owner_id,
             channelId: candidate.channel_id,
             clipId: claimed[0].twitch_clip_id,
@@ -164,6 +182,163 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
         }
       })) as ClipProcessingJob | null
     },
+    beginManualRetry: (owner: string, channel: string, submissionId: string) =>
+      processingAuthorized(owner, async (tx) => {
+        const rows =
+          await tx`SELECT s.id,s.video_id,s.vod_offset,s.duration_seconds,s.capture_mode,s.state
+          FROM private.clip_submissions s
+          JOIN public.channels c ON c.id=s.channel_id
+          WHERE s.id=${submissionId} AND s.channel_id=${channel} AND c.owner_id=${owner}
+          FOR UPDATE OF s`
+        const row = rows[0]
+        if (!row) throw new FoundationError(404)
+        if (
+          ![
+            'source_unavailable',
+            'failed_retryable',
+            'failed_terminal',
+            'needs_openai_key'
+          ].includes(row.state)
+        )
+          throw new FoundationError(409)
+        const active =
+          await tx`SELECT 1 FROM private.clip_submissions WHERE state='processing' LIMIT 1`
+        if (active[0]) throw new FoundationError(429)
+        const access = await readAccess(tx, owner, channel)
+        const captureMode = row.capture_mode as 'manual' | 'scheduled'
+        if (!hasProcessingAccess(access, captureMode)) throw new FoundationError(403)
+        const phraseRows = await tx`SELECT id,text,version FROM private.clip_trigger_phrases
+          WHERE channel_id=${channel} AND enabled LIMIT 1`
+        if (!phraseRows.length) {
+          await tx`UPDATE private.clip_submissions SET state='needs_trigger_phrases',failure_code=NULL,
+            finished_at=NULL,processing_lease_until=NULL,retry_after=NULL,manual_retry_token=NULL,
+            manual_retry_consent_revision=NULL,manual_retry_requested_at=NULL WHERE id=${submissionId}`
+          return {
+            state: 'needs_trigger_phrases' as const,
+            mode: 'none' as const,
+            retryToken: null,
+            videoId: row.video_id ?? null,
+            vodOffset: row.vod_offset === null ? null : Number(row.vod_offset),
+            durationSeconds: row.duration_seconds === null ? null : Number(row.duration_seconds)
+          }
+        }
+
+        const hasVod =
+          Boolean(row.video_id) && row.vod_offset !== null && Number(row.duration_seconds) > 0
+        const retryToken = hasVod ? randomUUID() : null
+        const state = hasVod ? 'processing' : 'pending_captions'
+        const leaseUntil = hasVod ? new Date(Date.now() + 250_000) : null
+        await tx`UPDATE private.clip_submissions SET state=${state},failure_code=NULL,processing_attempts=${hasVod ? 1 : 0},
+          finished_at=NULL,processing_lease_until=${leaseUntil},retry_after=NULL,
+          manual_retry_requested_at=now(),manual_retry_token=${retryToken},
+          manual_retry_consent_revision=${hasVod ? accessRevision(access!, captureMode) : null}
+          WHERE id=${submissionId}`
+        return {
+          state: state as 'processing' | 'pending_captions',
+          mode: hasVod ? ('captions' as const) : ('openai' as const),
+          retryToken,
+          videoId: row.video_id ?? null,
+          vodOffset: row.vod_offset === null ? null : Number(row.vod_offset),
+          durationSeconds: row.duration_seconds === null ? null : Number(row.duration_seconds)
+        }
+      }),
+    completeManualRetryWithCaptions: (
+      owner: string,
+      channel: string,
+      submissionId: string,
+      retryToken: string,
+      segments: { startMs: number; endMs: number; text: string }[]
+    ) =>
+      processingAuthorized(owner, async (tx) => {
+        const rows =
+          await tx`SELECT s.capture_mode,s.state,s.manual_retry_token,s.manual_retry_consent_revision,
+            s.processing_lease_until
+          FROM private.clip_submissions s JOIN public.channels c ON c.id=s.channel_id
+          WHERE s.id=${submissionId} AND s.channel_id=${channel} AND c.owner_id=${owner} FOR UPDATE OF s`
+        const row = rows[0]
+        if (!row) throw new FoundationError(404)
+        if (
+          row.state !== 'processing' ||
+          row.manual_retry_token !== retryToken ||
+          !row.processing_lease_until ||
+          Date.parse(row.processing_lease_until.toISOString()) <= Date.now()
+        )
+          throw new FoundationError(409)
+        const access = await readAccess(tx, owner, channel)
+        const captureMode = row.capture_mode as 'manual' | 'scheduled'
+        if (
+          !hasProcessingAccess(access, captureMode) ||
+          accessRevision(access!, captureMode) !== row.manual_retry_consent_revision
+        ) {
+          await cancel(tx, submissionId)
+          return { state: 'cancelled_consent' as const, matches: 0 }
+        }
+        const phraseRows = await tx`SELECT id,text,version FROM private.clip_trigger_phrases
+          WHERE channel_id=${channel} AND enabled ORDER BY created_at,id`
+        if (!phraseRows.length) {
+          await tx`UPDATE private.clip_submissions SET state='needs_trigger_phrases',finished_at=NULL,
+            processing_lease_until=NULL,manual_retry_token=NULL,manual_retry_consent_revision=NULL,
+            manual_retry_requested_at=NULL WHERE id=${submissionId}`
+          return { state: 'needs_trigger_phrases' as const, matches: 0 }
+        }
+        const phraseSnapshot = phraseRows.map((phrase) => ({
+          phraseId: phrase.id,
+          phraseVersion: phrase.version,
+          phrase: phrase.text
+        }))
+        const detections = detectClipPhrases(segments, phraseSnapshot).map((detection) => ({
+          ...detection,
+          source: 'captions' as const
+        }))
+        for (const detection of detections)
+          await tx`INSERT INTO private.clip_detections
+            (submission_id,phrase_id,phrase_version,phrase_text,source,start_ms,end_ms)
+            VALUES (${submissionId},${detection.phraseId},${detection.phraseVersion},${detection.phrase},
+              'captions',${detection.startMs},${detection.endMs}) ON CONFLICT DO NOTHING`
+        await tx`UPDATE private.clip_submissions SET state=${detections.length ? 'completed' : 'no_match'},
+          failure_code=NULL,finished_at=now(),processing_lease_until=NULL,retry_after=NULL,
+          manual_retry_token=NULL,manual_retry_consent_revision=NULL,manual_retry_requested_at=NULL
+          WHERE id=${submissionId}`
+        return {
+          state: detections.length ? ('completed' as const) : ('no_match' as const),
+          matches: detections.length
+        }
+      }),
+    fallbackManualRetryToOpenAi: (
+      owner: string,
+      channel: string,
+      submissionId: string,
+      retryToken: string
+    ) =>
+      processingAuthorized(owner, async (tx) => {
+        const rows =
+          await tx`SELECT s.capture_mode,s.state,s.manual_retry_token,s.manual_retry_consent_revision,
+            s.processing_lease_until
+          FROM private.clip_submissions s JOIN public.channels c ON c.id=s.channel_id
+          WHERE s.id=${submissionId} AND s.channel_id=${channel} AND c.owner_id=${owner} FOR UPDATE OF s`
+        const row = rows[0]
+        if (!row) throw new FoundationError(404)
+        if (
+          row.state !== 'processing' ||
+          row.manual_retry_token !== retryToken ||
+          !row.processing_lease_until ||
+          Date.parse(row.processing_lease_until.toISOString()) <= Date.now()
+        )
+          throw new FoundationError(409)
+        const access = await readAccess(tx, owner, channel)
+        const captureMode = row.capture_mode as 'manual' | 'scheduled'
+        if (
+          !hasProcessingAccess(access, captureMode) ||
+          accessRevision(access!, captureMode) !== row.manual_retry_consent_revision
+        ) {
+          await cancel(tx, submissionId)
+          return { state: 'cancelled_consent' as const }
+        }
+        await tx`UPDATE private.clip_submissions SET state='pending_captions',failure_code=NULL,
+          finished_at=NULL,processing_lease_until=NULL,retry_after=NULL,manual_retry_requested_at=now(),
+          manual_retry_token=NULL,manual_retry_consent_revision=NULL WHERE id=${submissionId}`
+        return { state: 'pending_captions' as const }
+      }),
     stillAuthorized: (job: ClipProcessingJob) =>
       authorized(job.ownerId, async (tx) => {
         const state = await tx`SELECT state FROM private.clip_submissions
@@ -213,7 +388,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
             ON CONFLICT DO NOTHING`
         await tx`UPDATE private.clip_submissions
           SET state=${detections.length ? 'completed' : 'no_match'},finished_at=now(),
-              failure_code=NULL,processing_lease_until=NULL,retry_after=NULL
+              failure_code=NULL,processing_lease_until=NULL,retry_after=NULL,manual_retry_requested_at=NULL,
+              manual_retry_token=NULL,manual_retry_consent_revision=NULL
           WHERE id=${job.id} AND state='processing'`
         return true
       }),
@@ -232,7 +408,8 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
         }
         if (code === 'clip_unavailable') {
           await tx`UPDATE private.clip_submissions SET state='source_unavailable',failure_code=${code},
-            finished_at=now(),processing_lease_until=NULL,retry_after=NULL WHERE id=${job.id}`
+            finished_at=now(),processing_lease_until=NULL,retry_after=NULL,manual_retry_token=NULL,
+            manual_retry_consent_revision=NULL WHERE id=${job.id}`
           return 'source_unavailable' as const
         }
         if (retryable && state[0].processing_attempts < maxAttempts) {

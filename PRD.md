@@ -157,7 +157,10 @@ O produto VPN Monitor tem como núcleo detectar frases-gatilho e apresentar
 ocorrências com timestamp para revisão humana. O Sentry transcreve clips pela
 OpenAI: usa primeiro a chave central e, se ela não estiver configurada, a chave
 individual do dono. Captions nativas da Twitch não são uma fonte de texto para
-detecção neste escopo.
+detecção automática. Em um retry manual individual, o Sentry tenta captions do
+VOD associado primeiro e usa OpenAI quando VOD ou captions não estão disponíveis.
+O texto integral é transitório e não é persistido; falhas de quota OpenAI são
+registradas de forma estruturada para orientar a correção.
 
 O processamento usa regras simples e determinísticas:
 

@@ -12,6 +12,7 @@ import { readFile } from 'node:fs/promises'
 import { createClipDiscoveryService } from './clip-discovery'
 import { getClipDiscoveryRepository } from './clip-discovery-repository'
 import { getClipTriggerPhrasesService } from './clip-trigger-phrases'
+import { createClipManualRetryService } from './clip-manual-retry'
 export function getClipIngestionService() {
   const gateway = createTwitchClipsGateway({
     clientId: process.env.NUXT_TWITCH_CLIENT_ID || '',
@@ -51,11 +52,14 @@ export function getClipProcessingService() {
       resolveOpenAiApiKey(getSystemOpenAiApiKey(), () =>
         getOpenAiCredentialRepository().getForProcessing(ownerId)
       ),
-    transcribe: async ({ path, clipId, apiKey }) => {
-      void clipId
-      return transcribe(await readFile(path), apiKey)
+    transcribe: async ({ path, clipId, submissionId, apiKey }) => {
+      return transcribe(await readFile(path), apiKey, { submissionId, clipId })
     },
     detect: detectClipPhrases,
     maxAttempts: 3
   })
+}
+
+export function getClipManualRetry() {
+  return createClipManualRetryService(getClipProcessingRepository())
 }

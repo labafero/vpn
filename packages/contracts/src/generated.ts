@@ -195,6 +195,54 @@ export interface paths {
         patch: operations["setClipEvidenceApproval"];
         trace?: never;
     };
+    "/channels/{id}/clips/{submissionId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["beginClipManualRetry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/clips/{submissionId}/retry/captions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["completeClipManualRetryWithCaptions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channels/{id}/clips/{submissionId}/retry/openai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fallbackClipManualRetryToOpenAi"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/channels/{id}/trigger-phrases": {
         parameters: {
             query?: never;
@@ -391,6 +439,36 @@ export interface components {
         ClipEvidenceApproval: {
             /** Format: date-time */
             approvedAt: string | null;
+        };
+        ClipManualRetry: {
+            /** @enum {string} */
+            state: "processing" | "pending_captions" | "needs_trigger_phrases";
+            /** @enum {string} */
+            mode: "captions" | "openai" | "none";
+            /** Format: uuid */
+            retryToken: string | null;
+            videoId: string | null;
+            vodOffset: number | null;
+            durationSeconds: number | null;
+        };
+        ClipManualRetryTokenRequest: {
+            /** Format: uuid */
+            retryToken: string;
+        };
+        ClipManualRetrySegment: {
+            startMs: number;
+            endMs: number;
+            text: string;
+        };
+        ClipManualRetryCaptionsRequest: {
+            /** Format: uuid */
+            retryToken: string;
+            segments: components["schemas"]["ClipManualRetrySegment"][];
+        };
+        ClipManualRetryResult: {
+            /** @enum {string} */
+            state: "completed" | "no_match" | "needs_trigger_phrases" | "cancelled_consent" | "pending_captions";
+            matches: number;
         };
         ClipSubmissionRequest: {
             /** Format: uri */
@@ -1358,6 +1436,173 @@ export interface operations {
             };
             /** @description Solicitação não concluída */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    beginClipManualRetry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tentativa individual iniciada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipManualRetry"];
+                };
+            };
+            /** @description Consentimento ou acesso indisponível */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Clip não encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Clip não elegível para retry */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Outro clip está em processamento */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    completeClipManualRetryWithCaptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClipManualRetryCaptionsRequest"];
+            };
+        };
+        responses: {
+            /** @description Captions analisadas sem persistir o texto integral */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipManualRetryResult"];
+                };
+            };
+            /** @description Captions inválidas */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Consentimento ou acesso indisponível */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Tentativa inválida ou expirada */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    fallbackClipManualRetryToOpenAi: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClipManualRetryTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description Clip enfileirado para a transcrição OpenAI */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClipManualRetryResult"];
+                };
+            };
+            /** @description Solicitação inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Consentimento ou acesso indisponível */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Tentativa inválida ou expirada */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

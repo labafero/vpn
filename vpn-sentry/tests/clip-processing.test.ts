@@ -40,7 +40,8 @@ function fixture(authorized = true) {
   }
   const cleanup = vi.fn(async () => {})
   const download = vi.fn(async () => ({ path: '/tmp/clip.mp4', cleanup }))
-  const getOpenAiKey = vi.fn(async () => 'sk-user-key')
+  const getOpenAiKey = vi.fn(async () => ({ apiKey: 'sk-user-key', source: 'owner' as const }))
+  const logEvent = vi.fn()
   const transcribe = vi.fn(async () => [{ startMs: 100, endMs: 900, text: 'Você é um inútil.' }])
   const detect = vi.fn(() => [
     {
@@ -59,12 +60,14 @@ function fixture(authorized = true) {
     getOpenAiKey,
     transcribe,
     detect,
+    logEvent,
     service: createClipProcessingService({
       repository: repo,
       download,
       getOpenAiKey,
       transcribe,
       detect,
+      logEvent,
       maxAttempts: 3
     })
   }
@@ -77,10 +80,14 @@ test('transcribes a clip with the owner OpenAI key', async () => {
   expect(f.download).toHaveBeenCalledWith(f.job)
   expect(f.transcribe).toHaveBeenCalledWith({
     path: '/tmp/clip.mp4',
+    submissionId: 'submission-1',
     clipId: 'ClipId',
     apiKey: 'sk-user-key'
   })
   expect(f.getOpenAiKey).toHaveBeenCalledWith('owner-1')
+  expect(f.logEvent).toHaveBeenCalledWith(
+    expect.objectContaining({ stage: 'openai_key', keySource: 'owner', outcome: 'selected' })
+  )
   expect(f.repo.finish).toHaveBeenCalledWith(f.job, [
     {
       phraseId: 'phrase-v1-01',
@@ -93,6 +100,22 @@ test('transcribes a clip with the owner OpenAI key', async () => {
   ])
   expect(JSON.stringify(f.repo.finish.mock.calls)).not.toContain('Você é um inútil.')
   expect(f.cleanup).toHaveBeenCalledOnce()
+})
+
+test('logs clip download failures with safe identifiers and failure codes', async () => {
+  const f = fixture()
+  f.download.mockRejectedValueOnce(new ClipProcessingFailure('clip_unavailable', false))
+  f.repo.fail.mockResolvedValueOnce('source_unavailable')
+  await expect(f.service.processNext()).resolves.toEqual({ state: 'source_unavailable' })
+  expect(f.logEvent).toHaveBeenCalledWith(
+    expect.objectContaining({
+      stage: 'twitch_media',
+      outcome: 'failed',
+      submissionId: 'submission-1',
+      clipId: 'ClipId',
+      failureCode: 'clip_unavailable'
+    })
+  )
 })
 
 test('does not download or transcribe after consent is revoked', async () => {

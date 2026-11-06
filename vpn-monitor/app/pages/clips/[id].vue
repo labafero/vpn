@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ClipDetail, MonitoringChannel } from '@vpn/contracts'
+import { captureTwitchCaptions } from '../../utils/twitch-captions'
 
 definePageMeta({ middleware: 'auth', colorMode: 'dark' })
 const route = useRoute()
@@ -7,6 +8,11 @@ const loading = ref(true)
 const errorMessage = ref('')
 const clip = ref<ClipDetail | null>(null)
 const updatingApproval = ref(false)
+const retrying = ref(false)
+const retryMessage = ref('')
+const retryError = ref('')
+const capturingCaptions = ref(false)
+const retryPlayerId = 'clip-retry-twitch-player'
 const statusLabels: Record<string, string> = {
   pending_metadata: 'Recebendo metadados',
   pending_captions: 'Aguardando processamento',
@@ -24,6 +30,103 @@ const statusLabels: Record<string, string> = {
 function formatTimestamp(milliseconds: number) {
   const seconds = Math.floor(milliseconds / 1000)
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+}
+
+const canRetry = computed(
+  () =>
+    clip.value &&
+    ['source_unavailable', 'failed_retryable', 'failed_terminal', 'needs_openai_key'].includes(
+      clip.value.state
+    )
+)
+
+const failureMessage = computed(() => {
+  if (clip.value?.failureCode === 'quota_exceeded')
+    return 'A chave OpenAI não tem créditos disponíveis ou atingiu o limite de gastos. Confira o faturamento e os limites do projeto OpenAI antes de tentar novamente.'
+  if (clip.value?.state === 'needs_openai_key')
+    return 'Não há chave OpenAI configurada para processar este clip.'
+  return clip.value?.failureCode
+    ? `Falha registrada: ${clip.value.failureCode}. Você pode tentar novamente.`
+    : ''
+})
+
+async function retryClip() {
+  if (!clip.value || retrying.value) return
+  const currentClip = clip.value
+  retrying.value = true
+  retryMessage.value = ''
+  retryError.value = ''
+  let channel: MonitoringChannel | undefined
+  try {
+    channel = (await $fetch<MonitoringChannel[]>('/api/sentry/channels'))[0]
+    if (!channel) throw new Error('Canal ausente')
+    const retry = await $fetch<{
+      mode: 'captions' | 'openai' | 'none'
+      state: string
+      retryToken: string | null
+      videoId: string | null
+      vodOffset: number | null
+      durationSeconds: number | null
+    }>(`/api/sentry/channels/${channel.id}/clips/${currentClip.id}/retry`, {
+      method: 'POST',
+      headers: { 'X-VPN-CSRF': '1' }
+    })
+    if (retry.mode === 'none') {
+      retryMessage.value = 'Configure ao menos uma frase-gatilho antes de tentar novamente.'
+    } else if (retry.mode === 'openai') {
+      retryMessage.value = 'Nova tentativa enviada para a fila de transcrição OpenAI.'
+    } else if (
+      retry.retryToken &&
+      retry.videoId &&
+      retry.vodOffset !== null &&
+      retry.durationSeconds !== null
+    ) {
+      capturingCaptions.value = true
+      retryMessage.value = 'Reproduzindo o VOD para procurar legendas da Twitch…'
+      await nextTick()
+      const segments = await captureTwitchCaptions({
+        elementId: retryPlayerId,
+        videoId: retry.videoId,
+        vodOffset: retry.vodOffset,
+        durationSeconds: retry.durationSeconds
+      }).catch(() => [])
+      if (segments.length) {
+        const result = await $fetch<{ state: string; matches: number }>(
+          `/api/sentry/channels/${channel.id}/clips/${currentClip.id}/retry/captions`,
+          {
+            method: 'POST',
+            headers: { 'X-VPN-CSRF': '1' },
+            body: { retryToken: retry.retryToken, segments }
+          }
+        )
+        retryMessage.value =
+          result.state === 'completed'
+            ? `${result.matches} evidência(s) encontrada(s) nas legendas da Twitch.`
+            : result.state === 'no_match'
+              ? 'Legendas encontradas, mas nenhuma frase-gatilho apareceu neste clip.'
+              : 'A análise foi interrompida porque o consentimento mudou.'
+      } else {
+        const result = await $fetch<{ state: string }>(
+          `/api/sentry/channels/${channel.id}/clips/${currentClip.id}/retry/openai`,
+          {
+            method: 'POST',
+            headers: { 'X-VPN-CSRF': '1' },
+            body: { retryToken: retry.retryToken }
+          }
+        )
+        retryMessage.value =
+          result.state === 'cancelled_consent'
+            ? 'A análise foi interrompida porque o consentimento mudou.'
+            : 'A Twitch não disponibilizou legendas para este trecho. O clip foi enviado para transcrição OpenAI.'
+      }
+    }
+  } catch {
+    retryError.value = 'Não foi possível iniciar ou concluir a nova tentativa. Tente novamente.'
+  } finally {
+    capturingCaptions.value = false
+    retrying.value = false
+    await refresh()
+  }
 }
 
 async function refresh() {
@@ -99,6 +202,13 @@ onMounted(refresh)
         role="alert"
       />
       <template v-else-if="clip">
+        <p
+          v-if="retryMessage"
+          role="status"
+          class="text-sm text-muted"
+        >
+          {{ retryMessage }}
+        </p>
         <UCard class="text-default">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
@@ -167,6 +277,46 @@ onMounted(refresh)
           >
             Abrir clip na Twitch
           </a>
+          <section
+            v-if="canRetry"
+            class="mt-5 space-y-3 border-t border-default pt-4"
+            aria-labelledby="retry-heading"
+          >
+            <h2
+              id="retry-heading"
+              class="text-lg font-semibold"
+            >
+              Nova tentativa de processamento
+            </h2>
+            <p class="text-sm text-muted">
+              Primeiro verificamos as legendas do VOD da Twitch. Se não estiverem disponíveis,
+              tentamos transcrever o áudio com OpenAI.
+            </p>
+            <p
+              v-if="failureMessage"
+              class="text-sm text-warning"
+            >
+              {{ failureMessage }}
+            </p>
+            <UAlert
+              v-if="retryError"
+              color="error"
+              :description="retryError"
+              role="alert"
+            />
+            <div
+              v-if="capturingCaptions"
+              :id="retryPlayerId"
+              class="min-h-[300px] min-w-[400px] max-w-full overflow-hidden rounded-lg bg-neutral-900"
+            />
+            <UButton
+              :loading="retrying"
+              :disabled="retrying"
+              @click="retryClip"
+            >
+              Tentar novamente
+            </UButton>
+          </section>
           <div
             v-if="clip.state === 'completed'"
             class="mt-5 border-t border-default pt-4"

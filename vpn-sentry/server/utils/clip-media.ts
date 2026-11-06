@@ -72,7 +72,8 @@ export function createTwitchClipDownloader(
     if (!metadataResponse.ok)
       throw new ClipProcessingFailure(
         metadataResponse.status === 404 ? 'clip_unavailable' : 'provider_error',
-        metadataResponse.status >= 500
+        metadataResponse.status >= 500,
+        { httpStatus: metadataResponse.status }
       )
 
     let payload: unknown
@@ -109,7 +110,9 @@ export function createTwitchClipDownloader(
       throw new ClipProcessingFailure('clip_unavailable', true)
     }
     if (!mediaResponse.ok)
-      throw new ClipProcessingFailure('clip_unavailable', mediaResponse.status >= 500)
+      throw new ClipProcessingFailure('clip_unavailable', mediaResponse.status >= 500, {
+        httpStatus: mediaResponse.status
+      })
     const bytes = await readBounded(mediaResponse)
     if (bytes.byteLength < 12 || bytes.toString('ascii', 4, 8) !== 'ftyp')
       throw new ClipProcessingFailure('invalid_media', false)

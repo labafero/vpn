@@ -5,8 +5,12 @@
 O Sentry é o backend privado que valida identidade e consentimento, integra-se
 com provedores, persiste estado privado e executa processamento assíncrono.
 Para clips, sua função de produto é detectar gatilhos com evidência e timestamps.
-A transcrição de áudio usa OpenAI. Captions da Twitch não são uma fonte de texto
-para a detecção de clips.
+A transcrição automática de áudio usa OpenAI. Em retry manual individual, o
+Sentry consulta captions do VOD associado pelo player interativo da Twitch e
+recorre à transcrição OpenAI quando o VOD ou as captions não estão disponíveis.
+Se as captions estão disponíveis e não contêm gatilhos, não há chamada OpenAI.
+O texto de captions e transcrição existe apenas durante o processamento e não é
+persistido.
 
 ## Usuários e necessidades
 
@@ -28,6 +32,11 @@ para a detecção de clips.
 - Worker Node.js transcreve o áudio pela OpenAI usando primeiro a chave central
   do projeto e, se não estiver configurada, a chave individual criptografada do
   dono. A mídia é limitada e temporária.
+- O dono pode pedir retry de um clip elegível. O retry individual tem prioridade
+  na fila, verifica novamente consentimento e tenta captions Twitch antes da
+  OpenAI quando há VOD associado.
+- Logs estruturados identificam etapa, resultado e falhas de quota/limite sem
+  registrar chave, texto integral, URL assinada ou mensagem bruta do provedor.
 - Detecção determinística sobre segmentos temporizados e persistência somente de
   gatilhos, origem e timestamps; transcrição integral não é persistida.
 - Descoberta paginada e retomável de clips históricos via Helix, seguida de
