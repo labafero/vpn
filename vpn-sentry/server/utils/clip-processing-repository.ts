@@ -22,7 +22,7 @@ function hasProcessingAccess(
     (mode === 'manual'
       ? access.consent.manualEnabled && !access.consent.revokedAt && access.consentRevision
       : access.consent.scheduledEnabled &&
-        access.consent.scheduledConsentVersion === 'clip-scheduled-v1' &&
+        access.consent.scheduledConsentVersion === 'clip-scheduled-v2' &&
         !access.consent.scheduledRevokedAt &&
         access.scheduledRevision)
   )
@@ -57,7 +57,7 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
   async function readAccess(tx: postgres.TransactionSql, owner: string, channel: string) {
     const rows =
       await tx`SELECT pc.id,pc.provider_user_id,pc.status,k.*,cc.revision AS consent_revision,cc.scheduled_revision,
-      cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at,cc.scheduled_enabled,cc.scheduled_consent_version,cc.scheduled_consented_at,cc.scheduled_revoked_at
+      cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at,cc.scheduled_enabled,cc.scheduled_consent_version,cc.scheduled_consented_at,cc.scheduled_revoked_at,cc.scheduled_history_enabled,cc.scheduled_history_consent_version,cc.scheduled_history_consented_at,cc.scheduled_history_revoked_at
       FROM public.channels c
       JOIN public.provider_connections pc ON pc.id=c.connection_id
       LEFT JOIN private.provider_credentials k ON k.connection_id=pc.id
@@ -92,7 +92,11 @@ export function createClipProcessingRepository(sql: postgres.Sql): ClipProcessin
         scheduledEnabled: row.scheduled_enabled ?? false,
         scheduledConsentVersion: row.scheduled_consent_version ?? null,
         scheduledConsentedAt: row.scheduled_consented_at?.toISOString() ?? null,
-        scheduledRevokedAt: row.scheduled_revoked_at?.toISOString() ?? null
+        scheduledRevokedAt: row.scheduled_revoked_at?.toISOString() ?? null,
+        scheduledHistoryEnabled: row.scheduled_history_enabled ?? false,
+        scheduledHistoryConsentVersion: row.scheduled_history_consent_version ?? null,
+        scheduledHistoryConsentedAt: row.scheduled_history_consented_at?.toISOString() ?? null,
+        scheduledHistoryRevokedAt: row.scheduled_history_revoked_at?.toISOString() ?? null
       }
     } satisfies ClipAccess
   }

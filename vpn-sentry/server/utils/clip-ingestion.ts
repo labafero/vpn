@@ -37,7 +37,7 @@ export function requireScheduledClipAccess(
     Date.parse(access.credential.expiresAt) <= Date.now() ||
     !access.scopes.includes('channel:manage:clips') ||
     !access.consent.scheduledEnabled ||
-    access.consent.scheduledConsentVersion !== 'clip-scheduled-v1' ||
+    access.consent.scheduledConsentVersion !== 'clip-scheduled-v2' ||
     access.consent.scheduledRevokedAt
   )
     throw new FoundationError(403)
@@ -86,9 +86,44 @@ export function createClipIngestionService(
         'consentAccepted',
         'scheduledEnabled',
         'scheduledConsentVersion',
-        'scheduledConsentAccepted'
+        'scheduledConsentAccepted',
+        'scheduledHistoryEnabled',
+        'scheduledHistoryConsentVersion',
+        'scheduledHistoryConsentAccepted'
       ])
       const scheduled = 'scheduledEnabled' in body
+      const history = 'scheduledHistoryEnabled' in body
+      if (history) {
+        if (
+          Object.keys(body).some(
+            (key) =>
+              ![
+                'scheduledHistoryEnabled',
+                'scheduledHistoryConsentVersion',
+                'scheduledHistoryConsentAccepted'
+              ].includes(key)
+          )
+        )
+          throw new FoundationError(400)
+        if (
+          typeof body.scheduledHistoryEnabled !== 'boolean' ||
+          (body.scheduledHistoryEnabled &&
+            (body.scheduledHistoryConsentVersion !== 'clip-history-v1' ||
+              body.scheduledHistoryConsentAccepted !== true)) ||
+          (!body.scheduledHistoryEnabled &&
+            Object.keys(body).some((key) => key !== 'scheduledHistoryEnabled'))
+        )
+          throw new FoundationError(400)
+        const access = await repository.setScheduledHistoryConsent(
+          owner,
+          channel,
+          body.scheduledHistoryEnabled
+        )
+        return {
+          ...access.consent,
+          canDownload: access.connected && access.scopes.includes('channel:manage:clips')
+        }
+      }
       if (
         scheduled &&
         Object.keys(body).some(
@@ -110,7 +145,7 @@ export function createClipIngestionService(
         if (typeof body.scheduledEnabled !== 'boolean') throw new FoundationError(400)
         if (
           body.scheduledEnabled &&
-          (body.scheduledConsentVersion !== 'clip-scheduled-v1' ||
+          (body.scheduledConsentVersion !== 'clip-scheduled-v2' ||
             body.scheduledConsentAccepted !== true)
         )
           throw new FoundationError(400)

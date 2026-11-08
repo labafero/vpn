@@ -5,10 +5,10 @@ test('uses the current OpenAI transcription model and normalizes timed segments'
   const fetcher = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
     const form = init?.body as FormData
     expect(init?.headers).toEqual({ Authorization: 'Bearer sk-user-key' })
-    expect(form.get('model')).toBe('gpt-transcribe')
+    expect(form.get('model')).toBe('whisper-1')
     expect(form.get('response_format')).toBe('verbose_json')
     expect(form.get('timestamp_granularities[]')).toBe('segment')
-    expect(form.get('languages[]')).toBe('pt')
+    expect(form.get('language')).toBe('pt')
     expect(form.get('file')).toBeInstanceOf(Blob)
     return Response.json({
       segments: [

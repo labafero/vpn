@@ -52,11 +52,13 @@ persistido.
   erros e estados seguem `packages/contracts`.
 - Como dono, quero que consentimento revogado interrompa jobs pendentes e bloqueie
   download/gravação posteriores.
-- Consentimento agendado `clip-scheduled-v1` autoriza consulta e persistência de
-  metadados históricos/futuros, além de download e processamento; ele é
-  independente do consentimento manual e pode ser revogado isoladamente.
-- O backfill começa no início da conta Twitch, persiste cursores e divide janelas
-  perto do limite de resultados da API; falhas retomam sem duplicar clips.
+- Consentimento agendado `clip-scheduled-v2` autoriza captura futura de clips,
+  independente do consentimento manual. A consulta histórica exige opt-in
+  separado (`clip-history-v1`) e pode ser revogada sem desativar a captura futura.
+- Sem opt-in histórico, a descoberta nunca consulta antes do horário da autorização
+  futura ou da revogação histórica mais recente. Com opt-in, o backfill cobre da
+  criação do canal Twitch até o horário da autorização; persiste cursores e divide
+  janelas perto do limite de resultados da API.
 - A análise usa frases habilitadas do canal, congela ID/versão/texto no job e
   preserva evidências antigas após edição ou desativação.
 - Como worker, quero receber IDs internos de jobs e revalidar dono, consentimento

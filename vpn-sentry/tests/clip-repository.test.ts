@@ -35,6 +35,13 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
     }
     await db.exec(`INSERT INTO public.provider_connections(id,user_id,provider_user_id,login,consent_version,consented_at) VALUES ('10000000-0000-0000-0000-000000000001','${owner}','123','owner','monitoring-v1',now());
       INSERT INTO public.channels(id,connection_id,owner_id) VALUES ('${channel}','10000000-0000-0000-0000-000000000001','${owner}');
+      INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at,manual_enabled,scheduled_enabled,scheduled_consent_version,scheduled_consented_at)
+      VALUES ('${channel}','clip-processing-v1',now(),false,true,'clip-scheduled-v1',now());`)
+    const historyMigration = readdirSync('supabase/migrations').find((name) =>
+      name.endsWith('_separate_clip_history_consent.sql')
+    )!
+    await db.exec(readFileSync(`supabase/migrations/${historyMigration}`, 'utf8'))
+    await db.exec(`
       INSERT INTO private.provider_credentials(connection_id,ciphertext,iv,tag,key_version,expires_at,validated_at,scopes) VALUES ('10000000-0000-0000-0000-000000000001','cipher','iv','tag','v1',now()+interval '1 hour',now(),ARRAY['channel:manage:clips']); SET ROLE vpn_sentry;`)
     // Execute production SQL on Postgres; PGlite serializes transactions itself.
     function adapter(client: Pick<PGlite, 'query'>) {
@@ -51,6 +58,13 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
       })
     }
     const repo = createClipRepository(adapter(db) as unknown as postgres.Sql)
+    await expect(
+      db.query(
+        `SELECT scheduled_enabled,scheduled_consent_version FROM private.clip_processing_consents WHERE channel_id='${channel}'`
+      )
+    ).resolves.toMatchObject({
+      rows: [{ scheduled_enabled: false, scheduled_consent_version: null }]
+    })
     expect(await repo.read('00000000-0000-0000-0000-000000000002', channel)).toBeNull()
     const consentService = createClipIngestionService(repo, async () => ({
       id: 'Unused',
@@ -67,14 +81,14 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
     await expect(
       consentService.setConsent(owner, channel, {
         scheduledEnabled: true,
-        scheduledConsentVersion: 'clip-scheduled-v2',
+        scheduledConsentVersion: 'clip-scheduled-v1',
         scheduledConsentAccepted: true
       })
     ).rejects.toMatchObject({ statusCode: 400 })
     await expect(
       consentService.setConsent(owner, channel, {
         scheduledEnabled: true,
-        scheduledConsentVersion: 'clip-scheduled-v1',
+        scheduledConsentVersion: 'clip-scheduled-v2',
         scheduledConsentAccepted: true
       })
     ).resolves.toMatchObject({ manualEnabled: false, scheduledEnabled: true })
@@ -82,8 +96,18 @@ test('production SQL isolates owners, deduplicates, cancels pending work and nev
     expect(scheduledOnly.consent).toMatchObject({
       manualEnabled: false,
       scheduledEnabled: true,
-      scheduledConsentVersion: 'clip-scheduled-v1'
+      scheduledConsentVersion: 'clip-scheduled-v2'
     })
+    await expect(
+      consentService.setConsent(owner, channel, {
+        scheduledHistoryEnabled: true,
+        scheduledHistoryConsentVersion: 'clip-history-v1',
+        scheduledHistoryConsentAccepted: true
+      })
+    ).resolves.toMatchObject({ scheduledEnabled: true, scheduledHistoryEnabled: true })
+    await expect(
+      consentService.setConsent(owner, channel, { scheduledHistoryEnabled: false })
+    ).resolves.toMatchObject({ scheduledEnabled: true, scheduledHistoryEnabled: false })
     const both = await repo.setConsent(owner, channel, true)
     expect(both.consent).toMatchObject({ manualEnabled: true, scheduledEnabled: true })
     const manualOnly = await repo.setScheduledConsent(owner, channel, false)

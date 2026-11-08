@@ -10,9 +10,13 @@ export type ClipConsent = {
   consentedAt: string | null
   revokedAt: string | null
   scheduledEnabled: boolean
-  scheduledConsentVersion: 'clip-scheduled-v1' | null
+  scheduledConsentVersion: 'clip-scheduled-v2' | null
   scheduledConsentedAt: string | null
   scheduledRevokedAt: string | null
+  scheduledHistoryEnabled: boolean
+  scheduledHistoryConsentVersion: 'clip-history-v1' | null
+  scheduledHistoryConsentedAt: string | null
+  scheduledHistoryRevokedAt: string | null
 }
 export type ClipAccess = {
   consentRevision: string | null
@@ -60,6 +64,11 @@ export type ClipRepository = {
   read: (owner: string, channel: string) => Promise<ClipAccess | null>
   setConsent: (owner: string, channel: string, enabled: boolean) => Promise<ClipAccess>
   setScheduledConsent: (owner: string, channel: string, enabled: boolean) => Promise<ClipAccess>
+  setScheduledHistoryConsent: (
+    owner: string,
+    channel: string,
+    enabled: boolean
+  ) => Promise<ClipAccess>
   insert: (
     owner: string,
     channel: string,
@@ -110,7 +119,7 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
     channel: string
   ): Promise<ClipAccess | null> {
     const rows =
-      await tx`SELECT pc.id,pc.provider_user_id,pc.status,k.*,cc.revision AS consent_revision,cc.scheduled_revision,cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at,cc.scheduled_enabled,cc.scheduled_consent_version,cc.scheduled_consented_at,cc.scheduled_revoked_at
+      await tx`SELECT pc.id,pc.provider_user_id,pc.status,k.*,cc.revision AS consent_revision,cc.scheduled_revision,cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at,cc.scheduled_enabled,cc.scheduled_consent_version,cc.scheduled_consented_at,cc.scheduled_revoked_at,cc.scheduled_history_enabled,cc.scheduled_history_consent_version,cc.scheduled_history_consented_at,cc.scheduled_history_revoked_at
       FROM public.channels c JOIN public.provider_connections pc ON pc.id=c.connection_id
       LEFT JOIN private.provider_credentials k ON k.connection_id=pc.id
       LEFT JOIN private.clip_processing_consents cc ON cc.channel_id=c.id
@@ -144,7 +153,11 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
         scheduledEnabled: r.scheduled_enabled ?? false,
         scheduledConsentVersion: r.scheduled_consent_version ?? null,
         scheduledConsentedAt: r.scheduled_consented_at?.toISOString() ?? null,
-        scheduledRevokedAt: r.scheduled_revoked_at?.toISOString() ?? null
+        scheduledRevokedAt: r.scheduled_revoked_at?.toISOString() ?? null,
+        scheduledHistoryEnabled: r.scheduled_history_enabled ?? false,
+        scheduledHistoryConsentVersion: r.scheduled_history_consent_version ?? null,
+        scheduledHistoryConsentedAt: r.scheduled_history_consented_at?.toISOString() ?? null,
+        scheduledHistoryRevokedAt: r.scheduled_history_revoked_at?.toISOString() ?? null
       }
     }
   }
@@ -287,13 +300,34 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
             throw new FoundationError(403)
         }
         await tx`INSERT INTO private.clip_processing_consents(channel_id,consent_version,consented_at,revoked_at,manual_enabled,scheduled_enabled,scheduled_consent_version,scheduled_consented_at,scheduled_revoked_at)
-        VALUES (${channel},'clip-processing-v1',now(),now(),false,${enabled},CASE WHEN ${enabled} THEN 'clip-scheduled-v1' ELSE NULL END,CASE WHEN ${enabled} THEN now() ELSE NULL END,CASE WHEN ${enabled} THEN NULL ELSE now() END)
+        VALUES (${channel},'clip-processing-v1',now(),now(),false,${enabled},CASE WHEN ${enabled} THEN 'clip-scheduled-v2' ELSE NULL END,CASE WHEN ${enabled} THEN now() ELSE NULL END,CASE WHEN ${enabled} THEN NULL ELSE now() END)
         ON CONFLICT(channel_id) DO UPDATE SET
           scheduled_enabled=${enabled},
-          scheduled_consent_version=CASE WHEN ${enabled} THEN 'clip-scheduled-v1' ELSE private.clip_processing_consents.scheduled_consent_version END,
+          scheduled_history_enabled=false,
+          scheduled_history_revoked_at=CASE WHEN private.clip_processing_consents.scheduled_history_enabled THEN now() ELSE private.clip_processing_consents.scheduled_history_revoked_at END,
+          scheduled_consent_version=CASE WHEN ${enabled} THEN 'clip-scheduled-v2' ELSE private.clip_processing_consents.scheduled_consent_version END,
           scheduled_consented_at=CASE WHEN ${enabled} THEN now() ELSE private.clip_processing_consents.scheduled_consented_at END,
           scheduled_revoked_at=CASE WHEN ${enabled} THEN NULL ELSE now() END,
           scheduled_revision=gen_random_uuid()`
+        return (await read(tx, owner, channel))!
+      }),
+    setScheduledHistoryConsent: (owner, channel, enabled) =>
+      authorized(owner, async (tx) => {
+        const access = await read(tx, owner, channel)
+        if (!access || !access.consent.scheduledEnabled) throw new FoundationError(403)
+        await tx`UPDATE private.clip_processing_consents SET
+          scheduled_history_enabled=${enabled},
+          scheduled_history_consent_version=CASE WHEN ${enabled} THEN 'clip-history-v1' ELSE scheduled_history_consent_version END,
+          scheduled_history_consented_at=CASE WHEN ${enabled} THEN now() ELSE scheduled_history_consented_at END,
+          scheduled_history_revoked_at=CASE WHEN ${enabled} THEN NULL ELSE now() END,
+          scheduled_revision=gen_random_uuid()
+          WHERE channel_id=${channel}`
+        if (enabled)
+          await tx`INSERT INTO private.clip_discovery_state(channel_id,phase)
+          VALUES (${channel},'backfill')
+          ON CONFLICT(channel_id) DO UPDATE SET phase='backfill',window_started_at=NULL,
+            window_ended_at=NULL,pagination_cursor=NULL,pending_windows='[]'::jsonb,
+            items_in_window=0,completed_at=NULL,lease_until=NULL,updated_at=now()`
         return (await read(tx, owner, channel))!
       }),
     insert: (owner, channel, clip, previous) =>

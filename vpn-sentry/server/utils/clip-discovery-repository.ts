@@ -50,7 +50,7 @@ export function createClipDiscoveryRepository(sql: postgres.Sql): ClipDiscoveryR
           ON CONFLICT(channel_id) DO NOTHING`
         const rows =
           await tx`SELECT c.owner_id,c.id AS channel_id,pc.id AS connection_id,pc.provider_user_id,pc.status,k.*,cc.revision AS consent_revision,cc.scheduled_revision,
-            cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at,cc.scheduled_enabled,cc.scheduled_consent_version,cc.scheduled_consented_at,cc.scheduled_revoked_at,
+            cc.manual_enabled,cc.consent_version,cc.consented_at,cc.revoked_at,cc.scheduled_enabled,cc.scheduled_consent_version,cc.scheduled_consented_at,cc.scheduled_revoked_at,cc.scheduled_history_enabled,cc.scheduled_history_consent_version,cc.scheduled_history_consented_at,cc.scheduled_history_revoked_at,
             ds.phase,ds.window_started_at,ds.window_ended_at,ds.pagination_cursor,ds.pending_windows,ds.items_in_window,ds.completed_at
           FROM private.clip_discovery_state ds
           JOIN public.channels c ON c.id=ds.channel_id
@@ -91,7 +91,11 @@ export function createClipDiscoveryRepository(sql: postgres.Sql): ClipDiscoveryR
               scheduledEnabled: r.scheduled_enabled,
               scheduledConsentVersion: r.scheduled_consent_version,
               scheduledConsentedAt: r.scheduled_consented_at?.toISOString() ?? null,
-              scheduledRevokedAt: r.scheduled_revoked_at?.toISOString() ?? null
+              scheduledRevokedAt: r.scheduled_revoked_at?.toISOString() ?? null,
+              scheduledHistoryEnabled: r.scheduled_history_enabled,
+              scheduledHistoryConsentVersion: r.scheduled_history_consent_version ?? null,
+              scheduledHistoryConsentedAt: r.scheduled_history_consented_at?.toISOString() ?? null,
+              scheduledHistoryRevokedAt: r.scheduled_history_revoked_at?.toISOString() ?? null
             }
           },
           phase: r.phase,

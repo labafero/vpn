@@ -815,6 +815,10 @@ components:
           scheduledConsentVersion,
           scheduledConsentedAt,
           scheduledRevokedAt,
+          scheduledHistoryEnabled,
+          scheduledHistoryConsentVersion,
+          scheduledHistoryConsentedAt,
+          scheduledHistoryRevokedAt,
           canDownload
         ]
       properties:
@@ -823,9 +827,13 @@ components:
         consentedAt: { type: [string, 'null'], format: date-time }
         revokedAt: { type: [string, 'null'], format: date-time }
         scheduledEnabled: { type: boolean }
-        scheduledConsentVersion: { type: [string, 'null'], enum: [clip-scheduled-v1, null] }
+        scheduledConsentVersion: { type: [string, 'null'], enum: [clip-scheduled-v2, null] }
         scheduledConsentedAt: { type: [string, 'null'], format: date-time }
         scheduledRevokedAt: { type: [string, 'null'], format: date-time }
+        scheduledHistoryEnabled: { type: boolean }
+        scheduledHistoryConsentVersion: { type: [string, 'null'], enum: [clip-history-v1, null] }
+        scheduledHistoryConsentedAt: { type: [string, 'null'], format: date-time }
+        scheduledHistoryRevokedAt: { type: [string, 'null'], format: date-time }
         canDownload: { type: boolean }
     ClipConsentRequest:
       oneOf:
@@ -846,13 +854,30 @@ components:
           required: [scheduledEnabled, scheduledConsentVersion, scheduledConsentAccepted]
           properties:
             scheduledEnabled: { type: boolean, const: true }
-            scheduledConsentVersion: { type: string, const: clip-scheduled-v1 }
+            scheduledConsentVersion: { type: string, const: clip-scheduled-v2 }
             scheduledConsentAccepted: { type: boolean, const: true }
         - type: object
           additionalProperties: false
           required: [scheduledEnabled]
           properties:
             scheduledEnabled: { type: boolean, const: false }
+        - type: object
+          additionalProperties: false
+          required:
+            [
+              scheduledHistoryEnabled,
+              scheduledHistoryConsentVersion,
+              scheduledHistoryConsentAccepted
+            ]
+          properties:
+            scheduledHistoryEnabled: { type: boolean, const: true }
+            scheduledHistoryConsentVersion: { type: string, const: clip-history-v1 }
+            scheduledHistoryConsentAccepted: { type: boolean, const: true }
+        - type: object
+          additionalProperties: false
+          required: [scheduledHistoryEnabled]
+          properties:
+            scheduledHistoryEnabled: { type: boolean, const: false }
     ClipTriggerPhrase:
       type: object
       additionalProperties: false

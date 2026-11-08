@@ -41,10 +41,11 @@ Variáveis privadas ficam somente no projeto Sentry:
 - `NUXT_TWITCH_CRON_SECRET` para validação agendada de credenciais Twitch.
 - `NUXT_CLIP_WORKER_SECRET` para autenticar o worker de clips.
 - `NUXT_CLIP_DEBUG` habilita eventos diagnósticos adicionais e sanitizados para
-  download de clips (`true` para habilitar; padrão `false`). Falhas sempre
-  incluem um `diagnosticCode` seguro. O modo detalhado registra apenas a variante
-  escolhida e se cada URL de download estava disponível; nunca registra URLs,
-  tokens, respostas brutas ou mídia.
+  descoberta, download e transcrição de clips (`true` para habilitar; padrão
+  `false`). Falhas sempre incluem um `diagnosticCode` seguro. O modo detalhado
+  registra janelas e contagens, variante de download e tamanho da mídia; nunca
+  registra URLs, tokens, respostas brutas, mídia ou transcrições. Na Vercel, a
+  nova variável requer outro deploy para entrar em vigor.
 - `NUXT_OPENAI_API_KEY` é opcional e central. Quando configurada, é usada antes
   da chave OpenAI individual do dono; a chave individual é cifrada no schema
   `private` e não é devolvida pela API.
