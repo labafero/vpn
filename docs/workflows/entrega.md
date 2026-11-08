@@ -6,7 +6,7 @@ Rotina para agentes trabalhando neste repositório. Preservar o objetivo e as au
 
 Ler AGENTS.md, o PRD do app em `docs/product/`, ADRs relevantes em `docs/adr/`, `PRD.md` geral quando o escopo cruzar apps, `DESIGN.md` para mudanças visuais e o estado operacional atual em `docs/operations/`. Consultar branch, worktree, diff, PR e CI. Identificar a primeira etapa incompleta. Não refazer decisões ou implementação já aprovadas. Aplicar skills relevantes e usar planejamento proporcional à mudança.
 
-Mudanças complexas podem usar um plano de execução curto com resultado observável, limites, dependências, critérios e destino. Plano não é fonte durável de produto ou arquitetura: ao concluir a entrega, atualizar PRD/ADR para comportamento e decisões; verificações ficam nos testes, CI e PR. Remover o plano concluído. Distinguir aprovação de código, push, preview, merge e produção; uma autorização não implica as demais.
+Mudanças complexas podem usar um plano de execução curto com resultado observável, limites, dependências, critérios e destino. Plano não é fonte durável de produto ou arquitetura: ao concluir a entrega, atualizar PRD/ADR para comportamento e decisões; verificações ficam nos testes, CI e PR. Remover o plano concluído.
 
 Para preparar máquina/acessos, usar [preparar ambiente](preparar-ambiente.md) via `vpn-environment`. Para preview em PR, produção ou acompanhamento de deploy existente, usar [publicação](publicacao.md) via `vpn-release`. Esses procedimentos detalham a execução sem substituir as autorizações e evidências deste fluxo.
 
