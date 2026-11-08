@@ -2,6 +2,7 @@ import { ClipProcessingFailure, type ClipTranscriptSegment } from './clip-proces
 import { logClipStage, type ClipStageEvent } from './clip-logging'
 
 export const MAX_TRANSCRIPTION_BYTES = 25 * 1024 * 1024
+const TRANSCRIPTION_MODEL = 'whisper-1'
 
 function providerError(response: Response) {
   const code = (value: unknown) =>
@@ -48,16 +49,17 @@ export function createOpenAiTranscriber(
       new Blob([audioCopy.buffer as ArrayBuffer], { type: 'video/mp4' }),
       'clip.mp4'
     )
-    form.append('model', 'gpt-transcribe')
+    form.append('model', TRANSCRIPTION_MODEL)
     form.append('response_format', 'verbose_json')
     form.append('timestamp_granularities[]', 'segment')
-    form.append('languages[]', 'pt')
+    form.append('language', 'pt')
 
     const startedAt = Date.now()
     logEvent({
       event: 'clip.stage',
       stage: 'openai_transcription',
       outcome: 'started',
+      model: TRANSCRIPTION_MODEL,
       ...context
     })
     let response: Response
@@ -73,6 +75,7 @@ export function createOpenAiTranscriber(
         event: 'clip.stage',
         stage: 'openai_transcription',
         outcome: 'failed',
+        model: TRANSCRIPTION_MODEL,
         ...context,
         failureCode: 'transcription_failed',
         durationMs: Date.now() - startedAt
@@ -98,6 +101,7 @@ export function createOpenAiTranscriber(
         event: 'clip.stage',
         stage: 'openai_transcription',
         outcome: 'failed',
+        model: TRANSCRIPTION_MODEL,
         ...context,
         ...details,
         failureCode,
@@ -114,6 +118,7 @@ export function createOpenAiTranscriber(
         event: 'clip.stage',
         stage: 'openai_transcription',
         outcome: 'failed',
+        model: TRANSCRIPTION_MODEL,
         ...context,
         httpStatus: response.status,
         failureCode: 'transcription_failed',
@@ -126,6 +131,7 @@ export function createOpenAiTranscriber(
         event: 'clip.stage',
         stage: 'openai_transcription',
         outcome: 'failed',
+        model: TRANSCRIPTION_MODEL,
         ...context,
         httpStatus: response.status,
         failureCode: 'transcription_failed',
@@ -153,6 +159,7 @@ export function createOpenAiTranscriber(
       event: 'clip.stage',
       stage: 'openai_transcription',
       outcome: 'succeeded',
+      model: TRANSCRIPTION_MODEL,
       ...context,
       httpStatus: response.status,
       durationMs: Date.now() - startedAt

@@ -13,6 +13,7 @@ export type ClipStageEvent = {
   clipId?: string
   attempt?: number
   keySource?: 'system' | 'owner'
+  model?: string
   httpStatus?: number
   providerCode?: string
   providerType?: string
