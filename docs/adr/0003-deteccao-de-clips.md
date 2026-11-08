@@ -33,8 +33,9 @@
 - O dono configura frases-gatilho por canal; não há frases padrão. Cada job usa
   um snapshot das frases habilitadas e cada detecção preserva o ID, a versão e o
   texto daquela configuração, sem reescrever evidências após edições.
-- A descoberta consulta periodicamente clips históricos e novos com consentimento
-  `clip-scheduled-v1`; o backfill é retomável e separado da fila de análise.
+- A descoberta futura começa no consentimento `clip-scheduled-v2`. O backfill
+  histórico só começa com opt-in separado `clip-history-v1`, cobre a criação do
+  canal Twitch até esse opt-in, é retomável e separado da fila de análise.
 - A execução é restrita ao dono do canal e aos limites configurados na Vercel. O consumo da
   chave central fica na conta do projeto; o consumo da chave pessoal fica na
   conta do usuário.

@@ -6,6 +6,7 @@ import type {
 } from './clip-discovery-repository'
 import type { ClipMetadata } from './twitch-clips'
 import { requireScheduledClipAccess } from './clip-ingestion'
+import { logClipDebug } from './clip-logging'
 
 export type ClipDiscoveryGateway = {
   listByBroadcaster(input: {
@@ -35,22 +36,44 @@ export function createClipDiscoveryService(
       if (!claim) return { phase: 'idle', discovered: 0, complete: false }
       requireScheduledClipAccess(claim.access)
       const currentTime = now().toISOString()
+      logClipDebug({
+        stage: 'clip_discovery',
+        outcome: 'started',
+        diagnosticCode: claim.access.consent.scheduledHistoryEnabled
+          ? 'history_opt_in'
+          : 'future_only'
+      })
       if (!claim.startedAt || !claim.endedAt) {
-        if (claim.phase === 'backfill') {
+        const historyConsentAt = claim.access.consent.scheduledHistoryConsentedAt
+        if (
+          claim.access.consent.scheduledHistoryEnabled &&
+          historyConsentAt &&
+          claim.phase === 'backfill'
+        ) {
           const createdAt = await gateway.getBroadcasterCreatedAt(claim.access)
           const startedAt = new Date(
             Math.min(Date.parse(createdAt), Date.parse(currentTime) - 1000)
           ).toISOString()
-          await repository.initialize(claim, { startedAt, endedAt: currentTime })
+          await repository.initialize(claim, {
+            startedAt,
+            endedAt: new Date(
+              Math.min(Date.parse(historyConsentAt), Date.parse(currentTime))
+            ).toISOString()
+          })
           return { phase: 'backfill', discovered: 0, complete: false }
         }
         const incrementalFloor = Date.parse(currentTime) - 7 * 86400000
+        const lowerBound = claim.completedAt
+          ? Math.min(Date.parse(claim.completedAt), incrementalFloor)
+          : Date.parse(claim.access.consent.scheduledConsentedAt ?? currentTime)
+        const consentFloor = Math.max(
+          Date.parse(claim.access.consent.scheduledConsentedAt ?? currentTime),
+          claim.access.consent.scheduledHistoryRevokedAt
+            ? Date.parse(claim.access.consent.scheduledHistoryRevokedAt)
+            : Number.NEGATIVE_INFINITY
+        )
         await repository.initialize(claim, {
-          startedAt: new Date(
-            claim.completedAt
-              ? Math.min(Date.parse(claim.completedAt), incrementalFloor)
-              : incrementalFloor
-          ).toISOString(),
+          startedAt: new Date(Math.max(lowerBound, consentFloor)).toISOString(),
           endedAt: currentTime
         })
         return { phase: 'incremental', discovered: 0, complete: false }
@@ -61,6 +84,15 @@ export function createClipDiscoveryService(
         startedAt: claim.startedAt,
         endedAt: claim.endedAt,
         after: claim.cursor
+      })
+      logClipDebug({
+        stage: 'clip_discovery',
+        outcome: 'succeeded',
+        diagnosticCode: claim.phase,
+        startedAt: claim.startedAt,
+        endedAt: claim.endedAt,
+        resultCount: page.items.length,
+        cursorPresent: Boolean(page.cursor)
       })
       const itemCount = claim.itemsInWindow + page.items.length
       let next: ClipDiscoveryState

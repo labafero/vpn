@@ -23,9 +23,10 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
   e ao período autorizado pelo dono.
 - Submeter manualmente URL de clip do canal vinculado, com autorização
   incremental `clip_download` e apresentação clara de finalidade e consentimento.
-- Ativar consentimento agendado `clip-scheduled-v1`, separado do envio manual,
-  para importar clips históricos disponíveis e descobrir novos clips do canal
-  conectado. A tela de clips apresenta estado, modo de captura e paginação.
+- Ativar captura futura `clip-scheduled-v2`, separada do envio manual. A
+  importação histórica exige uma autorização adicional e opcional (`clip-history-v1`);
+  sem ela, consultas começam no momento da autorização futura. A tela informa
+  que o histórico autorizado vai da criação do canal Twitch até o opt-in.
 - Configurar frases-gatilho por canal, ativar/desativar e editar regras. A página
   de detalhe do clip apresenta metadados, origem e timestamps das evidências;
   cada detecção preserva a versão da frase usada.

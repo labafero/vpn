@@ -34,7 +34,7 @@ Twitch é uma vinculação a uma conta VPN autenticada por Supabase, não um mé
 - `public.channels`: um canal por conexão, dono consistente com ela, monitoramento desabilitado.
 - `private.provider_credentials`: tokens cifrados AES-256-GCM, IV/tag, versão da chave, validade, última validação e prazo de revogação. Schema fora da Data API.
 - `private.oauth_transactions`: hashes de state/nonce, dono, consentimento, validade de dez minutos e consumo atômico.
-- `private.clip_processing_consents`: consentimentos `clip-processing-v1` para envio manual e `clip-scheduled-v1` para consulta/importação histórica e futura, download e análise. Revisões e revogações são independentes.
+- `private.clip_processing_consents`: consentimentos `clip-processing-v1` para envio manual, `clip-scheduled-v2` para captura futura e `clip-history-v1` para consulta histórica opcional. Revisões e revogações são independentes.
 - `private.clip_submissions`: URL canônica, ID e metadados permitidos da Twitch, canal dono, modo de captura, estado, tentativas e lease do worker; aprovação de evidência registra horário e autor. Somente `vpn_sentry` lê ou escreve. Não armazena áudio, vídeo ou transcrição integral.
 - `private.clip_detections`: frase/versionamento, origem e timestamps mínimos por submissão; somente `vpn_sentry` lê ou escreve.
 - `private.clip_discovery_state`: fase backfill/incremental, janelas, cursor de página, lease e conclusão para retomada idempotente. `private.clip_trigger_phrases` guarda regras configuráveis e versões por canal. Ambas são inacessíveis aos papéis de browser.

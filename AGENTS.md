@@ -19,6 +19,10 @@ pnpm typecheck     # typecheck de todos os workspaces
 
 Pipeline de CI: `lint → format:check → typecheck → contracts:check → test:foundation → build`, além do job de banco isolado.
 
+## Estado atual do produto
+
+O VPN é um protótipo. Atualmente, sou o único usuário; não há clientes nem outros usuários usando o sistema. Ao planejar mudanças, considere esse estado real e não acrescente compatibilidade para usuários hipotéticos sem uma necessidade concreta. Avalie o impacto sobre a conta e os dados existentes do usuário atual; mantenha os requisitos de consentimento, segurança e retenção.
+
 ## Arquitetura
 
 **Monorepo pnpm** com quatro projetos Nuxt 4 (incluindo o site institucional vpn-site) e pacotes compartilhados. `vpn-news` usa a convenção de diretório `app/`; backend e Auth são Supabase. UI usa Nuxt UI v4 + Tailwind CSS v4. Validação de formulários usa valibot.

@@ -12,6 +12,7 @@ const channels = ref<MonitoringChannel[]>([])
 const clips = ref<ClipSubmissionRecord[]>([])
 const clipConsent = ref<ClipConsent | null>(null)
 const scheduledAccepted = ref(false)
+const historyAccepted = ref(false)
 const nextCursor = ref<string | null>(null)
 const loadedCursors = ref<string[]>([])
 const loadingMore = ref(false)
@@ -146,7 +147,7 @@ async function setScheduledConsent(enabled: boolean) {
         body: enabled
           ? {
               scheduledEnabled: true,
-              scheduledConsentVersion: 'clip-scheduled-v1',
+              scheduledConsentVersion: 'clip-scheduled-v2',
               scheduledConsentAccepted: true
             }
           : { scheduledEnabled: false }
@@ -155,11 +156,41 @@ async function setScheduledConsent(enabled: boolean) {
     scheduledAccepted.value = false
     await refresh()
     notice.value = enabled
-      ? 'Captura agendada ativada. A importação do histórico começou e continuará em segundo plano.'
+      ? 'Captura futura ativada. Clips novos serão consultados periodicamente.'
       : 'Captura agendada desativada. Novas consultas foram interrompidas.'
   } catch {
     errorMessage.value =
       'Não foi possível atualizar a captura agendada. Confira a permissão Twitch e tente novamente.'
+  }
+}
+
+async function setScheduledHistoryConsent(enabled: boolean) {
+  const channel = channels.value[0]
+  if (!channel || !clipConsent.value || (enabled && !historyAccepted.value)) return
+  errorMessage.value = ''
+  notice.value = ''
+  try {
+    clipConsent.value = await $fetch<ClipConsent>(
+      `/api/sentry/channels/${channel.id}/clip-consent`,
+      {
+        method: 'PATCH',
+        headers: { 'X-VPN-CSRF': '1' },
+        body: enabled
+          ? {
+              scheduledHistoryEnabled: true,
+              scheduledHistoryConsentVersion: 'clip-history-v1',
+              scheduledHistoryConsentAccepted: true
+            }
+          : { scheduledHistoryEnabled: false }
+      }
+    )
+    historyAccepted.value = false
+    await refresh()
+    notice.value = enabled
+      ? 'A importação histórica começou. O escopo vai da criação do canal Twitch até esta autorização.'
+      : 'Importação histórica interrompida. A captura futura continua ativa.'
+  } catch {
+    errorMessage.value = 'Não foi possível atualizar a importação histórica. Tente novamente.'
   }
 }
 
@@ -315,11 +346,10 @@ async function removeOpenAiKey() {
       >
         <div class="space-y-4">
           <div>
-            <h2 class="text-lg font-semibold">Captura agendada e histórico</h2>
+            <h2 class="text-lg font-semibold">Captura agendada</h2>
             <p class="mt-1 text-sm text-muted">
-              Com sua autorização, o sistema importa clips já existentes do canal conectado e
-              procura novos clips periodicamente. Os metadados ficam disponíveis para análise; mídia
-              e transcrição integral são temporárias.
+              A captura futura consulta periodicamente clips novos. Os metadados ficam disponíveis
+              para análise; mídia e transcrição integral são temporárias.
             </p>
           </div>
           <UAlert
@@ -332,8 +362,8 @@ async function removeOpenAiKey() {
             v-if="!clipConsent.scheduledEnabled"
             v-model="scheduledAccepted"
             :disabled="!clipConsent.canDownload"
-            label="Autorizo a consulta automática e importação do histórico de clips (clip-scheduled-v1)."
-            description="Esta autorização inclui clips anteriores e futuros do canal conectado e pode ser revogada a qualquer momento."
+            label="Autorizo a captura futura de clips (clip-scheduled-v2)."
+            description="A captura começa nesta autorização e não consulta clips anteriores."
           />
           <div class="flex flex-wrap gap-3">
             <UButton
@@ -349,7 +379,7 @@ async function removeOpenAiKey() {
               :disabled="!scheduledAccepted"
               @click="setScheduledConsent(true)"
             >
-              Ativar captura e importar histórico
+              Ativar captura futura
             </UButton>
             <UButton
               v-else
@@ -364,6 +394,44 @@ async function removeOpenAiKey() {
             >
               Captura agendada ativa
             </UBadge>
+          </div>
+          <div
+            v-if="clipConsent.scheduledEnabled"
+            class="space-y-3 border-t border-default pt-4"
+          >
+            <h3 class="font-medium">Importação histórica (opcional)</h3>
+            <p class="text-sm text-muted">
+              Se autorizada, consulta clips desde a criação do canal Twitch até o momento desta
+              autorização. A captura futura continua ativa se você recusar ou revogar esta opção.
+            </p>
+            <UCheckbox
+              v-if="!clipConsent.scheduledHistoryEnabled"
+              v-model="historyAccepted"
+              label="Autorizo consultar e importar clips históricos (clip-history-v1)."
+            />
+            <div class="flex flex-wrap items-center gap-3">
+              <UButton
+                v-if="!clipConsent.scheduledHistoryEnabled"
+                :disabled="!historyAccepted"
+                @click="setScheduledHistoryConsent(true)"
+              >
+                Autorizar importação histórica
+              </UButton>
+              <UButton
+                v-else
+                color="error"
+                variant="outline"
+                @click="setScheduledHistoryConsent(false)"
+              >
+                Interromper importação histórica
+              </UButton>
+              <UBadge
+                v-if="clipConsent.scheduledHistoryEnabled"
+                color="success"
+              >
+                Importação histórica autorizada
+              </UBadge>
+            </div>
           </div>
         </div>
       </UCard>

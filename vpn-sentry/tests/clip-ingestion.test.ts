@@ -19,7 +19,15 @@ beforeEach(() => {
       manualEnabled: true,
       consentVersion: 'clip-processing-v1',
       consentedAt: '2026-10-18T00:00:00Z',
-      revokedAt: null
+      revokedAt: null,
+      scheduledEnabled: false,
+      scheduledConsentVersion: null,
+      scheduledConsentedAt: null,
+      scheduledRevokedAt: null,
+      scheduledHistoryEnabled: false,
+      scheduledHistoryConsentVersion: null,
+      scheduledHistoryConsentedAt: null,
+      scheduledHistoryRevokedAt: null
     }
   }
   saved = new Map()
@@ -34,6 +42,18 @@ beforeEach(() => {
       owner === 'owner' && channel === 'channel' ? structuredClone(access) : null,
     setConsent: async (_owner, _channel, enabled) => {
       access.consent.manualEnabled = enabled
+      return structuredClone(access)
+    },
+    setScheduledConsent: async (_owner, _channel, enabled) => {
+      access.consent.scheduledEnabled = enabled
+      access.consent.scheduledConsentVersion = enabled ? 'clip-scheduled-v2' : null
+      return structuredClone(access)
+    },
+    setScheduledHistoryConsent: async (_owner, _channel, enabled) => {
+      access.consent.scheduledHistoryEnabled = enabled
+      access.consent.scheduledHistoryConsentVersion = enabled
+        ? 'clip-history-v1'
+        : access.consent.scheduledHistoryConsentVersion
       return structuredClone(access)
     },
     insert: async (_owner, _channel, metadata) => {

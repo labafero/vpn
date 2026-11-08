@@ -1,5 +1,5 @@
 import { ClipProcessingFailure, type ClipTranscriptSegment } from './clip-processing'
-import { logClipStage, type ClipStageEvent } from './clip-logging'
+import { logClipDebug, logClipStage, type ClipStageEvent } from './clip-logging'
 
 export const MAX_TRANSCRIPTION_BYTES = 25 * 1024 * 1024
 const TRANSCRIPTION_MODEL = 'whisper-1'
@@ -55,6 +55,13 @@ export function createOpenAiTranscriber(
     form.append('language', 'pt')
 
     const startedAt = Date.now()
+    logClipDebug({
+      stage: 'openai_transcription',
+      outcome: 'started',
+      model: TRANSCRIPTION_MODEL,
+      audioBytes: audio.byteLength,
+      ...context
+    })
     logEvent({
       event: 'clip.stage',
       stage: 'openai_transcription',
@@ -163,6 +170,15 @@ export function createOpenAiTranscriber(
       ...context,
       httpStatus: response.status,
       durationMs: Date.now() - startedAt
+    })
+    logClipDebug({
+      stage: 'openai_transcription',
+      outcome: 'succeeded',
+      model: TRANSCRIPTION_MODEL,
+      httpStatus: response.status,
+      durationMs: Date.now() - startedAt,
+      segmentCount: segments.length,
+      ...context
     })
     return segments
   }

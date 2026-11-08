@@ -390,11 +390,18 @@ export interface components {
             revokedAt: string | null;
             scheduledEnabled: boolean;
             /** @enum {string|null} */
-            scheduledConsentVersion: "clip-scheduled-v1" | null;
+            scheduledConsentVersion: "clip-scheduled-v2" | null;
             /** Format: date-time */
             scheduledConsentedAt: string | null;
             /** Format: date-time */
             scheduledRevokedAt: string | null;
+            scheduledHistoryEnabled: boolean;
+            /** @enum {string|null} */
+            scheduledHistoryConsentVersion: "clip-history-v1" | null;
+            /** Format: date-time */
+            scheduledHistoryConsentedAt: string | null;
+            /** Format: date-time */
+            scheduledHistoryRevokedAt: string | null;
             canDownload: boolean;
         };
         ClipConsentRequest: {
@@ -411,12 +418,22 @@ export interface components {
             /** @constant */
             scheduledEnabled: true;
             /** @constant */
-            scheduledConsentVersion: "clip-scheduled-v1";
+            scheduledConsentVersion: "clip-scheduled-v2";
             /** @constant */
             scheduledConsentAccepted: true;
         } | {
             /** @constant */
             scheduledEnabled: false;
+        } | {
+            /** @constant */
+            scheduledHistoryEnabled: true;
+            /** @constant */
+            scheduledHistoryConsentVersion: "clip-history-v1";
+            /** @constant */
+            scheduledHistoryConsentAccepted: true;
+        } | {
+            /** @constant */
+            scheduledHistoryEnabled: false;
         };
         ClipTriggerPhrase: {
             /** Format: uuid */

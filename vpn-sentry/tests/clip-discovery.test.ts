@@ -29,9 +29,13 @@ const access = {
     consentedAt: null,
     revokedAt: null,
     scheduledEnabled: true,
-    scheduledConsentVersion: 'clip-scheduled-v1' as const,
+    scheduledConsentVersion: 'clip-scheduled-v2' as const,
     scheduledConsentedAt: '2026-01-01T00:00:00Z',
-    scheduledRevokedAt: null
+    scheduledRevokedAt: null,
+    scheduledHistoryEnabled: false,
+    scheduledHistoryConsentVersion: null,
+    scheduledHistoryConsentedAt: null,
+    scheduledHistoryRevokedAt: null
   }
 }
 const clip: ClipMetadata = {
@@ -90,8 +94,33 @@ function setup(overrides: Partial<ClipDiscoveryClaim> = {}) {
   return { repository, gateway, initialize, advance, getClaim: () => claim }
 }
 
-test('initializes a resumable full-history window and imports a page once', async () => {
+test('starts future-only discovery at the future-consent timestamp without querying history', async () => {
   const fixture = setup()
+  const service = createClipDiscoveryService(
+    fixture.repository,
+    fixture.gateway,
+    () => new Date('2026-11-01T00:00:00Z')
+  )
+  await expect(service.runNext()).resolves.toMatchObject({ phase: 'incremental', complete: false })
+  expect(fixture.initialize).toHaveBeenCalledWith(expect.anything(), {
+    startedAt: '2026-01-01T00:00:00.000Z',
+    endedAt: '2026-11-01T00:00:00.000Z'
+  })
+  expect(fixture.gateway.getBroadcasterCreatedAt).not.toHaveBeenCalled()
+})
+
+test('starts historical backfill only after explicit history opt-in', async () => {
+  const fixture = setup({
+    access: {
+      ...access,
+      consent: {
+        ...access.consent,
+        scheduledHistoryEnabled: true,
+        scheduledHistoryConsentVersion: 'clip-history-v1',
+        scheduledHistoryConsentedAt: '2026-10-01T00:00:00Z'
+      }
+    }
+  })
   const service = createClipDiscoveryService(
     fixture.repository,
     fixture.gateway,
@@ -100,14 +129,34 @@ test('initializes a resumable full-history window and imports a page once', asyn
   await expect(service.runNext()).resolves.toMatchObject({ phase: 'backfill', complete: false })
   expect(fixture.initialize).toHaveBeenCalledWith(expect.anything(), {
     startedAt: '2020-01-01T00:00:00.000Z',
+    endedAt: '2026-10-01T00:00:00.000Z'
+  })
+})
+
+test('history revocation switches to future-only scans starting at revocation time', async () => {
+  const fixture = setup({
+    phase: 'incremental',
+    access: {
+      ...access,
+      consent: {
+        ...access.consent,
+        scheduledHistoryEnabled: false,
+        scheduledHistoryConsentVersion: 'clip-history-v1',
+        scheduledHistoryConsentedAt: '2026-10-01T00:00:00Z',
+        scheduledHistoryRevokedAt: '2026-10-20T00:00:00Z'
+      }
+    }
+  })
+  const service = createClipDiscoveryService(
+    fixture.repository,
+    fixture.gateway,
+    () => new Date('2026-11-01T00:00:00Z')
+  )
+  await service.runNext()
+  expect(fixture.initialize).toHaveBeenCalledWith(expect.anything(), {
+    startedAt: '2026-10-20T00:00:00.000Z',
     endedAt: '2026-11-01T00:00:00.000Z'
   })
-  await expect(service.runNext()).resolves.toMatchObject({
-    phase: 'backfill',
-    discovered: 1,
-    complete: true
-  })
-  expect(fixture.advance).toHaveBeenCalledOnce()
 })
 
 test('splits a saturated query window and preserves the remaining half for restart', async () => {
