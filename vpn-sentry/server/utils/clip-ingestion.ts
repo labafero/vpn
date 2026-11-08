@@ -55,9 +55,31 @@ export function createClipIngestionService(
   repository: ClipRepository,
   fetchClip: (id: string, access: ClipAccess) => Promise<ClipMetadata>
 ) {
+  const clipStates = [
+    'pending_metadata',
+    'pending_captions',
+    'waiting_capacity',
+    'needs_trigger_phrases',
+    'needs_openai_key',
+    'processing',
+    'completed',
+    'no_match',
+    'source_unavailable',
+    'failed_retryable',
+    'failed_terminal',
+    'cancelled_consent'
+  ]
   return {
-    async list(owner: string, channel: string, cursor?: string | null) {
-      return repository.list(owner, channel, cursor)
+    async list(
+      owner: string,
+      channel: string,
+      filters: { cursor?: string | null; state?: string; captureMode?: string; title?: string } = {}
+    ) {
+      if (filters.state && !clipStates.includes(filters.state)) throw new FoundationError(400)
+      if (filters.captureMode && !['manual', 'scheduled'].includes(filters.captureMode))
+        throw new FoundationError(400)
+      if (filters.title !== undefined && filters.title.length > 200) throw new FoundationError(400)
+      return repository.list(owner, channel, filters)
     },
     async detail(owner: string, channel: string, submissionId: string) {
       if (!/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(submissionId))

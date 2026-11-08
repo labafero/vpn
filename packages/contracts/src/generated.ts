@@ -1258,6 +1258,9 @@ export interface operations {
         parameters: {
             query?: {
                 cursor?: string;
+                state?: "pending_metadata" | "pending_captions" | "waiting_capacity" | "needs_trigger_phrases" | "needs_openai_key" | "processing" | "completed" | "no_match" | "source_unavailable" | "failed_retryable" | "failed_terminal" | "cancelled_consent";
+                captureMode?: "manual" | "scheduled";
+                title?: string;
             };
             header?: never;
             path: {
