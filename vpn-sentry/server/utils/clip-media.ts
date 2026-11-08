@@ -6,6 +6,11 @@ import { ClipProcessingFailure, type ClipProcessingJob } from './clip-processing
 import { MAX_TRANSCRIPTION_BYTES } from './openai-transcriber'
 import { logClipStage, type ClipStageEvent } from './clip-logging'
 
+const TWITCH_CLIP_DOWNLOAD_HOSTS = new Set([
+  'production.assets.clips.twitchcdn.net',
+  'd1ndex63qxojbr.cloudfront.net'
+])
+
 function providerRequestId(response: Response) {
   const value = response.headers.get('x-request-id')
   return value && /^[\w.-]{1,128}$/.test(value) ? value : undefined
@@ -182,7 +187,7 @@ export function createTwitchClipDownloader(
         diagnosticCode: 'twitch_download_url_credentials_rejected',
         ...safeUrlDiagnostics
       })
-    if (mediaUrl.hostname !== 'production.assets.clips.twitchcdn.net')
+    if (!TWITCH_CLIP_DOWNLOAD_HOSTS.has(mediaUrl.hostname))
       throw new ClipProcessingFailure('clip_unavailable', false, {
         diagnosticCode: 'twitch_download_url_host_rejected',
         ...safeUrlDiagnostics
