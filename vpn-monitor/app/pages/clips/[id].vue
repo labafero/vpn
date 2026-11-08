@@ -7,6 +7,8 @@ const route = useRoute()
 const loading = ref(true)
 const errorMessage = ref('')
 const clip = ref<ClipDetail | null>(null)
+const selectedDetectionIndex = ref(0)
+const embedParent = ref('')
 const updatingApproval = ref(false)
 const retrying = ref(false)
 const retryMessage = ref('')
@@ -30,6 +32,37 @@ const statusLabels: Record<string, string> = {
 function formatTimestamp(milliseconds: number) {
   const seconds = Math.floor(milliseconds / 1000)
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+}
+
+function formatTwitchTime(seconds: number) {
+  const wholeSeconds = Math.max(0, Math.floor(seconds))
+  const hours = Math.floor(wholeSeconds / 3600)
+  const minutes = Math.floor((wholeSeconds % 3600) / 60)
+  const remainder = wholeSeconds % 60
+  return `${hours ? `${hours}h` : ''}${minutes ? `${minutes}m` : ''}${remainder}s`
+}
+
+const selectedEvidenceSeconds = computed(() => {
+  const detection = clip.value?.detections[selectedDetectionIndex.value]
+  return clip.value?.vodOffset === null || clip.value?.vodOffset === undefined
+    ? null
+    : clip.value.vodOffset + (detection?.startMs ?? 0) / 1000
+})
+const twitchPlayerUrl = computed(() => {
+  if (!clip.value?.videoId || selectedEvidenceSeconds.value === null || !embedParent.value)
+    return null
+  const url = new URL('https://player.twitch.tv/')
+  url.searchParams.set('video', `v${clip.value.videoId}`)
+  url.searchParams.set('time', formatTwitchTime(selectedEvidenceSeconds.value))
+  url.searchParams.set('autoplay', 'false')
+  url.searchParams.set('parent', embedParent.value)
+  return url.toString()
+})
+function twitchVideoUrl(startSeconds: number) {
+  if (!clip.value?.videoId) return ''
+  const url = new URL(`https://www.twitch.tv/videos/${clip.value.videoId}`)
+  url.searchParams.set('t', formatTwitchTime(startSeconds))
+  return url.toString()
 }
 
 const canRetry = computed(
@@ -170,6 +203,9 @@ async function toggleApproval() {
 }
 
 onMounted(refresh)
+onMounted(() => {
+  embedParent.value = window.location.hostname
+})
 </script>
 
 <template>
@@ -269,6 +305,28 @@ onMounted(refresh)
               </dd>
             </div>
           </dl>
+          <section class="mt-5 border-t border-default pt-4">
+            <h3 class="text-lg font-semibold">Trecho do VOD</h3>
+            <p class="mt-1 text-sm text-muted">
+              A reprodução começa sem áudio e sem reprodução automática. Use os controles do player
+              para iniciar.
+            </p>
+            <iframe
+              v-if="twitchPlayerUrl"
+              class="mt-4 aspect-video min-h-[300px] w-full min-w-[400px] rounded-lg bg-neutral-900"
+              :src="twitchPlayerUrl"
+              title="Player oficial da Twitch no trecho do VOD"
+              allowfullscreen
+            />
+            <p
+              v-else
+              role="status"
+              class="mt-4 text-sm text-muted"
+            >
+              Não é possível abrir o trecho do VOD porque o vídeo ou o offset não está disponível. O
+              link canônico do clip e os timestamps das evidências continuam disponíveis.
+            </p>
+          </section>
           <a
             class="mt-5 inline-flex min-h-11 items-center underline underline-offset-4"
             :href="clip.canonicalUrl"
@@ -365,6 +423,27 @@ onMounted(refresh)
                 {{ detection.source === 'openai' ? 'OpenAI' : 'Legendas Twitch' }}
               </UBadge>
               <span class="text-xs text-muted">Versão {{ detection.phraseVersion }}</span>
+              <div
+                v-if="clip.videoId && clip.vodOffset !== null"
+                class="flex flex-wrap items-center gap-3"
+              >
+                <UButton
+                  size="sm"
+                  variant="outline"
+                  :aria-pressed="selectedDetectionIndex === index"
+                  @click="selectedDetectionIndex = index"
+                >
+                  Carregar trecho no player
+                </UButton>
+                <a
+                  class="inline-flex min-h-11 items-center underline underline-offset-4"
+                  :href="twitchVideoUrl(clip.vodOffset + detection.startMs / 1000)"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Abrir trecho na Twitch
+                </a>
+              </div>
             </li>
           </ul>
           <p

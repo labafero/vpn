@@ -30,6 +30,14 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 - Configurar frases-gatilho por canal, ativar/desativar e editar regras. A página
   de detalhe do clip apresenta metadados, origem e timestamps das evidências;
   cada detecção preserva a versão da frase usada.
+- Consolidar `/clips` nas abas Clipes, Gatilhos, Chave OpenAI e Captura agendada
+  e histórico. A lista permite filtrar por estado e modo de captura e buscar por
+  título no conjunto completo paginado; `/clips/gatilhos` redireciona para a aba
+  correspondente.
+- Quando o detalhe do clip inclui `videoId` e `vodOffset`, apresentar o player
+  oficial da Twitch sem reprodução automática e permitir abrir cada evidência
+  no timestamp correspondente do VOD. Sem esses dados, manter o link canônico
+  do clip e os timestamps, explicando que o trecho do VOD não está disponível.
 - O detalhe do clip permite retry individual para falhas elegíveis, mostra o
   player VOD durante a busca por captions e usa OpenAI como fallback; erros de
   quota/crédito indicam que o dono deve verificar o faturamento OpenAI.
@@ -66,8 +74,9 @@ transcrever áudio é suporte técnico, não o objetivo do produto.
 - O processamento envia a mídia temporariamente para transcrição OpenAI usando
   primeiro a chave central e depois a chave pessoal do dono. Sem nenhuma chave,
   não produz resultado.
-- A tela atualiza estados periodicamente e permite carregar páginas de 50 clips;
-  a configuração de frases não altera detecções já armazenadas.
+- A tela atualiza estados periodicamente, permite carregar páginas de 50 clips e
+  aplica estado, modo de captura e busca por título antes da paginação; a
+  configuração de frases não altera detecções já armazenadas.
 - Eventos são sinais candidatos, nunca vereditos sobre intenção ou infração.
 - Respostas privadas não ficam em cache público e erros não expõem credenciais,
   códigos OAuth, transcrições integrais ou URLs temporárias.
