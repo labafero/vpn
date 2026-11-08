@@ -85,7 +85,12 @@ export class ClipProcessingFailure extends Error {
     readonly retryable = true,
     readonly diagnostics: Pick<
       ClipStageEvent,
-      'httpStatus' | 'providerCode' | 'providerType' | 'providerRequestId'
+      | 'httpStatus'
+      | 'providerCode'
+      | 'providerType'
+      | 'providerRequestId'
+      | 'diagnosticCode'
+      | 'mediaVariant'
     > = {}
   ) {
     super('O processamento do clip falhou.')

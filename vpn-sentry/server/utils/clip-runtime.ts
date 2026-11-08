@@ -47,7 +47,10 @@ export function getClipProcessingService() {
   const transcribe = createOpenAiTranscriber()
   return createClipProcessingService({
     repository: getClipProcessingRepository(),
-    download: createTwitchClipDownloader(config),
+    download: createTwitchClipDownloader({
+      ...config,
+      debug: process.env.NUXT_CLIP_DEBUG === 'true'
+    }),
     getOpenAiKey: (ownerId) =>
       resolveOpenAiApiKey(getSystemOpenAiApiKey(), () =>
         getOpenAiCredentialRepository().getForProcessing(ownerId)
