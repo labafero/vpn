@@ -159,15 +159,33 @@ export function createTwitchClipDownloader(
         mediaVariant
       })
     }
-    if (
-      mediaUrl.protocol !== 'https:' ||
-      mediaUrl.hostname !== 'production.assets.clips.twitchcdn.net' ||
-      mediaUrl.username ||
-      mediaUrl.password
-    )
+    const safeUrlDiagnostics: Pick<
+      ClipStageEvent,
+      'mediaVariant' | 'mediaHostname' | 'mediaUrlProtocol' | 'mediaUrlHasCredentials'
+    > = {
+      mediaVariant,
+      mediaHostname: /^[a-z0-9.-]{1,253}$/i.test(mediaUrl.hostname)
+        ? mediaUrl.hostname.toLowerCase()
+        : 'invalid',
+      mediaUrlProtocol: /^[a-z][a-z0-9+.-]{0,15}:$/i.test(mediaUrl.protocol)
+        ? mediaUrl.protocol.toLowerCase()
+        : 'invalid:',
+      mediaUrlHasCredentials: Boolean(mediaUrl.username || mediaUrl.password)
+    }
+    if (mediaUrl.protocol !== 'https:')
+      throw new ClipProcessingFailure('clip_unavailable', false, {
+        diagnosticCode: 'twitch_download_url_protocol_rejected',
+        ...safeUrlDiagnostics
+      })
+    if (mediaUrl.username || mediaUrl.password)
+      throw new ClipProcessingFailure('clip_unavailable', false, {
+        diagnosticCode: 'twitch_download_url_credentials_rejected',
+        ...safeUrlDiagnostics
+      })
+    if (mediaUrl.hostname !== 'production.assets.clips.twitchcdn.net')
       throw new ClipProcessingFailure('clip_unavailable', false, {
         diagnosticCode: 'twitch_download_url_host_rejected',
-        mediaVariant
+        ...safeUrlDiagnostics
       })
 
     let mediaResponse: Response

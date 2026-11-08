@@ -20,6 +20,9 @@ export type ClipStageEvent = {
   failureCode?: string
   diagnosticCode?: string
   mediaVariant?: 'landscape' | 'portrait'
+  mediaHostname?: string
+  mediaUrlProtocol?: string
+  mediaUrlHasCredentials?: boolean
   landscapeUrlAvailable?: boolean
   portraitUrlAvailable?: boolean
   durationMs?: number

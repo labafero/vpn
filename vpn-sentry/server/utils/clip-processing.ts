@@ -91,6 +91,9 @@ export class ClipProcessingFailure extends Error {
       | 'providerRequestId'
       | 'diagnosticCode'
       | 'mediaVariant'
+      | 'mediaHostname'
+      | 'mediaUrlProtocol'
+      | 'mediaUrlHasCredentials'
     > = {}
   ) {
     super('O processamento do clip falhou.')
