@@ -4,7 +4,7 @@ set -Eeuo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root"
 
-for dependency in supabase jq python3; do
+for dependency in supabase; do
   command -v "$dependency" >/dev/null || { printf 'Dependência ausente: %s\n' "$dependency" >&2; exit 1; }
 done
 
@@ -30,19 +30,18 @@ supabase db query --local --file supabase/operations/reset-prototype-data-cleanu
 supabase db query --local --file supabase/seed.sql
 supabase db query --local --file supabase/seed.sql
 
-verification_sql="SELECT
-  (SELECT count(*) FROM auth.users)=0 AS no_users,
-  (SELECT count(*) FROM public.posts)=0 AS no_posts,
-  (SELECT count(*) FROM public.city_seasons)=0 AS no_city_seasons,
-  (SELECT count(*) FROM public.market_values)=0 AS no_market_values,
-  (SELECT count(*) FROM public.city_config)=0 AS no_city_config,
-  (SELECT count(*) FROM public.market_items)=8 AS eight_catalog_items,
-  (SELECT count(*) FROM public.market_items WHERE created_by IS NULL)=8 AS all_catalog_items_are_defaults,
-  (SELECT string_agg(normalized_name, ',' ORDER BY normalized_name COLLATE \"C\") FROM public.market_items)='analgésico,apartamento padrão,auto tratamento médico,bitcoin,kit de reparo,kit médico civil,kit médico policial,tratamento médico' AS exact_catalog"
-result_json="$(supabase db query --local --output json "$verification_sql" | python3 -c 'import json,sys; s=sys.stdin.read(); i=s.find("{"); assert i >= 0, "Supabase CLI não retornou JSON"; obj,_=json.JSONDecoder().raw_decode(s[i:]); print(json.dumps(obj))')"
-if ! jq -e '.rows[0] | .no_users and .no_posts and .no_city_seasons and .no_market_values and .no_city_config and .eight_catalog_items and .all_catalog_items_are_defaults and .exact_catalog' <<<"$result_json" >/dev/null; then
-  printf 'O reset local deixou estado inesperado: %s\n' "$(jq -c '.rows[0]' <<<"$result_json")" >&2
-  exit 1
-fi
+verification_sql="DO \$\$
+BEGIN
+  IF (SELECT count(*) FROM auth.users) <> 0 THEN RAISE EXCEPTION 'Auth users remain'; END IF;
+  IF (SELECT count(*) FROM public.posts) <> 0 THEN RAISE EXCEPTION 'Posts remain'; END IF;
+  IF (SELECT count(*) FROM public.city_seasons) <> 0 THEN RAISE EXCEPTION 'City seasons remain'; END IF;
+  IF (SELECT count(*) FROM public.market_values) <> 0 THEN RAISE EXCEPTION 'Market values remain'; END IF;
+  IF (SELECT count(*) FROM public.city_config) <> 0 THEN RAISE EXCEPTION 'City configuration remains'; END IF;
+  IF (SELECT count(*) FROM public.market_items) <> 8 THEN RAISE EXCEPTION 'Expected exactly eight catalog items'; END IF;
+  IF (SELECT count(*) FROM public.market_items WHERE created_by IS NULL) <> 8 THEN RAISE EXCEPTION 'Custom market items remain'; END IF;
+  IF coalesce((SELECT string_agg(normalized_name, ',' ORDER BY normalized_name COLLATE \"C\") FROM public.market_items), '') <> 'analgésico,apartamento padrão,auto tratamento médico,bitcoin,kit de reparo,kit médico civil,kit médico policial,tratamento médico' THEN RAISE EXCEPTION 'Market catalog does not match the seed'; END IF;
+END
+\$\$;"
+supabase db query --local "$verification_sql"
 
 printf 'Reset local verificado: cidades vazias e oito itens padrão de mercado.\n'
