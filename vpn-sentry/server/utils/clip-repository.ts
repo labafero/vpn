@@ -1,4 +1,5 @@
 import type postgres from 'postgres'
+import { createHash } from 'node:crypto'
 import { FoundationError } from './api-error'
 import { getFoundationDatabase, type Credential } from './private-database'
 import { requireClipAccess, requireScheduledClipAccess } from './clip-ingestion'
@@ -84,7 +85,7 @@ export type ClipRepository = {
   list: (
     owner: string,
     channel: string,
-    cursor?: string | null
+    filters?: { cursor?: string | null; state?: string; captureMode?: string; title?: string }
   ) => Promise<{ items: ClipSubmissionRecord[]; nextCursor: string | null }>
   detail: (owner: string, channel: string, submissionId: string) => Promise<ClipSubmissionRecord>
   setEvidenceApproval: (
@@ -95,10 +96,16 @@ export type ClipRepository = {
   ) => Promise<{ approvedAt: string | null }>
 }
 export function createClipRepository(sql: postgres.Sql): ClipRepository {
-  function encodeCursor(createdAt: string, id: string) {
-    return Buffer.from(JSON.stringify({ createdAt, id })).toString('base64url')
+  type ClipListFilters = { state: string | null; captureMode: string | null; title: string | null }
+  function filterKey(filters: ClipListFilters) {
+    return createHash('sha256').update(JSON.stringify(filters)).digest('base64url')
   }
-  function decodeCursor(cursor: string | null | undefined) {
+  function encodeCursor(createdAt: string, id: string, filters: ClipListFilters) {
+    return Buffer.from(JSON.stringify({ createdAt, id, filterKey: filterKey(filters) })).toString(
+      'base64url'
+    )
+  }
+  function decodeCursor(cursor: string | null | undefined, filters: ClipListFilters) {
     if (!cursor) return null
     try {
       const value = JSON.parse(Buffer.from(cursor, 'base64url').toString())
@@ -108,7 +115,11 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
         typeof value.id !== 'string'
       )
         throw new Error()
-      return { createdAt: value.createdAt, id: value.id }
+      const defaultFilters = { state: null, captureMode: null, title: null }
+      const isLegacyDefaultCursor =
+        value.filterKey === undefined && JSON.stringify(filters) === JSON.stringify(defaultFilters)
+      if (!isLegacyDefaultCursor && value.filterKey !== filterKey(filters)) throw new Error()
+      return { createdAt: value.createdAt as string, id: value.id as string }
     } catch {
       throw new FoundationError(400)
     }
@@ -179,12 +190,17 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
         return rows[0] ? { id: rows[0].id, state: rows[0].state, duplicate: true } : null
       }),
     read: (owner, channel) => authorized(owner, (tx) => read(tx, owner, channel)),
-    list: (owner, channel, cursor) =>
+    list: (owner, channel, options = {}) =>
       authorized(owner, async (tx) => {
         const owned =
           await tx`SELECT 1 FROM public.channels WHERE id=${channel} AND owner_id=${owner}`
         if (!owned[0]) throw new FoundationError(403)
-        const decoded = decodeCursor(cursor)
+        const filters = {
+          state: options.state || null,
+          captureMode: options.captureMode || null,
+          title: options.title?.trim() || null
+        }
+        const decoded = decodeCursor(options.cursor, filters)
         const rows =
           await tx`SELECT s.id,s.twitch_clip_id,s.canonical_url,s.video_id,s.vod_offset,s.title,s.state,s.failure_code,s.received_at,s.approved_at,s.creator_id,s.created_at,s.duration_seconds,s.language,s.view_count,s.capture_mode,
           COALESCE(json_agg(json_build_object(
@@ -196,6 +212,9 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
           LEFT JOIN private.clip_detections d ON d.submission_id=s.id
           WHERE s.channel_id=${channel} AND c.owner_id=${owner}
             AND (${decoded?.createdAt ?? null}::timestamptz IS NULL OR (COALESCE(s.created_at,s.received_at),s.id) < (${decoded?.createdAt ?? null}::timestamptz,${decoded?.id ?? null}::uuid))
+            AND (${filters.state}::text IS NULL OR s.state=${filters.state})
+            AND (${filters.captureMode}::text IS NULL OR s.capture_mode=${filters.captureMode})
+            AND (${filters.title}::text IS NULL OR position(lower(${filters.title}) in lower(COALESCE(s.title,''))) > 0)
           GROUP BY s.id ORDER BY COALESCE(s.created_at,s.received_at) DESC,s.id DESC LIMIT 51`
         const hasMore = rows.length > 50
         const page = rows.slice(0, 50)
@@ -222,7 +241,7 @@ export function createClipRepository(sql: postgres.Sql): ClipRepository {
           })),
           nextCursor:
             hasMore && last
-              ? encodeCursor((last.created_at ?? last.received_at).toISOString(), last.id)
+              ? encodeCursor((last.created_at ?? last.received_at).toISOString(), last.id, filters)
               : null
         }
       }),

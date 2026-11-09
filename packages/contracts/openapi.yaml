@@ -415,6 +415,34 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: cursor, in: query, required: false, schema: { type: string, maxLength: 512 } }
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              [
+                pending_metadata,
+                pending_captions,
+                waiting_capacity,
+                needs_trigger_phrases,
+                needs_openai_key,
+                processing,
+                completed,
+                no_match,
+                source_unavailable,
+                failed_retryable,
+                failed_terminal,
+                cancelled_consent
+              ]
+        - name: captureMode
+          in: query
+          required: false
+          schema: { type: string, enum: [manual, scheduled] }
+        - name: title
+          in: query
+          required: false
+          schema: { type: string, maxLength: 200 }
       responses:
         '200':
           description: Clips e detecções mínimas do canal autorizado
