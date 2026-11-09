@@ -240,6 +240,24 @@ contratos compartilhados.
   funcionando.
 - Os consumidores usam os contratos compartilhados sem divergência de payload.
 
+## Garantia de distribuição como fork
+
+O VPN ainda é um protótipo, previsto para ser distribuído como fork deste
+repositório. Ele só estará pronto para essa distribuição depois de uma
+instalação limpa verificável: partindo de um fork GitHub novo, sem arquivos
+locais, credenciais ou projetos de serviço do mantenedor, uma pessoa deve
+conseguir seguir a documentação versionada, configurar suas próprias
+dependências e segredos, aplicar todas as migrations em um projeto Supabase
+novo, publicar os quatro aplicativos em seus próprios projetos Vercel e
+completar uma verificação mínima de autenticação e operação entre as
+superfícies.
+
+O procedimento e os pré-requisitos ficam em
+[`docs/operations/development-setup.md`](docs/operations/development-setup.md).
+Repetir a verificação completa quando mudar a preparação inicial, variáveis
+obrigatórias, migrations, autenticação ou configuração de publicação; mudanças
+comuns continuam cobertas pelos checks de CI e testes da alteração.
+
 ## Fundação detalhada
 
 Regras de acesso, consentimento e retenção: [fundação](docs/architecture/foundation.md).

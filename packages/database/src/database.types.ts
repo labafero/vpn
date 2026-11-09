@@ -144,6 +144,10 @@ export type Database = {
           scheduled_consent_version: string | null;
           scheduled_consented_at: string | null;
           scheduled_enabled: boolean;
+          scheduled_history_consent_version: string | null;
+          scheduled_history_consented_at: string | null;
+          scheduled_history_enabled: boolean;
+          scheduled_history_revoked_at: string | null;
           scheduled_revision: string;
           scheduled_revoked_at: string | null;
         };
@@ -157,6 +161,10 @@ export type Database = {
           scheduled_consent_version?: string | null;
           scheduled_consented_at?: string | null;
           scheduled_enabled?: boolean;
+          scheduled_history_consent_version?: string | null;
+          scheduled_history_consented_at?: string | null;
+          scheduled_history_enabled?: boolean;
+          scheduled_history_revoked_at?: string | null;
           scheduled_revision?: string;
           scheduled_revoked_at?: string | null;
         };
@@ -170,6 +178,10 @@ export type Database = {
           scheduled_consent_version?: string | null;
           scheduled_consented_at?: string | null;
           scheduled_enabled?: boolean;
+          scheduled_history_consent_version?: string | null;
+          scheduled_history_consented_at?: string | null;
+          scheduled_history_enabled?: boolean;
+          scheduled_history_revoked_at?: string | null;
           scheduled_revision?: string;
           scheduled_revoked_at?: string | null;
         };
@@ -177,6 +189,8 @@ export type Database = {
       };
       clip_submissions: {
         Row: {
+          approved_at: string | null;
+          approved_by: string | null;
           broadcaster_id: string | null;
           canonical_url: string;
           capture_mode: string;
@@ -188,6 +202,9 @@ export type Database = {
           finished_at: string | null;
           id: string;
           language: string | null;
+          manual_retry_consent_revision: string | null;
+          manual_retry_requested_at: string | null;
+          manual_retry_token: string | null;
           processing_attempts: number;
           processing_lease_until: string | null;
           received_at: string;
@@ -200,6 +217,8 @@ export type Database = {
           vod_offset: number | null;
         };
         Insert: {
+          approved_at?: string | null;
+          approved_by?: string | null;
           broadcaster_id?: string | null;
           canonical_url: string;
           capture_mode: string;
@@ -211,6 +230,9 @@ export type Database = {
           finished_at?: string | null;
           id?: string;
           language?: string | null;
+          manual_retry_consent_revision?: string | null;
+          manual_retry_requested_at?: string | null;
+          manual_retry_token?: string | null;
           processing_attempts?: number;
           processing_lease_until?: string | null;
           received_at?: string;
@@ -223,6 +245,8 @@ export type Database = {
           vod_offset?: number | null;
         };
         Update: {
+          approved_at?: string | null;
+          approved_by?: string | null;
           broadcaster_id?: string | null;
           canonical_url?: string;
           capture_mode?: string;
@@ -234,6 +258,9 @@ export type Database = {
           finished_at?: string | null;
           id?: string;
           language?: string | null;
+          manual_retry_consent_revision?: string | null;
+          manual_retry_requested_at?: string | null;
+          manual_retry_token?: string | null;
           processing_attempts?: number;
           processing_lease_until?: string | null;
           received_at?: string;
@@ -978,30 +1005,6 @@ export type Database = {
           revoked_at?: string | null;
           status?: string;
           user_id?: string;
-        };
-        Relationships: [];
-      };
-      server_clock: {
-        Row: {
-          brt_reference: string;
-          id: number;
-          ls_hours: number;
-          ls_minutes: number;
-          updated_at: string;
-        };
-        Insert: {
-          brt_reference?: string;
-          id?: number;
-          ls_hours?: number;
-          ls_minutes?: number;
-          updated_at?: string;
-        };
-        Update: {
-          brt_reference?: string;
-          id?: number;
-          ls_hours?: number;
-          ls_minutes?: number;
-          updated_at?: string;
         };
         Relationships: [];
       };

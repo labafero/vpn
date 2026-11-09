@@ -14,6 +14,10 @@ Para preparar máquina/acessos, usar [preparar ambiente](preparar-ambiente.md) v
 
 Consultar docs/operations/environments.md. Conferir configuração versionada, vínculos locais e nomes das variáveis privadas, sem imprimir valores. Usar CLI/API/MCP para consultar projetos, equipe, domínio, root directory, deployments e banco. Descobrir comandos pela ajuda e confirmar capacidades atuais na documentação oficial.
 
+Para limpar os dados de uma instância de protótipo e começar com outra conta,
+seguir o procedimento protegido em
+[`docs/operations/reset-prototype-data.md`](../operations/reset-prototype-data.md).
+
 Se uma CLI não estiver instalada, considerar execução pelo gerenciador de pacotes com versão fixada, API ou MCP. Falta da ferramenta local não demonstra ausência de capacidade. Diferenciar instalação ausente, sessão não autenticada, permissão insuficiente e projeto inexistente.
 
 Pedir somente o que as fontes acessíveis não resolvem: login humano, escolha entre destinos ambíguos ou ação fora do escopo autorizado. Explicar a descoberta concreta que motivou a pergunta. Nunca pedir tokens, senhas ou arquivos .env pelo chat; iniciar o fluxo oficial de autenticação. Enquanto aguarda, executar trabalho independente.

@@ -69,6 +69,9 @@ jobs:
       - name: Database policies
         if: needs.scope.outputs.sql == 'true'
         run: supabase test db
+      - name: Prototype reset operation
+        if: needs.scope.outputs.sql == 'true'
+        run: scripts/ci/test-prototype-reset.sh
       - name: Configure local public API for News prerender
         if: contains(fromJSON(needs.scope.outputs.apps), '@vpn/news')
         run: |
