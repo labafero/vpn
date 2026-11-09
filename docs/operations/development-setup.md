@@ -15,6 +15,30 @@ Exemplos de pedidos ao Codex:
 - “Use `$vpn-release` para acompanhar este deployment até conferir a interface.”
 - “Use `$vpn-release` para publicar somente o Site em produção; a versão local já está aprovada.”
 
+## Instalação limpa para distribuição como fork
+
+Antes de considerar o protótipo pronto para distribuição, validar uma
+instalação iniciada de um fork GitHub novo, em checkout isolado e sem `.env`,
+vínculos, banco, arquivos gerados ou configuração privada do mantenedor. A
+pessoa que instala deve usar suas próprias contas e credenciais.
+
+1. Seguir [preparar ambiente](../workflows/preparar-ambiente.md) e completar as
+   dependências sem passos implícitos ou arquivos exclusivos da máquina do
+   mantenedor. Documentar os pré-requisitos e nomes das variáveis exigidas nos
+   exemplos versionados; nunca registrar seus valores.
+2. Criar um projeto Supabase novo, aplicar nele todas as migrations do fork e
+   verificar que não há migrations pendentes.
+3. Vincular os quatro aplicativos a projetos Vercel próprios, configurar as
+   variáveis exigidas e publicar seguindo [publicação](../workflows/publicacao.md).
+4. Confirmar as superfícies públicas, concluir login e retorno autenticado ao
+   Monitor/News e validar uma operação autenticada do Sentry.
+
+Se algum passo depender de estado, segredo, conta ou instrução não disponível
+para quem fez o fork, a instalação ainda não passou. Repetir essa verificação
+completa quando mudar bootstrap, variáveis obrigatórias, migrations,
+autenticação ou publicação; para alterações comuns, usar os checks da CI.
+Esse é o critério de prontidão descrito no [PRD geral](../../PRD.md#garantia-de-distribuição-como-fork).
+
 As skills ficam em `.agents/skills`, dentro do repositório. O [AGENTS.md](../../AGENTS.md) também orienta seu uso. Se a lista de skills da sessão não refletir os arquivos novos, reiniciar o Codex ou seguir os links diretamente; não é necessário copiar os procedimentos para cada conversa. Referência oficial: [skills no Codex](https://learn.chatgpt.com/docs/build-skills).
 
 Fatos atuais de contas, projetos e versões estão em [ambientes](environments.md), sujeitos a revalidação. IDs de uma entrega passada não são parâmetros da próxima.
